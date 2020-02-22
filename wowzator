@@ -1,0 +1,112 @@
+#!/usr/local/bin/python
+
+import httpx
+
+class WztrMachine():
+    name=""
+    address=""
+    user=""
+    pw=""
+    
+    def __init__(self, name, address, user, pw):
+        self.name=name
+        self.address=address
+        self.user=user
+        self.pw=pw
+
+    
+    
+    def fetch(url, machine):
+        try:
+            response = httpx.get(
+                url,
+                auth=httpx.DigestAuth(
+                    machine.get('Username'),
+                    machine.get('Password'),
+
+                ),
+                timeout=httpx.Timeout(timeout=5)
+            )
+            
+            return response.text
+
+        except httpx.exceptions.ConnectTimeout:
+            print('timeout getting %s on machine %s' % (url, machine))
+            return False
+        except Exception as e:
+            print('error getting %s on machine %s' % (url, machine))
+            print(log_traceback(e))
+            return False
+    
+
+
+
+
+
+
+
+
+
+
+
+from cmd import Cmd
+import json, sys
+
+_CONFIGFILE="config.json"
+
+
+
+
+
+class WztrPrompt(Cmd):
+    prompt = 'wowzator> '
+    intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands\n"
+
+    machines = {}
+    
+    
+    try:
+        with open(_CONFIGFILE) as json_file:
+            machines_config = json.load(json_file)
+        
+            for machine_config in machines_config:
+                machine=WztrMachine(name=machine_config["name"], address=machine_config["address"], user=machine_config["user"], pw=machine_config["pw"])
+                machines[machine.name]=machine
+            
+
+    except Exception as e:
+        print(e)
+        print("Cannot open %s" % _CONFIGFILE)
+        sys.exit(-1)
+    
+    def do_exit(self, inp):
+        print('Bye')
+        return True
+    
+    do_EOF=do_exit
+
+    def do_ls(self, inp):
+        if inp == '':
+            print "Machines:"
+            for machinename in self.machines.keys():
+                print " %-20s (%s)" % (machinename, self.machines[machinename].address)
+        else:
+            pass
+    
+    def complete_ls(self, text, line, begidx, endidx):
+        
+        return [i for i in self.machines.keys() if i.startswith(text)]
+        
+    def help_ls(self):
+        print("List items and configurations")
+
+p=WztrPrompt()
+p.cmdloop()
+
+
+
+
+
+
+    
+    
