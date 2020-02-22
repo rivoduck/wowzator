@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/python3
 
 import httpx
 
@@ -87,9 +87,9 @@ class WztrPrompt(Cmd):
 
     def do_ls(self, inp):
         if inp == '':
-            print "Machines:"
+            print("Machines:")
             for machinename in self.machines.keys():
-                print " %-20s (%s)" % (machinename, self.machines[machinename].address)
+                print(" %-20s (%s)" % (machinename, self.machines[machinename].address))
         else:
             pass
     
