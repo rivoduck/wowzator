@@ -187,6 +187,7 @@ class WztrPrompt(Cmd):
         cur_l = 0
         while cur_l <= level:
             print (cur_l)
+            cur_l += 1
     
     def complete_ls(self, text, line, begidx, endidx):
         
