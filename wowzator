@@ -4,7 +4,21 @@ import httpx
 import xmltodict
 import json
 
+class WztrVhost():
+    name = ""
+    href = ""
+    connectingPort = ""
+    connectingIPAddress = ""
+    connectingSSLEnable = False
+    
+    
+    def __str__(self):
+        return self.name
+    
+    
 class WztrMachine():
+    __vhosts = None
+    
     name=""
     address=""
     user=""
@@ -58,7 +72,7 @@ class WztrMachine():
             xmlresponse,
             dict_constructor=dict,
             xml_attribs=True,
-            force_list=('VHost', 'Application', 'ApplicationInstance', 'Stream', 'MachineMonitorRequest')
+            force_list=('VHosts', 'VHost', 'Application', 'ApplicationInstance', 'Stream', 'MachineMonitorRequest')
         )
         
         return jsonresponse
@@ -66,9 +80,23 @@ class WztrMachine():
             
     
     def vhosts(self):
-        print (self.__fetchJson("/v2/servers/_defaultServer_/vhosts"))
+        # lazy-fetch vhosts
+        if self.__vhosts is None:
+            self.__vhosts=[]
+            vhosts = (self.__fetchJson("/v2/servers/_defaultServer_/vhosts"))
+            if 'VHosts' in vhosts.keys():
+                for vhost_entry in vhosts['VHosts']:
+                    vhost = vhost_entry['Vhost']
+                    newvh = WztrVhost()
+                    newvh.name = vhost['@id']
+                    newvh.href = vhost['@href']
+                    newvh.connectingIPAddress = vhost['@connectingIPAddress']
+                    newvh.connectingPort = vhost['@connectingPort']
+                    newvh.connectingSSLEnable = vhost['@connectingSSLEnable']
+                    
+                    self.__vhosts.append(newvh)
 
-
+        return self.__vhosts
 
 
 
@@ -119,7 +147,7 @@ class WztrPrompt(Cmd):
             print("Machines:")
             for machinename in self.machines.keys():
                 print(" %-20s (%s)" % (machinename, self.machines[machinename].address))
-                self.machines[machinename].vhosts()
+                print(self.machines[machinename].vhosts())
         else:
             pass
     
