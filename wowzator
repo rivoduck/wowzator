@@ -45,7 +45,7 @@ class WztrMachine():
             return False
     
     def vhosts(self):
-        print (self.__fetch(":8087/v2/servers/"))
+        print (self.__fetch(":8087/v2/servers/_defaultServer_/vhosts"))
 
 
 
