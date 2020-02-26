@@ -43,7 +43,7 @@ class WztrMachine():
             return False
         except Exception as e:
             print('error getting %s on machine %s' % (url, self))
-            print(log_traceback(e))
+            print(e)
             return False
     
     def vhosts(self):
