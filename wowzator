@@ -7,6 +7,7 @@ class WztrMachine():
     address=""
     user=""
     pw=""
+    use_https=False
     
     def __init__(self, name, address, user, pw):
         self.name=name
@@ -16,8 +17,15 @@ class WztrMachine():
 
     
     
-    def fetch(url, machine):
+    def __fetch(self, url):
         try:
+            base_url="http://"
+            if self.use_https:
+                base_url="https://"
+            
+            base_url += self.address
+            url = base_url + url
+            
             response = httpx.get(
                 url,
                 auth=httpx.DigestAuth(
@@ -38,6 +46,8 @@ class WztrMachine():
             print(log_traceback(e))
             return False
     
+    def vhosts(self):
+        print self.__fetch(":8087/v2/servers/")
 
 
 
@@ -90,6 +100,7 @@ class WztrPrompt(Cmd):
             print("Machines:")
             for machinename in self.machines.keys():
                 print(" %-20s (%s)" % (machinename, self.machines[machinename].address))
+                self.machines[machinename].vhosts
         else:
             pass
     
