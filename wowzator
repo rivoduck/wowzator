@@ -85,7 +85,7 @@ class WztrMachine():
     def vhosts(self):
         # lazy-fetch vhosts
         if self.__vhosts is None:
-            self.__vhosts=[]
+            self.__vhosts={}
             vhosts = (self.__fetchJson("/v2/servers/_defaultServer_/vhosts"))
             if 'VHosts' in vhosts.keys():
                 for vhost_entry in vhosts['VHosts']:
@@ -97,7 +97,7 @@ class WztrMachine():
                     newvh.connectingPort = vhost['@connectingPort']
                     newvh.connectingSSLEnable = vhost['@connectingSSLEnable']
                     
-                    self.__vhosts.append(newvh)
+                    self.__vhosts[newvh.name] = newvh
 
         return self.__vhosts
 
@@ -146,14 +146,19 @@ class WztrPrompt(Cmd):
     do_EOF=do_exit
 
     def do_ls(self, inp):
+        ls_path_arr = inp.split("/")
+        ls_path_len = len(ls_path_arr)
+        
+        print("len=%s" % ls_path_len)
+        
         if inp == '':
             print("Machines:")
             for machinename in self.machines.keys():
                 machine=self.machines[machinename]
                 print(" %s" % machine)
-                print(machine.vhosts())
         else:
-            pass
+            ls_path_arr = inp.split("/")
+            
     
     def complete_ls(self, text, line, begidx, endidx):
         
@@ -161,6 +166,13 @@ class WztrPrompt(Cmd):
         
     def help_ls(self):
         print("List items and configurations")
+        
+    def do_refresh(self):
+        for machinename in self.machines.keys():
+            machine=self.machines[machinename]
+            machine.__vhosts = None
+    def help_refresh(self):
+        print("refresh info from servers")
 
 p=WztrPrompt()
 p.cmdloop()
