@@ -31,7 +31,7 @@ class WztrMachine():
                 base_url="https://"
             
             base_url += self.address
-            url = "%s%s:%s" % (base_url, url, self.port) 
+            url = "%s:%s%s" % (base_url, self.port, url) 
             
             response = httpx.get(
                 url,
