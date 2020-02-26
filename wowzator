@@ -122,22 +122,40 @@ class WztrPrompt(Cmd):
     prompt = 'wowzator> '
     intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands\n"
 
-    machines = {}
     
     
-    try:
-        with open(_CONFIGFILE) as json_file:
-            machines_config = json.load(json_file)
+    
+    
+    syntax_tree = {
+        "$$MACHINENAME$$": {
+            "vhosts": {
+                "$$VHOSTNAME$$": {
+                    "apps": {
+                        "$$APPNAME$$": None
+                    }
+                }
+            }
+        }
+    }
+    syntax_placeholders = ["$$MACHINENAME$$", "$$VHOSTNAME$$", "$$APPNAME$$"]
+    
+    
+    def __init__(self):
+        self.machines = {}
         
-            for machine_config in machines_config:
-                machine=WztrMachine(name=machine_config["name"], address=machine_config["address"], user=machine_config["user"], pw=machine_config["pw"])
-                machines[machine.name]=machine
+        try:
+            with open(_CONFIGFILE) as json_file:
+                machines_config = json.load(json_file)
+        
+                for machine_config in machines_config:
+                    machine=WztrMachine(name=machine_config["name"], address=machine_config["address"], user=machine_config["user"], pw=machine_config["pw"])
+                    machines[machine.name]=machine
             
 
-    except Exception as e:
-        print(e)
-        print("Cannot open %s" % _CONFIGFILE)
-        sys.exit(-1)
+        except Exception as e:
+            print(e)
+            print("Cannot open %s" % _CONFIGFILE)
+            sys.exit(-1)
     
     def do_exit(self, inp):
         print('Bye')
@@ -147,18 +165,25 @@ class WztrPrompt(Cmd):
 
     def do_ls(self, inp):
         ls_path_arr = inp.split("/")
-        ls_path_len = len(ls_path_arr)
-        
-        print("len=%s" % ls_path_len)
-        
-        if inp == '':
-            print("Machines:")
-            for machinename in self.machines.keys():
-                machine=self.machines[machinename]
-                print(" %s" % machine)
+        self.__list(ls_path_arr)
+        '''
+                    print("Machines:")
+                    for machinename in self.machines.keys():
+                        machine=self.machines[machinename]
+                        print(" %s" % machine)
+        '''
+                    
+
+    def __list(self, path_arr):
+        if len(path_arr) == 0 or path_arr[0] == "":
+            return self.__list_level(0)
         else:
-            ls_path_arr = inp.split("/")
-            
+            return self.__list_level(len(path_arr))
+
+    def __list_level(self, level):
+        cur_l = 0
+        while cur_l <= level:
+            print (cur_l)
     
     def complete_ls(self, text, line, begidx, endidx):
         
@@ -167,12 +192,15 @@ class WztrPrompt(Cmd):
     def help_ls(self):
         print("List items and configurations")
         
-    def do_refresh(self):
+    def do_refresh(self, inp):
         for machinename in self.machines.keys():
             machine=self.machines[machinename]
             machine.__vhosts = None
     def help_refresh(self):
         print("refresh info from servers")
+
+
+
 
 p=WztrPrompt()
 p.cmdloop()
