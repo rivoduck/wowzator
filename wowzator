@@ -149,7 +149,7 @@ class WztrPrompt(Cmd):
         
                 for machine_config in machines_config:
                     machine=WztrMachine(name=machine_config["name"], address=machine_config["address"], user=machine_config["user"], pw=machine_config["pw"])
-                    machines[machine.name]=machine
+                    self.machines[machine.name]=machine
             
 
         except Exception as e:
