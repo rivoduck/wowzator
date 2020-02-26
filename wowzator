@@ -47,7 +47,7 @@ class WztrMachine():
             return False
     
     def vhosts(self):
-        print self.__fetch(":8087/v2/servers/")
+        print (self.__fetch(":8087/v2/servers/"))
 
 
 
@@ -100,7 +100,7 @@ class WztrPrompt(Cmd):
             print("Machines:")
             for machinename in self.machines.keys():
                 print(" %-20s (%s)" % (machinename, self.machines[machinename].address))
-                self.machines[machinename].vhosts
+                self.machines[machinename].vhosts()
         else:
             pass
     
