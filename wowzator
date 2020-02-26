@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
 import httpx
+import xmltodict
+import json
 
 class WztrMachine():
     name=""
@@ -49,17 +51,17 @@ class WztrMachine():
             print(e)
             return False
         
-        def __fetchJson(self, url):
-            xmlresponse = self.__fetch(url)
-            
-            jsonresponse = xmltodict.parse(
-            response.text,
+    def __fetchJson(self, url):
+        xmlresponse = self.__fetch(url)
+        
+        jsonresponse = xmltodict.parse(
+            xmlresponse,
             dict_constructor=dict,
             xml_attribs=True,
             force_list=('VHost', 'Application', 'ApplicationInstance', 'Stream', 'MachineMonitorRequest')
-            )
-            
-            return jsonresponse
+        )
+        
+        return jsonresponse
             
             
     
