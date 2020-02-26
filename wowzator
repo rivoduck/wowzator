@@ -37,6 +37,8 @@ class WztrMachine():
         else:
             self.port="8087"
 
+    def __str__(self):
+        return " %-10s (%s)" % (self.name, self.address))
     
     
     def __fetch(self, url):
@@ -147,8 +149,9 @@ class WztrPrompt(Cmd):
         if inp == '':
             print("Machines:")
             for machinename in self.machines.keys():
-                print(" %-20s (%s)" % (machinename, self.machines[machinename].address))
-                print(self.machines[machinename].vhosts())
+                machine=self.machines[machinename]
+                print(" %s" % (machine)
+                print(machine.vhosts())
         else:
             pass
     
