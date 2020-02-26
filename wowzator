@@ -9,11 +9,16 @@ class WztrMachine():
     pw=""
     use_https=False
     
-    def __init__(self, name, address, user, pw):
+    def __init__(self, name, address, user, pw, port=None):
         self.name=name
         self.address=address
         self.user=user
         self.pw=pw
+        
+        if port is not None:
+            self.port=port
+        else:
+            self.port="8087"
 
     
     
@@ -24,7 +29,7 @@ class WztrMachine():
                 base_url="https://"
             
             base_url += self.address
-            url = base_url + url
+            url = "%s%s:%s" % (base_url, url, port) 
             
             response = httpx.get(
                 url,
@@ -43,9 +48,23 @@ class WztrMachine():
             print('error getting %s on machine %s' % (url, self))
             print(e)
             return False
+        
+        def __fetchJson(self, url):
+            xmlresponse = self.__fetch(url)
+            
+            jsonresponse = xmltodict.parse(
+            response.text,
+            dict_constructor=dict,
+            xml_attribs=True,
+            force_list=('VHost', 'Application', 'ApplicationInstance', 'Stream', 'MachineMonitorRequest')
+            )
+            
+            return jsonresponse
+            
+            
     
     def vhosts(self):
-        print (self.__fetch(":8087/v2/servers/_defaultServer_/vhosts"))
+        print (self.__fetchJson("/v2/servers/_defaultServer_/vhosts"))
 
 
 
