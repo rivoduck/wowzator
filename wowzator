@@ -29,9 +29,7 @@ class WztrMachine():
             response = httpx.get(
                 url,
                 auth=httpx.DigestAuth(
-                    machine.get('Username'),
-                    machine.get('Password'),
-
+                    self.user, self.pw
                 ),
                 timeout=httpx.Timeout(timeout=5)
             )
