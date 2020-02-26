@@ -141,6 +141,9 @@ class WztrPrompt(Cmd):
     
     
     def __init__(self):
+        print("initializing...")
+        Cmd.__init__(self)
+        
         self.machines = {}
         
         try:
