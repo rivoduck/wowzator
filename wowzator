@@ -39,10 +39,10 @@ class WztrMachine():
             return response.text
 
         except httpx.exceptions.ConnectTimeout:
-            print('timeout getting %s on machine %s' % (url, machine))
+            print('timeout getting %s on machine %s' % (url, self))
             return False
         except Exception as e:
-            print('error getting %s on machine %s' % (url, machine))
+            print('error getting %s on machine %s' % (url, self))
             print(log_traceback(e))
             return False
     
