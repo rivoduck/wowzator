@@ -150,7 +150,7 @@ class WztrPrompt(Cmd):
             print("Machines:")
             for machinename in self.machines.keys():
                 machine=self.machines[machinename]
-                print(" %s" % (machine)
+                print(" %s" % machine)
                 print(machine.vhosts())
         else:
             pass
