@@ -38,7 +38,7 @@ class WztrMachine():
             self.port="8087"
 
     def __str__(self):
-        return " %-10s (%s)" % (self.name, self.address))
+        return " %-10s (%s)" % (self.name, self.address)
     
     
     def __fetch(self, url):
