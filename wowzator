@@ -5,32 +5,30 @@ import xmltodict
 import json
 
 class WztrVhost():
-    name = ""
-    href = ""
-    connectingPort = ""
-    connectingIPAddress = ""
-    connectingSSLEnable = False
+    def __init__(self, name, href, connectingPort, connectingIPAddress, connectingSSLEnable=False):
+        self.name = name
+        self.href = href
+        self.connectingPort = connectingPort
+        self.connectingIPAddress = connectingIPAddress
+        self.connectingSSLEnable = connectingSSLEnable
     
+        self.machine=None
     
     def __str__(self):
         return self.name
     def __repr__(self):
         return str(self)
     
-class WztrMachine():
-    __vhosts = None
     
-    name=""
-    address=""
-    user=""
-    pw=""
-    use_https=False
+class WztrMachine():
     
     def __init__(self, name, address, user, pw, port=None):
         self.name=name
         self.address=address
         self.user=user
         self.pw=pw
+        self.use_https=False
+        self.__vhosts = None
         
         if port is not None:
             self.port=port
@@ -90,12 +88,8 @@ class WztrMachine():
             if 'VHosts' in vhosts.keys():
                 for vhost_entry in vhosts['VHosts']:
                     vhost = vhost_entry['Vhost']
-                    newvh = WztrVhost()
-                    newvh.name = vhost['@id']
-                    newvh.href = vhost['@href']
-                    newvh.connectingIPAddress = vhost['@connectingIPAddress']
-                    newvh.connectingPort = vhost['@connectingPort']
-                    newvh.connectingSSLEnable = vhost['@connectingSSLEnable']
+                    newvh = WztrVhost(vhost['@id'], vhost['@href'], vhost['@connectingIPAddress'], vhost['@connectingPort'], vhost['@connectingSSLEnable'])
+                    newvh.machine = self
                     
                     self.__vhosts[newvh.name] = newvh
 
@@ -120,24 +114,33 @@ _CONFIGFILE="config.json"
 
 class WztrPrompt(Cmd):
     prompt = 'wowzator> '
-    intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands\n"
-
+    intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands, TAB to autocomplete\n"
     
-    
-    
-    
-    syntax_tree = {
-        "$$MACHINENAME$$": {
-            "vhosts": {
-                "$$VHOSTNAME$$": {
-                    "apps": {
-                        "$$APPNAME$$": None
-                    }
-                }
-            }
+    syntaxtree_ls = [
+        {
+            keywords: [ ("$MACHINE", "object"), ("$ALL_MACHINES", "objects") ],
+            syntaxtree: [ 
+                { 
+                    keywords: [ ("vhosts", "predicate") ],
+                    syntaxtree: [ 
+                        { 
+                            keywords: [ ("$VHOST", "object") ],
+                            syntaxtree: [
+                                {
+                                    keywords: [ ("applications", "predicate") ],
+                                    syntaxtree: []
+                                },
+                                {
+                                    keywords: [ ("transcoders", "predicate") ],
+                                    syntaxtree: []
+                                }
+                            ]
+                        } 
+                    ]
+                } 
+            ]
         }
-    }
-    syntax_placeholders = ["$$MACHINENAME$$", "$$VHOSTNAME$$", "$$APPNAME$$"]
+    ]
     
     
     def __init__(self):
@@ -167,8 +170,9 @@ class WztrPrompt(Cmd):
     do_EOF=do_exit
 
     def do_ls(self, inp):
-        ls_path_arr = inp.split("/")
-        self.__list(ls_path_arr)
+        result = WztrPrompt.__get_obj_by_path(WztrPrompt.syntaxtree_ls, inp)
+        
+        print(result)
         '''
                     print("Machines:")
                     for machinename in self.machines.keys():
@@ -176,18 +180,63 @@ class WztrPrompt(Cmd):
                         print(" %s" % machine)
         '''
                     
+    # return an array of objects or a single instance depending on what the path points to
+    @staticmethod
+    def __get_obj_by_path(syntax_tree, path):
+        command_object = None
+        command_objects = None
+        command_predicate = None
+        
+        path_arr = path.split("/")
+        
+        # remove last and first elements of path if empty
+        if path_arr[-1] == "":
+            path_arr.pop()
+        if path_arr[0] == "":
+            path_arr.pop(0)
+        
+        for syntax_el in syntax_tree:
+            # expand macro keywords
+            expanded_keywords = []
+            for kw_tuple in syntax_el["keywords"]:
+                kw = kw_tuple.0
+                if kw[0] == "$":
+                    expanded_keywords += __expand_keyword(kw_tuple)
+                else:
+                    expanded_keywords.append(kw_tuple)
+            
+            # find current syntax element among the keyords
+            for kw_tuple in expanded_keywords:
+                if syntax_el == kw_tuple.0:
+                    if kw_tuple.1 == "object":
+                        command_object = kw_tuple.2
+                    elif kw_tuple.1 == "objects":
+                        command_objects = kw_tuple.2
+                    elif kw_tuple.1 == "predicate":
+                        command_predicate = kw_tuple.0
+        
+        return {
+            "object": command_object,
+            "objects": command_objects,
+            "predicate": command_predicate
+        }
 
-    def __list(self, path_arr):
-        if len(path_arr) == 0 or path_arr[0] == "":
-            return self.__list_level(0)
-        else:
-            return self.__list_level(len(path_arr))
+    
+    def __expand_keyword(self, kw_tuple):
+        expanded = []
+        kw = kw_tuple.0
+        kw_type = kw_tuple.1
+        if kw == "$MACHINE":
+            for machine_name in self.machines.keys():
+                expanded.append( (machine_name, kw_type, self.machines[machine_name]) )
+        elif kw == "$ALL_MACHINES":
+            expanded.append( ("all", kw_type, self.machines.values()) )
+        
+        
+        return expanded
 
-    def __list_level(self, level):
-        cur_l = 0
-        while cur_l <= level:
-            print (cur_l)
-            cur_l += 1
+
+    
     
     def complete_ls(self, text, line, begidx, endidx):
         
