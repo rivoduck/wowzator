@@ -195,6 +195,7 @@ class WztrPrompt(Cmd):
             path_arr.pop(0)
         
         for syntax_el in syntax_tree:
+            cur_path_el = path_arr.pop(0)
             # expand macro keywords
             expanded_keywords = []
             for kw_tuple in syntax_el["keywords"]:
@@ -206,7 +207,7 @@ class WztrPrompt(Cmd):
             
             # find current syntax element among the keyords
             for kw_tuple in expanded_keywords:
-                if syntax_el == kw_tuple[0]:
+                if cur_path_el == kw_tuple[0]:
                     if kw_tuple[1] == "object":
                         command_object = kw_tuple[2]
                     elif kw_tuple[1] == "objects":
