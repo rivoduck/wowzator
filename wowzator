@@ -201,7 +201,7 @@ class WztrPrompt(Cmd):
             for kw_tuple in syntax_el["keywords"]:
                 kw = kw_tuple[0]
                 if kw[0] == "$":
-                    expanded_keywords += __expand_keyword(kw_tuple)
+                    expanded_keywords += self.__expand_keyword(kw_tuple)
                 else:
                     expanded_keywords.append(kw_tuple)
             
