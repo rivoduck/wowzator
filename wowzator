@@ -194,29 +194,30 @@ class WztrPrompt(Cmd):
         if len(path_arr) > 0 and path_arr[0] == "":
             path_arr.pop(0)
         
-        for syntax_el in syntax_tree:
-            if len(path_arr) == 0:
-                break
-                
-            cur_path_el = path_arr.pop(0)
-            # expand macro keywords
-            expanded_keywords = []
-            for kw_tuple in syntax_el["keywords"]:
-                kw = kw_tuple[0]
-                if kw[0] == "$":
-                    expanded_keywords += self.__expand_keyword(kw_tuple)
-                else:
-                    expanded_keywords.append(kw_tuple)
+        for cur_path_el in path_arr:
+            keyword_matched = False
+            for syntax_el in syntax_tree:
+                # expand macro keywords
+                expanded_keywords = []
+                for kw_tuple in syntax_el["keywords"]:
+                    kw = kw_tuple[0]
+                    if kw[0] == "$":
+                        expanded_keywords += self.__expand_keyword(kw_tuple)
+                    else:
+                        expanded_keywords.append(kw_tuple)
             
-            # find current syntax element among the keyords
-            for kw_tuple in expanded_keywords:
-                if cur_path_el == kw_tuple[0]:
-                    if kw_tuple[1] == "object":
-                        command_object = kw_tuple[2]
-                    elif kw_tuple[1] == "objects":
-                        command_objects = kw_tuple[2]
-                    elif kw_tuple[1] == "predicate":
-                        command_predicate = kw_tuple[0]
+                # find current syntax element among the keyords
+                for kw_tuple in expanded_keywords:
+                    if cur_path_el == kw_tuple[0]:
+                        keyword_matched = True
+                        if kw_tuple[1] == "object":
+                            command_object = kw_tuple[2]
+                        elif kw_tuple[1] == "objects":
+                            command_objects = kw_tuple[2]
+                        elif kw_tuple[1] == "predicate":
+                            command_predicate = kw_tuple[0]
+                        syntax_tree = syntax_el["syntaxtree"]
+                        break
         
         return {
             "object": command_object,
