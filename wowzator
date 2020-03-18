@@ -199,7 +199,7 @@ class WztrPrompt(Cmd):
             # expand macro keywords
             expanded_keywords = []
             for kw_tuple in syntax_el["keywords"]:
-                kw = kw_tuple.0
+                kw = kw_tuple[0]
                 if kw[0] == "$":
                     expanded_keywords += __expand_keyword(kw_tuple)
                 else:
@@ -207,13 +207,13 @@ class WztrPrompt(Cmd):
             
             # find current syntax element among the keyords
             for kw_tuple in expanded_keywords:
-                if syntax_el == kw_tuple.0:
-                    if kw_tuple.1 == "object":
-                        command_object = kw_tuple.2
-                    elif kw_tuple.1 == "objects":
-                        command_objects = kw_tuple.2
-                    elif kw_tuple.1 == "predicate":
-                        command_predicate = kw_tuple.0
+                if syntax_el == kw_tuple[0]:
+                    if kw_tuple[1] == "object":
+                        command_object = kw_tuple[2]
+                    elif kw_tuple[1] == "objects":
+                        command_objects = kw_tuple[2]
+                    elif kw_tuple[1] == "predicate":
+                        command_predicate = kw_tuple[0]
         
         return {
             "object": command_object,
@@ -224,8 +224,8 @@ class WztrPrompt(Cmd):
     
     def __expand_keyword(self, kw_tuple):
         expanded = []
-        kw = kw_tuple.0
-        kw_type = kw_tuple.1
+        kw = kw_tuple[0]
+        kw_type = kw_tuple[1]
         if kw == "$MACHINE":
             for machine_name in self.machines.keys():
                 expanded.append( (machine_name, kw_type, self.machines[machine_name]) )
