@@ -170,7 +170,7 @@ class WztrPrompt(Cmd):
     do_EOF=do_exit
 
     def do_ls(self, inp):
-        result = WztrPrompt.__get_obj_by_path(WztrPrompt.syntaxtree_ls, inp)
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, inp)
         
         print(result)
         '''
@@ -181,8 +181,7 @@ class WztrPrompt(Cmd):
         '''
                     
     # return an array of objects or a single instance depending on what the path points to
-    @staticmethod
-    def __get_obj_by_path(syntax_tree, path):
+    def __get_obj_by_path(self, syntax_tree, path):
         command_object = None
         command_objects = None
         command_predicate = None
@@ -190,9 +189,9 @@ class WztrPrompt(Cmd):
         path_arr = path.split("/")
         
         # remove last and first elements of path if empty
-        if path_arr[-1] == "":
+        if len(path_arr) > 0 and path_arr[-1] == "":
             path_arr.pop()
-        if path_arr[0] == "":
+        if en(path_arr) > 0 and path_arr[0] == "":
             path_arr.pop(0)
         
         for syntax_el in syntax_tree:
