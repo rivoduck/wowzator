@@ -195,6 +195,9 @@ class WztrPrompt(Cmd):
             path_arr.pop(0)
         
         for syntax_el in syntax_tree:
+            if len(path_arr) == 0:
+                break
+                
             cur_path_el = path_arr.pop(0)
             # expand macro keywords
             expanded_keywords = []
