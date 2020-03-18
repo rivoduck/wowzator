@@ -118,21 +118,21 @@ class WztrPrompt(Cmd):
     
     syntaxtree_ls = [
         {
-            keywords: [ ("$MACHINE", "object"), ("$ALL_MACHINES", "objects") ],
-            syntaxtree: [ 
+            "keywords": [ ("$MACHINE", "object"), ("$ALL_MACHINES", "objects") ],
+            "syntaxtree": [ 
                 { 
-                    keywords: [ ("vhosts", "predicate") ],
-                    syntaxtree: [ 
+                    "keywords": [ ("vhosts", "predicate") ],
+                    "syntaxtree": [ 
                         { 
-                            keywords: [ ("$VHOST", "object") ],
-                            syntaxtree: [
+                            "keywords": [ ("$VHOST", "object") ],
+                            "syntaxtree": [
                                 {
-                                    keywords: [ ("applications", "predicate") ],
-                                    syntaxtree: []
+                                    "keywords": [ ("applications", "predicate") ],
+                                    "syntaxtree": []
                                 },
                                 {
-                                    keywords: [ ("transcoders", "predicate") ],
-                                    syntaxtree: []
+                                    "keywords": [ ("transcoders", "predicate") ],
+                                    "syntaxtree": []
                                 }
                             ]
                         } 
