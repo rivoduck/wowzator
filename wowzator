@@ -191,7 +191,7 @@ class WztrPrompt(Cmd):
         # remove last and first elements of path if empty
         if len(path_arr) > 0 and path_arr[-1] == "":
             path_arr.pop()
-        if en(path_arr) > 0 and path_arr[0] == "":
+        if len(path_arr) > 0 and path_arr[0] == "":
             path_arr.pop(0)
         
         for syntax_el in syntax_tree:
