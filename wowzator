@@ -230,7 +230,7 @@ class WztrPrompt(Cmd):
                     command_error = "%s: keyword not recognized" % cur_path_el
                     cur_path = "/".join(path_arr[:cur_path_pos])
                     if removed_leading_slash:
-                        cur_path = cur_path[1:]
+                        cur_path = "/" + cur_path
                     completion = []
                     for kw_tuple in expanded_keywords:
                         completion.append( cur_path + "/" + kw_tuple[0] )
