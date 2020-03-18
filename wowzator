@@ -185,17 +185,24 @@ class WztrPrompt(Cmd):
         command_object = None
         command_objects = None
         command_predicate = None
+        command_error = None
         
         path_arr = path.split("/")
+        
+        removed_trailing_slash = False
+        removed_leading_slash = False
         
         # remove last and first elements of path if empty
         if len(path_arr) > 0 and path_arr[-1] == "":
             path_arr.pop()
+            removed_trailing_slash = True
         if len(path_arr) > 0 and path_arr[0] == "":
             path_arr.pop(0)
+            removed_leading_slash = True
         
+        cur_path = ""
         for cur_path_el in path_arr:
-            keyword_matched = False
+            cur_path = cur_path + "/" + cur_path_el
             for syntax_el in syntax_tree:
                 # expand macro keywords
                 expanded_keywords = []
@@ -205,8 +212,9 @@ class WztrPrompt(Cmd):
                         expanded_keywords += self.__expand_keyword(kw_tuple)
                     else:
                         expanded_keywords.append(kw_tuple)
-            
-                # find current syntax element among the keyords
+                
+                keyword_matched = False
+                # find current syntax element among the expanded keyords
                 for kw_tuple in expanded_keywords:
                     if cur_path_el == kw_tuple[0]:
                         keyword_matched = True
@@ -218,11 +226,20 @@ class WztrPrompt(Cmd):
                             command_predicate = kw_tuple[0]
                         syntax_tree = syntax_el["syntaxtree"]
                         break
+                if not keyword_matched:
+                    command_error = "%s: keyword not recognized" % cur_path_el
+                    if removed_leading_slash:
+                        cur_path = cur_path[1:]
+                    completion = []
+                    for kw_tuple in expanded_keywords:
+                        completion.append( cur_path + "/" + kw_tuple[0] )
         
         return {
             "object": command_object,
             "objects": command_objects,
-            "predicate": command_predicate
+            "predicate": command_predicate,
+            "error": command_error,
+            "completion": completion
         }
 
     
@@ -243,8 +260,9 @@ class WztrPrompt(Cmd):
     
     
     def complete_ls(self, text, line, begidx, endidx):
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, inp)
         
-        return [i for i in self.machines.keys() if i.startswith(text)]
+        return [i for i in result["completion"] if i.startswith(text)]
         
     def help_ls(self):
         print("List items and configurations")
