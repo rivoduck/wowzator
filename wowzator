@@ -200,9 +200,9 @@ class WztrPrompt(Cmd):
             path_arr.pop(0)
             removed_leading_slash = True
         
-        cur_path = ""
+        cur_path_pos = 0
         for cur_path_el in path_arr:
-            cur_path = cur_path + "/" + cur_path_el
+            
             for syntax_el in syntax_tree:
                 # expand macro keywords
                 expanded_keywords = []
@@ -228,11 +228,15 @@ class WztrPrompt(Cmd):
                         break
                 if not keyword_matched:
                     command_error = "%s: keyword not recognized" % cur_path_el
+                    cur_path = "/".join(path_arr[:cur_path_pos])
                     if removed_leading_slash:
                         cur_path = cur_path[1:]
                     completion = []
                     for kw_tuple in expanded_keywords:
                         completion.append( cur_path + "/" + kw_tuple[0] )
+            cur_path_pos += 1
+        
+        
         
         return {
             "object": command_object,
