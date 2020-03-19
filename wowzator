@@ -17,7 +17,7 @@ class WztrVhost():
     def __str__(self):
         return self.name
     def __repr__(self):
-        return str(self)
+        return "WztrVhost: " + str(self)
     
     
 class WztrMachine():
@@ -37,7 +37,8 @@ class WztrMachine():
 
     def __str__(self):
         return " %-10s (%s)" % (self.name, self.address)
-    
+    def __repr__(self):
+        return "WztrMachine: " + str(self)
     
     def __fetch(self, url):
         try:
@@ -306,7 +307,7 @@ class WztrPrompt(Cmd):
             #    expanded_dict[machine_name]=self.machines[machine_name]
         elif keyword == "$ALL_MACHINES":
             expanded_dict["all"]=self.machines.values()
-        elif keyword == "$VHOSTS":
+        elif keyword == "$VHOST":
             expanded_dict = self.command_object.vhosts()
         
         return expanded_dict
