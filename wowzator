@@ -5,6 +5,9 @@ import xmltodict
 import json
 
 class WztrVhost():
+    header_singular="VHost"
+    header_plural="VHosts"
+
     def __init__(self, name, href, connectingPort, connectingIPAddress, connectingSSLEnable=False):
         self.name = name
         self.href = href
@@ -21,6 +24,8 @@ class WztrVhost():
     
     
 class WztrMachine():
+    header_singular="Machine"
+    header_plural="Machines"
     
     def __init__(self, name, address, user, pw, port=None):
         self.name=name
@@ -180,16 +185,6 @@ class WztrPrompt(Cmd):
     
     do_EOF=do_exit
 
-    def do_ls(self, inp):
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, inp)
-        
-        print(result)
-        '''
-                    print("Machines:")
-                    for machinename in self.machines.keys():
-                        machine=self.machines[machinename]
-                        print(" %s" % machine)
-        '''
                     
     # return an array of objects or a single instance depending on what the path points to
     def __get_obj_by_path(self, syntax_tree, path):
@@ -317,6 +312,34 @@ class WztrPrompt(Cmd):
         return expanded_dict
 
 
+    def do_ls(self, inp):
+        self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, inp)
+        
+        if self.command_object is None:
+            if self.command_objects is None:
+                self.__ls_objects(self.machines.values(), self.command_predicate)
+            else:
+                self.__ls_objects(self.command_objects, self.command_predicate)
+        else:
+            self.__ls_object(self.command_object, self.command_predicate)
+        
+        '''
+                    print("Machines:")
+                    for machinename in self.machines.keys():
+                        machine=self.machines[machinename]
+                        print(" %s" % machine)
+        '''
+
+    def __ls_objects(self, object_list, predicate=None):
+        if len(object_list) > 0:
+            print("%s" % object_list[0].header_plural)
+            for cur_obj in object_list:
+                print(" %s" % cur_obj)
+        else:
+            print("empty list...")
+        
+    def __ls_object(self, object_instance, predicate=None):
+        print("%s: %s" % (object_instance.header_singular, object_instance))
     
     
     def complete_ls(self, text, line, begidx, endidx):
