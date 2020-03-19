@@ -270,7 +270,7 @@ class WztrPrompt(Cmd):
             "objects": self.command_objects,
             "predicate": self.command_predicate,
             "error": self.command_error,
-            "completion": self.completion
+            "completion": completion
         }
 
     
