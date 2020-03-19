@@ -139,6 +139,10 @@ class WztrPrompt(Cmd):
                     ]
                 } 
             ]
+        },
+        {
+            "keywords": [ ("otherkeyword", "predicate") ],
+            "syntaxtree": []
         }
     ]
     
@@ -206,22 +210,11 @@ class WztrPrompt(Cmd):
         
         cur_path_pos = 0
         for cur_path_el in path_arr:
-            
+            keyword_matched = False
             for syntax_el in syntax_tree:
                 
                 expanded_keywords = self.__expand_keywords( syntax_el["keywords"] )
-                '''
-                expanded_keywords = []
-                for kw_tuple in syntax_el["keywords"]:
-                    kw = kw_tuple[0]
-                    if kw[0] == "$":
-                        expanded_keywords += self.__expand_keyword_macro(kw_tuple)
-                    else:
-                        expanded_keywords.append(kw_tuple)
-                '''
                 
-                
-                keyword_matched = False
                 # find current syntax element among the expanded keyords
                 for kw_tuple in expanded_keywords:
                     if cur_path_el == kw_tuple[0]:
