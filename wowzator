@@ -187,6 +187,9 @@ class WztrPrompt(Cmd):
         command_predicate = None
         command_error = None
         
+        completion = []
+        
+        
         path_arr = path.split("/")
         
         removed_trailing_slash = False
@@ -229,11 +232,12 @@ class WztrPrompt(Cmd):
                 if not keyword_matched:
                     command_error = "%s: keyword not recognized" % cur_path_el
                     cur_path = "/".join(path_arr[:cur_path_pos])
+                    if cur_path != "":
+                        cur_path += "/"
                     if removed_leading_slash:
                         cur_path = "/" + cur_path
-                    completion = []
                     for kw_tuple in expanded_keywords:
-                        completion.append( cur_path + "/" + kw_tuple[0] )
+                        completion.append( cur_path + kw_tuple[0] )
             cur_path_pos += 1
         
         
