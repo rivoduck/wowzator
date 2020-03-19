@@ -245,11 +245,20 @@ class WztrPrompt(Cmd):
                     completion.append( cur_path + syntax_el["keyword"] )
 
                 break
-                
+            
                 
             cur_path_pos += 1
                 
-                    
+        if keyword_matched:
+            cur_path = "/".join(path_arr[:cur_path_pos])
+            if cur_path != "":
+                cur_path += "/"
+            if removed_leading_slash:
+                cur_path = "/" + cur_path
+        
+            for syntax_el in expanded_syntax_tree:
+                completion.append( cur_path + syntax_el["keyword"] )
+            
                         
             
         
