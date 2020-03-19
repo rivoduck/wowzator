@@ -192,10 +192,10 @@ class WztrPrompt(Cmd):
                     
     # return an array of objects or a single instance depending on what the path points to
     def __get_obj_by_path(self, syntax_tree, path):
-        command_object = None
-        command_objects = None
-        command_predicate = None
-        command_error = None
+        self.command_object = None
+        self.command_objects = None
+        self.command_predicate = None
+        self.command_error = None
         
         completion = []
         
@@ -204,7 +204,9 @@ class WztrPrompt(Cmd):
         
         removed_trailing_slash = False
         removed_leading_slash = False
-        keyword_matched = False
+        # set to True by default to deal with empty path
+        # if path is provided it will be immediately set to False when path is parsed
+        keyword_matched = True
         
         # remove last and first elements of path if empty
         if len(path_arr) > 0 and path_arr[-1] == "":
@@ -299,10 +301,13 @@ class WztrPrompt(Cmd):
     def __expand_keyword_macro(self, keyword):
         expanded_dict = {}
         if keyword == "$MACHINE":
-            for machine_name in self.machines.keys():
-                expanded_dict[machine_name]=self.machines[machine_name]
+            expanded_dict = self.machines
+            #for machine_name in self.machines.keys():
+            #    expanded_dict[machine_name]=self.machines[machine_name]
         elif keyword == "$ALL_MACHINES":
             expanded_dict["all"]=self.machines.values()
+        elif keyword == "$VHOSTS":
+            expanded_dict = self.command_object.vhosts()
         
         return expanded_dict
 
