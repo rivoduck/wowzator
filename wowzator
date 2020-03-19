@@ -21,7 +21,8 @@ class WztrVhost():
         return self.name
     def __repr__(self):
         return "WztrVhost: %s" % self.name
-    
+    def list_view(self):
+        return str(self)
     
 class WztrMachine():
     header_singular="Machine"
@@ -34,6 +35,7 @@ class WztrMachine():
         self.pw=pw
         self.use_https=False
         self.__vhosts = None
+        self.__version = None
         
         if port is not None:
             self.port=port
@@ -41,9 +43,11 @@ class WztrMachine():
             self.port="8087"
 
     def __str__(self):
-        return " %-10s (%s)" % (self.name, self.address)
+        return " %-8s (%s)" % (self.name, self.address)
     def __repr__(self):
         return "WztrMachine: %s" % self.name
+    def list_view(self):
+        return "%s %s" % (self, self.version())
     
     def __fetch(self, url):
         try:
@@ -101,9 +105,18 @@ class WztrMachine():
 
         return self.__vhosts
 
-
-
-
+    def version(self):
+        # lazy-fetch version
+        if self.__version is None:
+            self.__version = "*** No connection ***"
+            try:
+                version_json = (self.__fetchJson(""))
+            
+                self.__version = version_json
+            except:
+                pass
+        
+        return self.__version
 
 
 
@@ -331,10 +344,11 @@ class WztrPrompt(Cmd):
         '''
 
     def __ls_objects(self, object_list, predicate=None):
+        object_list = list(object_list)
         if len(object_list) > 0:
             print("%s" % object_list[0].header_plural)
             for cur_obj in object_list:
-                print(" %s" % cur_obj)
+                print(" %s" % cur_obj.list_view())
         else:
             print("empty list...")
         
@@ -354,6 +368,8 @@ class WztrPrompt(Cmd):
         for machinename in self.machines.keys():
             machine=self.machines[machinename]
             machine.__vhosts = None
+            machine.__version = None   
+                     
     def help_refresh(self):
         print("refresh info from servers")
 
