@@ -225,11 +225,11 @@ class WztrPrompt(Cmd):
                 if cur_path_el == syntax_el["keyword"]:
 
                     if syntax_el["keyword_type"] == "object":
-                        command_object = syntax_el["data"]
+                        self.command_object = syntax_el["data"]
                     elif syntax_el["keyword_type"] == "multi_object":
-                        command_objects = syntax_el["data"]
+                        self.command_objects = syntax_el["data"]
                     elif syntax_el["keyword_type"] == "predicate":
-                        command_predicate = syntax_el["keyword"]
+                        self.command_predicate = syntax_el["keyword"]
 
                     # move down syntax tree
                     expanded_syntax_tree = self.__expand_keywords(syntax_el["syntaxtree"])
@@ -266,11 +266,11 @@ class WztrPrompt(Cmd):
         
         
         return {
-            "object": command_object,
-            "objects": command_objects,
-            "predicate": command_predicate,
-            "error": command_error,
-            "completion": completion
+            "object": self.command_object,
+            "objects": self.command_objects,
+            "predicate": self.command_predicate,
+            "error": self.command_error,
+            "completion": self.completion
         }
 
     
