@@ -110,9 +110,9 @@ class WztrMachine():
         if self.__version is None:
             self.__version = "*** No connection ***"
             try:
-                version_json = (self.__fetchJson(""))
+                version = (self.__fetch(""))
             
-                self.__version = version_json
+                self.__version = version
             except:
                 pass
         
