@@ -235,16 +235,17 @@ class WztrPrompt(Cmd):
             
             if not keyword_matched:
                 command_error = "%s: keyword not recognized" % cur_path_el
-                cur_path = "/".join(path_arr[:cur_path_pos])
-                if cur_path != "":
-                    cur_path += "/"
-                if removed_leading_slash:
-                    cur_path = "/" + cur_path
-                
-            
-                for syntax_el in expanded_syntax_tree:
-                    completion.append( cur_path + syntax_el["keyword"] )
                 break
+                
+            cur_path = "/".join(path_arr[:cur_path_pos])
+            if cur_path != "":
+                cur_path += "/"
+            if removed_leading_slash:
+                cur_path = "/" + cur_path
+            
+        
+            for syntax_el in expanded_syntax_tree:
+                completion.append( cur_path + syntax_el["keyword"] )
                 
             cur_path_pos += 1
                 
