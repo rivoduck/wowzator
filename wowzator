@@ -220,7 +220,6 @@ class WztrPrompt(Cmd):
                 # find current syntax element among the expanded keyords
                 for kw_tuple in expanded_keywords:
                     if cur_path_el == kw_tuple[0]:
-                        keyword_matched = True
                         if kw_tuple[1] == "object":
                             command_object = kw_tuple[2]
                         elif kw_tuple[1] == "objects":
@@ -228,16 +227,18 @@ class WztrPrompt(Cmd):
                         elif kw_tuple[1] == "predicate":
                             command_predicate = kw_tuple[0]
                         syntax_tree = syntax_el["syntaxtree"]
+                        keyword_matched = True
                         break
-                if not keyword_matched:
-                    command_error = "%s: keyword not recognized" % cur_path_el
-                    cur_path = "/".join(path_arr[:cur_path_pos])
-                    if cur_path != "":
-                        cur_path += "/"
-                    if removed_leading_slash:
-                        cur_path = "/" + cur_path
-                    for kw_tuple in expanded_keywords:
-                        completion.append( cur_path + kw_tuple[0] )
+            if not keyword_matched:
+                command_error = "%s: keyword not recognized" % cur_path_el
+                cur_path = "/".join(path_arr[:cur_path_pos])
+                if cur_path != "":
+                    cur_path += "/"
+                if removed_leading_slash:
+                    cur_path = "/" + cur_path
+                for kw_tuple in expanded_keywords:
+                    completion.append( cur_path + kw_tuple[0] )
+                break
             cur_path_pos += 1
         
         
