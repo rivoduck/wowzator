@@ -207,14 +207,20 @@ class WztrPrompt(Cmd):
         for cur_path_el in path_arr:
             
             for syntax_el in syntax_tree:
+                
+                expanded_keywords = self.__expand_keywords(syntax_el["keywords"])
+                '''
                 # expand macro keywords
                 expanded_keywords = []
                 for kw_tuple in syntax_el["keywords"]:
                     kw = kw_tuple[0]
                     if kw[0] == "$":
-                        expanded_keywords += self.__expand_keyword(kw_tuple)
+                        expanded_keywords += self.__expand_keyword_macro(kw_tuple)
                     else:
                         expanded_keywords.append(kw_tuple)
+                
+                '''
+                
                 
                 keyword_matched = False
                 # find current syntax element among the expanded keyords
@@ -229,6 +235,9 @@ class WztrPrompt(Cmd):
                         syntax_tree = syntax_el["syntaxtree"]
                         keyword_matched = True
                         break
+                        
+            # if keywork is not recognized calculate the command completion array and
+            # break the syntax processing loop
             if not keyword_matched:
                 command_error = "%s: keyword not recognized" % cur_path_el
                 cur_path = "/".join(path_arr[:cur_path_pos])
@@ -241,6 +250,12 @@ class WztrPrompt(Cmd):
                 break
             cur_path_pos += 1
         
+        # if all keywords have been recognized calculate the command completion array
+        if keyword_matched:
+            
+            
+        
+        
         
         
         return {
@@ -252,7 +267,19 @@ class WztrPrompt(Cmd):
         }
 
     
-    def __expand_keyword(self, kw_tuple):
+    # expand macro keywords
+    def __expand_keywords(self, keywords):
+        expanded_keywords = []
+        for kw_tuple in keywords:
+            kw = kw_tuple[0]
+            if kw[0] == "$":
+                expanded_keywords += self.__expand_keyword_macro(kw_tuple)
+            else:
+                expanded_keywords.append(kw_tuple)
+        return expanded_keywords
+    
+    # expand individual macro
+    def __expand_keyword_macro(self, kw_tuple):
         expanded = []
         kw = kw_tuple[0]
         kw_type = kw_tuple[1]
