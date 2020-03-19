@@ -118,20 +118,25 @@ class WztrPrompt(Cmd):
     
     syntaxtree_ls = [
         {
-            "keywords": [ ("$MACHINE", "object"), ("$ALL_MACHINES", "objects") ],
+            "keyword": "$MACHINE",
+            "keyword_type": "object",
             "syntaxtree": [ 
                 { 
-                    "keywords": [ ("vhosts", "predicate") ],
+                    "keyword": "vhosts",
+                    "keyword_type": "predicate",
                     "syntaxtree": [ 
                         { 
-                            "keywords": [ ("$VHOST", "object") ],
+                            "keyword": "$VHOST",
+                            "keyword_type": "object",
                             "syntaxtree": [
                                 {
-                                    "keywords": [ ("applications", "predicate") ],
+                                    "keyword": "applications",
+                                    "keyword_type": "predicate",
                                     "syntaxtree": []
                                 },
                                 {
-                                    "keywords": [ ("transcoders", "predicate") ],
+                                    "keyword": "transcoders",
+                                    "keyword_type": "predicate",
                                     "syntaxtree": []
                                 }
                             ]
@@ -141,7 +146,8 @@ class WztrPrompt(Cmd):
             ]
         },
         {
-            "keywords": [ ("otherkeyword", "predicate") ],
+            "keyword": "$ALL_MACHINES",
+            "keyword_type": "multi_object",
             "syntaxtree": []
         }
     ]
@@ -208,33 +214,25 @@ class WztrPrompt(Cmd):
             path_arr.pop(0)
             removed_leading_slash = True
         
+        expanded_syntax_tree = self.__expand_keywords(syntax_tree)
         cur_path_pos = 0
         for cur_path_el in path_arr:
+            
             keyword_matched = False
-            for syntax_el in syntax_tree:
-                
-                expanded_keywords = self.__expand_keywords( syntax_el["keywords"] )
-                
-                # find current syntax element among the expanded keyords
-                for kw_tuple in expanded_keywords:
-                    if cur_path_el == kw_tuple[0]:
-                        if kw_tuple[1] == "object":
-                            command_object = kw_tuple[2]
-                        elif kw_tuple[1] == "objects":
-                            command_objects = kw_tuple[2]
-                        elif kw_tuple[1] == "predicate":
-                            command_predicate = kw_tuple[0]
-                        
-                        keyword_matched = True
-                        break
-                
-                if keyword_matched:
-                    # move to the next branch of the syntax tree and break syntax tree processing
-                    syntax_tree = syntax_el["syntaxtree"]
-                    break
-                    
-            # if keyword is not recognized calculate the command completion array and
-            # break the syntax processing loop
+            for syntax_el in expanded_syntax_tree:
+                if cur_path_el == syntax_el["keyword"]:
+
+                    if syntax_el["keyword_type"] == "object":
+                        command_object = syntax_el["data"]
+                    elif syntax_el["keyword_type"] == "multi_object":
+                        command_objects = syntax_el["data"]
+                    elif syntax_el["keyword_type"] == "predicate":
+                        command_predicate = syntax_el["keyword"]
+
+                    # move down syntax tree
+                    expanded_syntax_tree = self.__expand_keywords(syntax_el["syntaxtree"])
+                    keyword_matched = True
+            
             if not keyword_matched:
                 command_error = "%s: keyword not recognized" % cur_path_el
                 cur_path = "/".join(path_arr[:cur_path_pos])
@@ -242,24 +240,17 @@ class WztrPrompt(Cmd):
                     cur_path += "/"
                 if removed_leading_slash:
                     cur_path = "/" + cur_path
-                for kw_tuple in expanded_keywords:
-                    completion.append( cur_path + kw_tuple[0] )
-                break
-            cur_path_pos += 1
-        
-        # if all keywords have been recognized calculate the command completion array
-        if keyword_matched:
-            expanded_keywords = self.__expand_keywords( syntax_el["keywords"] )
-            cur_path = "/".join(path_arr[:cur_path_pos])
-            if cur_path != "":
-                cur_path += "/"
-            if removed_leading_slash:
-                cur_path = "/" + cur_path
-            for kw_tuple in expanded_keywords:
-                completion.append( cur_path + kw_tuple[0] )
+                
             
-        
-        
+                for syntax_el in expanded_syntax_tree:
+                    completion.append( cur_path + syntax_el["keyword"] )
+                break
+                
+            cur_path_pos += 1
+                
+                    
+                        
+            
         
         
         return {
@@ -271,30 +262,39 @@ class WztrPrompt(Cmd):
         }
 
     
-    # expand macro keywords
-    def __expand_keywords(self, keywords):
-        expanded_keywords = []
-        for kw_tuple in keywords:
-            kw = kw_tuple[0]
+    # expand macro keywords in first level of syntax tree
+    def __expand_keywords(self, syntax_tree):
+        expanded_syntax_tree = []
+        for syntax_el in syntax_tree:
+            kw = syntax_el["keyword"]
             if kw[0] == "$":
-                expanded_keywords += self.__expand_keyword_macro(kw_tuple)
+                expanded_dict = self.__expand_keyword_macro(kw)
+                for expanded_kw in expanded_dict.keys():
+                    exp_syntax_el = {
+                        "keyword": expanded_kw,
+                        "keyword_type": syntax_el["keyword_type"],
+                        "syntaxtree": syntax_el["syntaxtree"],
+                        "data": expanded_dict[expanded_kw]
+                    }
+                    expanded_syntax_tree.append(exp_syntax_el)
             else:
-                expanded_keywords.append(kw_tuple)
-        return expanded_keywords
+                expanded_syntax_tree.append(syntax_el)
+        
+        return expanded_syntax_tree
+    
+    
+    
     
     # expand individual macro
-    def __expand_keyword_macro(self, kw_tuple):
-        expanded = []
-        kw = kw_tuple[0]
-        kw_type = kw_tuple[1]
-        if kw == "$MACHINE":
+    def __expand_keyword_macro(self, keyword):
+        expanded_dict = {}
+        if keyword == "$MACHINE":
             for machine_name in self.machines.keys():
-                expanded.append( (machine_name, kw_type, self.machines[machine_name]) )
-        elif kw == "$ALL_MACHINES":
-            expanded.append( ("all", kw_type, self.machines.values()) )
+                expanded_dict[machine_name]=self.machines[machine_name]
+        elif keyword == "$ALL_MACHINES":
+            expanded_dict["all"]=self.machines.values()
         
-        
-        return expanded
+        return expanded_dict
 
 
     
