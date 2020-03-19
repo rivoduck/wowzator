@@ -103,7 +103,7 @@ class WztrMachine():
 
 
 
-from cmd import Cmd
+from cmd2 import Cmd
 import json, sys
 
 _CONFIGFILE="config.json"
@@ -264,7 +264,7 @@ class WztrPrompt(Cmd):
     
     
     def complete_ls(self, text, line, begidx, endidx):
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, inp)
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
         
         return [i for i in result["completion"] if i.startswith(text)]
         
