@@ -224,11 +224,16 @@ class WztrPrompt(Cmd):
                             command_objects = kw_tuple[2]
                         elif kw_tuple[1] == "predicate":
                             command_predicate = kw_tuple[0]
-                        syntax_tree = syntax_el["syntaxtree"]
+                        
                         keyword_matched = True
                         break
-                        
-            # if keywork is not recognized calculate the command completion array and
+                
+                if keyword_matched:
+                    # move to the next branch of the syntax tree and break syntax tree processing
+                    syntax_tree = syntax_el["syntaxtree"]
+                    break
+                    
+            # if keyword is not recognized calculate the command completion array and
             # break the syntax processing loop
             if not keyword_matched:
                 command_error = "%s: keyword not recognized" % cur_path_el
