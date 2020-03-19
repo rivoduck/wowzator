@@ -17,7 +17,7 @@ class WztrVhost():
     def __str__(self):
         return self.name
     def __repr__(self):
-        return "WztrVhost: " + str(self)
+        return "WztrVhost: %s" % self.name
     
     
 class WztrMachine():
@@ -38,7 +38,7 @@ class WztrMachine():
     def __str__(self):
         return " %-10s (%s)" % (self.name, self.address)
     def __repr__(self):
-        return "WztrMachine: " + str(self)
+        return "WztrMachine: %s" % self.name
     
     def __fetch(self, url):
         try:
@@ -246,6 +246,8 @@ class WztrPrompt(Cmd):
             
                 for syntax_el in expanded_syntax_tree:
                     completion.append( cur_path + syntax_el["keyword"] )
+                    if len(syntax_el["syntaxtree"]) > 0:
+                        completion.append( cur_path + syntax_el["keyword"] +"/" )
 
                 break
             
@@ -261,6 +263,8 @@ class WztrPrompt(Cmd):
         
             for syntax_el in expanded_syntax_tree:
                 completion.append( cur_path + syntax_el["keyword"] )
+                if len(syntax_el["syntaxtree"]) > 0:
+                    completion.append( cur_path + syntax_el["keyword"] +"/" )
             
                         
             
