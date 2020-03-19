@@ -194,6 +194,7 @@ class WztrPrompt(Cmd):
         
         removed_trailing_slash = False
         removed_leading_slash = False
+        keyword_matched = False
         
         # remove last and first elements of path if empty
         if len(path_arr) > 0 and path_arr[-1] == "":
@@ -208,9 +209,8 @@ class WztrPrompt(Cmd):
             
             for syntax_el in syntax_tree:
                 
-                expanded_keywords = self.__expand_keywords(syntax_el["keywords"])
+                expanded_keywords = self.__expand_keywords( syntax_el["keywords"] )
                 '''
-                # expand macro keywords
                 expanded_keywords = []
                 for kw_tuple in syntax_el["keywords"]:
                     kw = kw_tuple[0]
@@ -218,7 +218,6 @@ class WztrPrompt(Cmd):
                         expanded_keywords += self.__expand_keyword_macro(kw_tuple)
                     else:
                         expanded_keywords.append(kw_tuple)
-                
                 '''
                 
                 
@@ -252,7 +251,14 @@ class WztrPrompt(Cmd):
         
         # if all keywords have been recognized calculate the command completion array
         if keyword_matched:
-            
+            expanded_keywords = self.__expand_keywords( syntax_el["keywords"] )
+            cur_path = "/".join(path_arr[:cur_path_pos])
+            if cur_path != "":
+                cur_path += "/"
+            if removed_leading_slash:
+                cur_path = "/" + cur_path
+            for kw_tuple in expanded_keywords:
+                completion.append( cur_path + kw_tuple[0] )
             
         
         
