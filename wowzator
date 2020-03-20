@@ -33,6 +33,7 @@ class WztrApplication():
             self.streamtargetsEnabled = False
     
         self.vhost=None
+        self.__configuration = None
     
     def __str__(self):
         return self.name
