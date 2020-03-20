@@ -463,9 +463,10 @@ class WztrPrompt(Cmd):
         margin = "                         "[:level]
         for cur_key in data_dict.keys():
             if isinstance(data_dict[cur_key], dict):
+                output += "%s %-10s:\n" % (margin, cur_key)
                 output += WztrPrompt.detail_formatter(data_dict[cur_key], level+1)
             else:
-                output += "%s%-10s: %s\n" % (margin, cur_key, data_dict[cur_key])
+                output += "%s %-10s: %s\n" % (margin, cur_key, data_dict[cur_key])
         
         return output
 
