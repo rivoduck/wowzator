@@ -539,9 +539,9 @@ class WztrPrompt(Cmd):
         
         output += margin + "[\n"
         for cur_item in data_dict:
-            output += margin + "{\n"
+            output += margin + "  {\n"
             output += WztrPrompt.dict_formatter(cur_item, level+1)
-            output += margin + "}\n"
+            output += margin + "  }\n"
         output += margin + "]\n"
         
         return output
