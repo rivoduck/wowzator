@@ -243,9 +243,11 @@ class WztrPrompt(Cmd):
                                     "keyword": "applications",
                                     "keyword_type": "predicate",
                                     "syntaxtree": [
-                                        "keyword": "$APPLICATION",
-                                        "keyword_type": "object",
-                                        "syntaxtree": []
+                                        {
+                                            "keyword": "$APPLICATION",
+                                            "keyword_type": "object",
+                                            "syntaxtree": []
+                                        }
                                     ]
                                 },
                                 {
@@ -444,8 +446,16 @@ class WztrPrompt(Cmd):
             print("empty list...")
         
     def __ls_object(self, object_instance, predicate=None):
-        print("%s: %s" % (object_instance.header_singular, object_instance))
-        print( self.detail_formatter( object_instance.detail_view() ) )
+        if predicate is None:
+            print("%s: %s" % (object_instance.header_singular, object_instance))
+            print( self.detail_formatter( object_instance.detail_view() ) )
+        else:
+            if predicate == "vhosts":
+                if isinstance(object_instance, WztrVhost):
+                    # details of vhost
+                    self.__ls_object(object_instance)
+                else:
+                    self.__ls_objects(object_instance.vhosts())
     
     
     def complete_ls(self, text, line, begidx, endidx):
