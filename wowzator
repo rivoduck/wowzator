@@ -32,7 +32,7 @@ class WztrVhost():
         # lazy-fetch applications
         if self.__applications is None:
             self.__applications={}
-            result = (self.machine.__fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name))
+            result = self.machine.fetchApplicationsForVhost(self)
             print(result)
             '''
             if 'VHosts' in vhosts.keys():
@@ -111,7 +111,11 @@ class WztrMachine():
         )
         
         return jsonresponse
-            
+    
+    def fetchApplicationsForVhost(self, vhost):
+        return self.__fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % vhost.name)
+        
+    
     def reset_cache(self):
         self.__vhosts = None
         self.__version = None
