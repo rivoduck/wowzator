@@ -15,6 +15,7 @@ class WztrVhost():
         self.connectingIPAddress = connectingIPAddress
         self.connectingSSLEnable = connectingSSLEnable
     
+        self.__applications = None
         self.machine=None
     
     def __str__(self):
@@ -23,6 +24,25 @@ class WztrVhost():
         return "WztrVhost: %s" % self.name
     def list_view(self):
         return str(self)
+    
+    
+    def applications(self):
+        # lazy-fetch applications
+        if self.__applications is None:
+            self.__applications={}
+            result = (self.machine.__fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name))
+            print(result)
+            '''
+            if 'VHosts' in vhosts.keys():
+                for vhost_entry in vhosts['VHosts']:
+                    vhost = vhost_entry['Vhost']
+                    newvh = WztrVhost(vhost['@id'], vhost['@href'], vhost['@connectingIPAddress'], vhost['@connectingPort'], vhost['@connectingSSLEnable'])
+                    newvh.machine = self
+                    
+                    self.__vhosts[newvh.name] = newvh
+            '''
+        return self.__applications
+    
     
 class WztrMachine():
     header_singular="Machine"
@@ -337,12 +357,6 @@ class WztrPrompt(Cmd):
         else:
             self.__ls_object(self.command_object, self.command_predicate)
         
-        '''
-                    print("Machines:")
-                    for machinename in self.machines.keys():
-                        machine=self.machines[machinename]
-                        print(" %s" % machine)
-        '''
 
     def __ls_objects(self, object_list, predicate=None):
         object_list = list(object_list)
