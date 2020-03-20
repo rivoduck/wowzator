@@ -47,7 +47,7 @@ class WztrMachine():
     def __repr__(self):
         return "WztrMachine: %s" % self.name
     def list_view(self):
-        return "%s %s" % (self, self.version())
+        return " %-8s %-17s [%s]" % (self.name, "(" + self.address + ")", self.__version)
     
     def __fetch(self, url):
         try:
@@ -88,7 +88,9 @@ class WztrMachine():
         
         return jsonresponse
             
-            
+    def reset_cache(self):
+        self.__vhosts = None
+        self.__version = None
     
     def vhosts(self):
         # lazy-fetch vhosts
@@ -110,9 +112,8 @@ class WztrMachine():
         if self.__version is None:
             self.__version = "*** No connection ***"
             try:
-                version = (self.__fetch(""))
+                self.__version = (self.__fetch(""))
             
-                self.__version = version
             except:
                 pass
         
@@ -366,9 +367,7 @@ class WztrPrompt(Cmd):
         
     def do_refresh(self, inp):
         for machinename in self.machines.keys():
-            machine=self.machines[machinename]
-            machine.__vhosts = None
-            machine.__version = None   
+            self.machines[machinename].reset_cache()
                      
     def help_refresh(self):
         print("refresh info from servers")
