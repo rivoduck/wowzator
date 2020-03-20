@@ -475,7 +475,7 @@ class WztrPrompt(Cmd):
     def __ls_object(self, object_instance, predicate=None):
         if predicate is None:
             print("%s: %s" % (object_instance.header_singular, object_instance))
-            print( self.detail_formatter( object_instance.detail_view() ) )
+            print( self.dict_formatter( object_instance.detail_view() ) )
         else:
             if predicate == "vhosts":
                 if isinstance(object_instance, WztrVhost):
@@ -492,7 +492,7 @@ class WztrPrompt(Cmd):
             elif predicate == "configuration":
                 if isinstance(object_instance, WztrApplication):
                     # config of app
-                    print(self.detail_formatter(object_instance.configuration()))
+                    print(self.list_formatter(object_instance.configuration()))
     
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
@@ -512,18 +512,25 @@ class WztrPrompt(Cmd):
 
 
     @staticmethod
-    def detail_formatter(data_dict, level=0):
+    def dict_formatter(data_dict, level=0):
         output=""
         margin = "                            "[:level*2]
         for cur_key in data_dict.keys():
             if isinstance(data_dict[cur_key], dict):
                 output += "%s  %-12s:\n" % (margin, cur_key)
-                output += WztrPrompt.detail_formatter(data_dict[cur_key], level+1)
+                output += WztrPrompt.dict_formatter(data_dict[cur_key], level+1)
             elif type(data_dict[cur_key]) is list:
                 output += "%s  %-12s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
             else:
                 output += "%s  %-12s: %s\n" % (margin, cur_key, data_dict[cur_key])
         
+        return output
+
+    @staticmethod
+    def list_formatter(data_dict, level=0):
+        output=""
+        for cur_item in data_dict:
+            output += WztrPrompt.dict_formatter(cur_item, 1)
         return output
 
 
