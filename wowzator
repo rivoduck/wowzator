@@ -82,7 +82,6 @@ class WztrApplication():
             result = self.vhost.machine.fetchJson(self.href + "/adv")
             if 'ApplicationAdv' in result.keys():
                 if 'AdvancedSettings' in result['ApplicationAdv'].keys():
-                    self.__configuration['AdvancedSettings']=result['ApplicationAdv']['AdvancedSettings']
                     
                     # show only active properties
                     properties=[]
