@@ -128,7 +128,7 @@ class WztrMachine():
         return {
             "Address": self.address,
             "HTTPS": "YES" if self.use_https else "NO",
-            "Version": self.__version,
+            "Version": self.version(),
             "Credentials": {
                 "user": self.user,
                 "pw": "*******"
@@ -455,7 +455,7 @@ class WztrPrompt(Cmd):
                     # details of vhost
                     self.__ls_object(object_instance)
                 else:
-                    self.__ls_objects(object_instance.vhosts())
+                    self.__ls_objects(object_instance.vhosts().values())
     
     
     def complete_ls(self, text, line, begidx, endidx):
