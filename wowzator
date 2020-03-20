@@ -50,8 +50,7 @@ class WztrApplication():
             "DVR": "** ON" if self.dvrEnabled else "OFF",
             "DRM": "** ON" if self.drmEnabled else "OFF",
             "Transcoder": "** ON" if self.transcoderEnabled else "OFF",
-            "Targets": "** ON" if self.streamtargetsEnabled else "OFF",
-            "href": self.href
+            "Targets": "** ON" if self.streamtargetsEnabled else "OFF"
         }
 
 
@@ -60,8 +59,8 @@ class WztrApplication():
         if self.__configuration is None:
             self.__configuration={}
 
-            result = self.vhost.machine.fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name)
-            
+            result = self.vhost.machine.fetchJson(self.href)
+            print(result)
             if 'Applications' in result.keys():
                 entry = result['Applications']
                 if 'Application' in entry.keys():
@@ -72,7 +71,7 @@ class WztrApplication():
                     
                         self.__applications[newapp.name] = newapp
 
-        return self.__applications
+        return self.__configuration
         
         
         
