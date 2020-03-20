@@ -524,7 +524,7 @@ class WztrPrompt(Cmd):
             elif predicate == "properties":
                 if isinstance(object_instance, WztrApplication):
                     # properties (adv config) of app
-                    print(self.dict_formatter(object_instance.configurationAdv()))
+                    print(self.dict_formatter(object_instance.configurationAdvanced()))
     
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
