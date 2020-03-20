@@ -4,6 +4,54 @@ import httpx
 import xmltodict
 import json
 
+
+
+class WztrApplication():
+    header_singular="Application"
+    header_plural="Applications"
+
+    def __init__(self, name, href, appType, dvrEnabled=False, drmEnabled=False, transcoderEnabled=False, streamtargetsEnabled=False):
+        self.name = name
+        self.href = href
+        self.appType = appType
+
+        if dvrEnabled == "true":
+            self.dvrEnabled = True
+        else:
+            self.dvrEnabled = False
+        if drmEnabled == "true":
+            self.drmEnabled = True
+        else:
+            self.drmEnabled = False
+        if transcoderEnabled == "true":
+            self.transcoderEnabled = True
+        else:
+            self.transcoderEnabled = False
+        if streamtargetsEnabled == "true":
+            self.streamtargetsEnabled = True
+        else:
+            self.streamtargetsEnabled = False
+    
+        self.vhost=None
+    
+    def __str__(self):
+        return self.name
+    def __repr__(self):
+        return "WztrVhost: %s" % self.name
+    def list_view(self):
+        return "/%s/%s/%s (%s)" % (self.vhost.machine.name, self.vhost.name, self.name, self.appType)
+    def detail_view(self):
+        return {
+            "App Type": self.appType,
+            "Server": "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name),
+            "DVR": "** ON" if self.dvrEnabled else "OFF",
+            "DRM": "** ON" if self.drmEnabled else "OFF",
+            "Transcoder": "** ON" if self.transcoderEnabled else "OFF",
+            "Targets": "** ON" if self.streamtargetsEnabled else "OFF",
+        }
+
+
+
 class WztrVhost():
     header_singular="VHost"
     header_plural="VHosts"
@@ -13,7 +61,10 @@ class WztrVhost():
         self.href = href
         self.connectingPort = connectingPort
         self.connectingIPAddress = connectingIPAddress
-        self.connectingSSLEnable = connectingSSLEnable
+        if connectingSSLEnable == "true":
+            self.connectingSSLEnable = True
+        else:
+            self.connectingSSLEnable = False
     
         self.__applications = None
         self.machine=None
@@ -25,7 +76,10 @@ class WztrVhost():
     def list_view(self):
         return str(self)
     def detail_view(self):
-        return self.applications()
+        return {
+            "Connecting Addr/Port": "%s/%s" % (self.connectingIPAddress, self.connectingPort),
+            "SSL Enable": self.connectingSSLEnable
+        }
     
     
     def applications(self):
@@ -34,15 +88,15 @@ class WztrVhost():
             self.__applications={}
             result = self.machine.fetchApplicationsForVhost(self)
             print(result)
-            '''
-            if 'VHosts' in vhosts.keys():
-                for vhost_entry in vhosts['VHosts']:
-                    vhost = vhost_entry['Vhost']
-                    newvh = WztrVhost(vhost['@id'], vhost['@href'], vhost['@connectingIPAddress'], vhost['@connectingPort'], vhost['@connectingSSLEnable'])
-                    newvh.machine = self
+
+            if 'Applications' in result.keys():
+                for entry in result['Applications']:
+                    item = entry['Application']
+                    newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
+                    newapp.vhost = self
                     
-                    self.__vhosts[newvh.name] = newvh
-            '''
+                    self.__applications[newapp.name] = newapp
+
         return self.__applications
     
     
@@ -377,7 +431,7 @@ class WztrPrompt(Cmd):
         
     def __ls_object(self, object_instance, predicate=None):
         print("%s: %s" % (object_instance.header_singular, object_instance))
-        print(object_instance.detail_view())
+        print( self.detail_formatter( object_instance.detail_view() ) )
     
     
     def complete_ls(self, text, line, begidx, endidx):
@@ -396,6 +450,17 @@ class WztrPrompt(Cmd):
         print("refresh info from servers")
 
 
+    @staticmethod
+    def detail_formatter(data_dict, level=0):
+        output=""
+        margin = "                         "[:level]
+        for cur_key in data_dict.keys():
+            if isinstance(data_dict[cur_key], dict):
+                output += WztrPrompt.detail_formatter(data_dict[cur_key], level+1)
+            else:
+                output += "%s%-10s: %s\n" % (margin, cur_key, data_dict[cur_key])
+        
+        return output
 
 
 p=WztrPrompt()
