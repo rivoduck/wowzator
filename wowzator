@@ -106,6 +106,17 @@ class WztrVhost():
             self.__applications={}
             result = self.machine.fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name)
 
+
+
+            if 'Applications' in result.keys():
+                for entry in result['Applications']:
+                    item = entry['Application']
+                    newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
+                    newapp.vhost = self
+                    
+                    self.__applications[newapp.name] = newapp
+
+            '''
             if 'Applications' in result.keys():
                 entry = result['Applications']
                 if 'Application' in entry.keys():
@@ -115,7 +126,7 @@ class WztrVhost():
                         newapp.vhost = self
                     
                         self.__applications[newapp.name] = newapp
-
+            '''
         return self.__applications
     
     
@@ -188,7 +199,7 @@ class WztrMachine():
             xmlresponse,
             dict_constructor=dict,
             xml_attribs=True,
-            force_list=('VHosts', 'VHost', 'Application', 'ApplicationInstance', 'Stream', 'MachineMonitorRequest')
+            force_list=('VHosts', 'VHost', 'Applications', 'Application')
         )
         
         return jsonresponse
