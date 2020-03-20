@@ -34,7 +34,8 @@ class WztrApplication():
     
         self.vhost=None
         self.__configuration = None
-    
+        self.__configurationAdv = None # this is how app Properties are called in wowza APIs
+        
     def __str__(self):
         return self.name
     def __repr__(self):
@@ -66,13 +67,26 @@ class WztrApplication():
                 entry = result['Application']
                 self.__configuration = entry
         result = self.vhost.machine.fetchJson(self.href + "/adv")
-        print(result)
         if 'ApplicationAdv' in result.keys():
             if 'AdvancedSettings' in result['ApplicationAdv'].keys():
                 self.__configuration['AdvancedSettings']=result['ApplicationAdv']['AdvancedSettings']
 
         return self.__configuration
         
+    # in wowza APIs, application Properties are referred to as application/advanced
+    def configurationAdvanced(self):
+        # lazy-fetch application advanced config
+        if self.__configurationAdv is None:
+            self.__configurationAdv={}
+            
+            result = self.vhost.machine.fetchJson(self.href + "/adv")
+            if 'ApplicationAdv' in result.keys():
+                if 'AdvancedSettings' in result['ApplicationAdv'].keys():
+                    self.__configuration['AdvancedSettings']=result['ApplicationAdv']['AdvancedSettings']
+            
+                    self.__configurationAdv['AdvancedSettings']=result['ApplicationAdv']['AdvancedSettings']
+
+        return self.__configurationAdv
         
         
 class WztrVhost():
@@ -274,7 +288,13 @@ class WztrPrompt(Cmd):
                                                 {
                                                     "keyword": "configuration",
                                                     "keyword_type": "predicate",
-                                                    "syntaxtree": []
+                                                    "syntaxtree": [
+                                                        {
+                                                            "keyword": "properties",
+                                                            "keyword_type": "predicate",
+                                                            "syntaxtree": []
+                                                        }
+                                                    ]
                                                 }
                                             ]
                                         }
@@ -501,6 +521,10 @@ class WztrPrompt(Cmd):
                 if isinstance(object_instance, WztrApplication):
                     # config of app
                     print(self.dict_formatter(object_instance.configuration()))
+            elif predicate == "properties":
+                if isinstance(object_instance, WztrApplication):
+                    # properties (adv config) of app
+                    print(self.dict_formatter(object_instance.configurationAdv()))
     
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
