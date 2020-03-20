@@ -39,7 +39,7 @@ class WztrApplication():
     def __repr__(self):
         return "WztrVhost: %s" % self.name
     def list_view(self):
-        return "/%s/%s/%s (%s)" % (self.vhost.machine.name, self.vhost.name, self.name, self.appType)
+        return "%-8s /%s/%s/%s" % (self.appType, self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         return {
             "App Type": self.appType,
@@ -343,7 +343,7 @@ class WztrPrompt(Cmd):
                     keyword_matched = True
             
             if not keyword_matched:
-                command_error = "%s: keyword not recognized" % cur_path_el
+                self.command_error = "%s: keyword not recognized" % cur_path_el
                 cur_path = "/".join(path_arr[:cur_path_pos])
                 if cur_path != "":
                     cur_path += "/"
