@@ -39,7 +39,7 @@ class WztrApplication():
     def __repr__(self):
         return "WztrVhost: %s" % self.name
     def list_view(self):
-        return "%-10s %1s%1s%1s%1s /%s/%s/%s" % (self.appType, 
+        return "%-10s %1s%1s%1s%1s  /%s/%s/%s" % (self.appType, 
             "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
             "X" if self.transcoderEnabled else "-", "X" if self.streamtargetsEnabled else "-",
             self.vhost.machine.name, self.vhost.name, self.name)
@@ -51,10 +51,31 @@ class WztrApplication():
             "DRM": "** ON" if self.drmEnabled else "OFF",
             "Transcoder": "** ON" if self.transcoderEnabled else "OFF",
             "Targets": "** ON" if self.streamtargetsEnabled else "OFF",
+            "href": self.href
         }
 
 
+    def configuration(self):
+        # lazy-fetch application config
+        if self.__configuration is None:
+            self.__configuration={}
 
+            result = self.vhost.machine.fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name)
+            
+            if 'Applications' in result.keys():
+                entry = result['Applications']
+                if 'Application' in entry.keys():
+                    item_list = entry['Application']
+                    for item in item_list:
+                        newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
+                        newapp.vhost = self
+                    
+                        self.__applications[newapp.name] = newapp
+
+        return self.__applications
+        
+        
+        
 class WztrVhost():
     header_singular="VHost"
     header_plural="VHosts"
@@ -80,8 +101,9 @@ class WztrVhost():
         return str(self)
     def detail_view(self):
         return {
+            "Machine": str(self.machine),
             "Addr/Port": "%s/%s" % (self.connectingIPAddress, self.connectingPort),
-            "SSL Enable": self.connectingSSLEnable
+            "SSL": "YES" if self.connectingSSLEnable else "NO",
         }
     
     
@@ -89,7 +111,7 @@ class WztrVhost():
         # lazy-fetch applications
         if self.__applications is None:
             self.__applications={}
-            result = self.machine.fetchApplicationsForVhost(self)
+            result = self.machine.fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name)
 
             if 'Applications' in result.keys():
                 entry = result['Applications']
@@ -131,15 +153,15 @@ class WztrMachine():
     def detail_view(self):
         return {
             "Address": self.address,
-            "HTTPS": "YES" if self.use_https else "NO",
             "Version": self.version(),
+            "HTTPS": "YES" if self.use_https else "NO",
             "Credentials": {
                 "user": self.user,
                 "pw": "*******"
             }
         }
         
-    def __fetch(self, url):
+    def fetch(self, url):
         try:
             base_url="http://"
             if self.use_https:
@@ -166,8 +188,8 @@ class WztrMachine():
             print(e)
             return False
         
-    def __fetchJson(self, url):
-        xmlresponse = self.__fetch(url)
+    def fetchJson(self, url):
+        xmlresponse = self.fetch(url)
         
         jsonresponse = xmltodict.parse(
             xmlresponse,
@@ -178,9 +200,6 @@ class WztrMachine():
         
         return jsonresponse
     
-    def fetchApplicationsForVhost(self, vhost):
-        return self.__fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % vhost.name)
-        
     
     def reset_cache(self):
         self.__vhosts = None
@@ -190,7 +209,7 @@ class WztrMachine():
         # lazy-fetch vhosts
         if self.__vhosts is None:
             self.__vhosts={}
-            vhosts = (self.__fetchJson("/v2/servers/_defaultServer_/vhosts"))
+            vhosts = (self.fetchJson("/v2/servers/_defaultServer_/vhosts"))
             if 'VHosts' in vhosts.keys():
                 for vhost_entry in vhosts['VHosts']:
                     vhost = vhost_entry['Vhost']
@@ -206,7 +225,7 @@ class WztrMachine():
         if self.__version is None:
             self.__version = "*** No connection ***"
             try:
-                self.__version = (self.__fetch(""))
+                self.__version = (self.fetch(""))
             
             except:
                 pass
@@ -429,6 +448,8 @@ class WztrPrompt(Cmd):
 
 
     def do_ls(self, inp):
+        print()
+        
         self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, inp)
         
         if self.command_error is None:
@@ -450,6 +471,7 @@ class WztrPrompt(Cmd):
                 print(" %s" % cur_obj.list_view())
         else:
             print("empty list...")
+        print()
         
     def __ls_object(self, object_instance, predicate=None):
         if predicate is None:
@@ -477,6 +499,7 @@ class WztrPrompt(Cmd):
         
     def help_ls(self):
         print("List items and configurations")
+        print("Application list reports four flags (\"X\" means enabled, \"-\" disabled): DVR DRM Transcoders Targets")
         
     def do_refresh(self, inp):
         for machinename in self.machines.keys():
