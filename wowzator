@@ -428,14 +428,16 @@ class WztrPrompt(Cmd):
     def do_ls(self, inp):
         self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, inp)
         
-        if self.command_object is None:
-            if self.command_objects is None:
-                self.__ls_objects(self.machines.values(), self.command_predicate)
+        if self.command_error is None:
+            if self.command_object is None:
+                if self.command_objects is None:
+                    self.__ls_objects(self.machines.values(), self.command_predicate)
+                else:
+                    self.__ls_objects(self.command_objects, self.command_predicate)
             else:
-                self.__ls_objects(self.command_objects, self.command_predicate)
+                self.__ls_object(self.command_object, self.command_predicate)
         else:
-            self.__ls_object(self.command_object, self.command_predicate)
-        
+            print("** Error: %s" % self.command_error)
 
     def __ls_objects(self, object_list, predicate=None):
         object_list = list(object_list)
@@ -457,6 +459,12 @@ class WztrPrompt(Cmd):
                     self.__ls_object(object_instance)
                 else:
                     self.__ls_objects(object_instance.vhosts().values())
+            elif predicate == "applications":
+                if isinstance(object_instance, WztrApplication):
+                    # details of app
+                    self.__ls_object(object_instance)
+                else:
+                    self.__ls_objects(object_instance.applications().values())
     
     
     def complete_ls(self, text, line, begidx, endidx):
