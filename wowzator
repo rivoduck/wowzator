@@ -517,18 +517,18 @@ class WztrPrompt(Cmd):
         margin = "                            "[:level*2]
         for cur_key in data_dict.keys():
             if isinstance(data_dict[cur_key], dict):
-                output += "%s  %-12s:\n" % (margin, cur_key)
+                output += "%s  %-14s:\n" % (margin, cur_key)
                 output += WztrPrompt.dict_formatter(data_dict[cur_key], level+1)
             elif type(data_dict[cur_key]) is list:
                 if len(data_dict[cur_key]) == 0:
-                    output += "%s  %-12s: []\n" % (margin, cur_key)
+                    output += "%s  %-14s: []\n" % (margin, cur_key)
                 else:
                     if type(data_dict[cur_key][0]) is dict:
                         output += WztrPrompt.list_formatter(data_dict[cur_key], level+1)
                     else:
-                        output += "%s  %-12s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
+                        output += "%s  %-14s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
             else:
-                output += "%s  %-12s: %s\n" % (margin, cur_key, data_dict[cur_key])
+                output += "%s  %-14s: %s\n" % (margin, cur_key, data_dict[cur_key])
         
         return output
 
