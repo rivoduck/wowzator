@@ -83,7 +83,7 @@ class WztrApplication():
             if 'ApplicationAdv' in result.keys():
                 if 'AdvancedSettings' in result['ApplicationAdv'].keys():
                     advSettings = result['ApplicationAdv']['AdvancedSettings'].keys()
-                    if 'AdvancedSetting' in advSettings.keys():
+                    if 'AdvancedSetting' in advSettings:
                         # show only active properties
                         properties=[]
                         for prop in advSettings['AdvancedSetting']:
