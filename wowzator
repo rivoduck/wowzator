@@ -535,8 +535,13 @@ class WztrPrompt(Cmd):
     @staticmethod
     def list_formatter(data_dict, level=0):
         output=""
+        margin = "                            "[:level*2]
+        
+        output += margin + "["
         for cur_item in data_dict:
-            output += WztrPrompt.dict_formatter(cur_item, 1)
+            output += WztrPrompt.dict_formatter(cur_item, level+1)
+        output += margin + "]"
+        
         return output
 
 
