@@ -83,8 +83,21 @@ class WztrApplication():
             if 'ApplicationAdv' in result.keys():
                 if 'AdvancedSettings' in result['ApplicationAdv'].keys():
                     self.__configuration['AdvancedSettings']=result['ApplicationAdv']['AdvancedSettings']
-            
-                    self.__configurationAdv['AdvancedSettings']=result['ApplicationAdv']['AdvancedSettings']
+                    
+                    # show only active properties
+                    properties=[]
+                    for prop in result['ApplicationAdv']['AdvancedSettings']:
+                        if prop['@enabled'] == 'true':
+                            shortprop = {
+                                'Section': prop['Section'],
+                                'Name': prop['Name'],
+                                'Type': prop['Type'],
+                                'Value': prop['Value']
+                            }
+                            
+                            properties.append(shortprop)
+                            
+                    self.__configurationAdv=properties
 
         return self.__configurationAdv
         
@@ -524,7 +537,7 @@ class WztrPrompt(Cmd):
             elif predicate == "properties":
                 if isinstance(object_instance, WztrApplication):
                     # properties (adv config) of app
-                    print(self.dict_formatter(object_instance.configurationAdvanced()))
+                    print(self.property_formatter(object_instance.configurationAdvanced()))
     
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
@@ -565,12 +578,12 @@ class WztrPrompt(Cmd):
         return output
 
     @staticmethod
-    def list_formatter(data_dict, level=0):
+    def list_formatter(data_list, level=0):
         output=""
         margin = "                            "[:level*2]
         
         output += margin + "[\n"
-        for cur_item in data_dict:
+        for cur_item in data_list:
             output += margin + "  {\n"
             output += WztrPrompt.dict_formatter(cur_item, level+1)
             output += margin + "  }\n"
