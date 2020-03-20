@@ -87,15 +87,16 @@ class WztrVhost():
         if self.__applications is None:
             self.__applications={}
             result = self.machine.fetchApplicationsForVhost(self)
-            print(result)
 
             if 'Applications' in result.keys():
-                for entry in result['Applications']:
-                    item = entry['Application']
-                    newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
-                    newapp.vhost = self
+                entry = result['Applications']
+                if 'Application' in entry.keys():
+                    item_list = entry['Application']
+                    for item in item_list:
+                        newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
+                        newapp.vhost = self
                     
-                    self.__applications[newapp.name] = newapp
+                        self.__applications[newapp.name] = newapp
 
         return self.__applications
     
