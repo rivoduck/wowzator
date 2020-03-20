@@ -82,18 +82,19 @@ class WztrApplication():
             result = self.vhost.machine.fetchJson(self.href + "/adv")
             if 'ApplicationAdv' in result.keys():
                 if 'AdvancedSettings' in result['ApplicationAdv'].keys():
-                    advSettings = result['ApplicationAdv']['AdvancedSettings']
-                    if 'AdvancedSetting' in advSettings:
+                    advSettings = result['ApplicationAdv']['AdvancedSettings'].keys()
+                    if 'AdvancedSetting' in advSettings.keys():
                         # show only active properties
                         properties=[]
                         for prop in advSettings['AdvancedSetting']:
                             if prop['@enabled'] == 'true':
                                 shortprop = {
-                                    'Section': prop['Section'],
                                     'Name': prop['Name'],
                                     'Type': prop['Type'],
                                     'Value': prop['Value']
                                 }
+                                if 'Section' in prop.keys():
+                                    shortprop['Section'] = prop['Section']
                             
                                 properties.append(shortprop)
                             
