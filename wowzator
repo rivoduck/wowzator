@@ -65,6 +65,11 @@ class WztrApplication():
             if 'Application' in result.keys():
                 entry = result['Application']
                 self.__configuration = entry
+        result = self.vhost.machine.fetchJson(self.href + "/adv")
+        print(result)
+        if 'ApplicationAdv' in result.keys():
+            if 'AdvancedSettings' in result['ApplicationAdv'].keys():
+                self.__configuration['AdvancedSettings']=result['ApplicationAdv']['AdvancedSettings']
 
         return self.__configuration
         
