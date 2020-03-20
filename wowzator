@@ -40,9 +40,9 @@ class WztrApplication():
         return "WztrVhost: %s" % self.name
     def list_view(self):
         return "%-10s %1s%1s%1s%1s /%s/%s/%s" % (self.appType, 
-            "X" if self.self.dvrEnabled else "-", "X" if self.self.drmEnabled else "-",
-            "X" if self.self.transcoderEnabled else "-", "X" if self.self.streamtargetsEnabled else "-",
-            vhost.machine.name, self.vhost.name, self.name)
+            "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
+            "X" if self.transcoderEnabled else "-", "X" if self.streamtargetsEnabled else "-",
+            self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         return {
             "App Type": self.appType,
