@@ -523,8 +523,8 @@ class WztrPrompt(Cmd):
                 if len(data_dict[cur_key]) == 0:
                     output += "%s  %-12s: []\n" % (margin, cur_key)
                 else:
-                    if type(data_dict[cur_key]) is dict:
-                        output += WztrPrompt.dict_formatter(data_dict[cur_key], level+1)
+                    if type(data_dict[cur_key][0]) is dict:
+                        output += WztrPrompt.list_formatter(data_dict[cur_key], level+1)
                     else:
                         output += "%s  %-12s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
             else:
