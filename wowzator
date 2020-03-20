@@ -47,7 +47,7 @@ class WztrMachine():
     def __repr__(self):
         return "WztrMachine: %s" % self.name
     def list_view(self):
-        return " %-8s %-17s [%s]" % (self.name, "(" + self.address + ")", self.__version)
+        return " %-8s %-17s [%s]" % (self.name, "(" + self.address + ")", self.version())
     
     def __fetch(self, url):
         try:
