@@ -61,16 +61,9 @@ class WztrApplication():
             self.__configuration={}
 
             result = self.vhost.machine.fetchJson(self.href)
-            print(result)
-            if 'Applications' in result.keys():
-                entry = result['Applications']
-                if 'Application' in entry.keys():
-                    item_list = entry['Application']
-                    for item in item_list:
-                        newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
-                        newapp.vhost = self
-                    
-                        self.__applications[newapp.name] = newapp
+            if 'Application' in result.keys():
+                entry = result['Application']
+                self.__configuration = entry
 
         return self.__configuration
         
@@ -499,7 +492,7 @@ class WztrPrompt(Cmd):
             elif predicate == "configuration":
                 if isinstance(object_instance, WztrApplication):
                     # config of app
-                    object_instance.configuration()
+                    print(detail_formatter(object_instance.configuration()))
     
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
@@ -526,6 +519,8 @@ class WztrPrompt(Cmd):
             if isinstance(data_dict[cur_key], dict):
                 output += "%s  %-12s:\n" % (margin, cur_key)
                 output += WztrPrompt.detail_formatter(data_dict[cur_key], level+1)
+            elif type(data_dict[cur_key]) is list:
+                output += "%s  %-12s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
             else:
                 output += "%s  %-12s: %s\n" % (margin, cur_key, data_dict[cur_key])
         
