@@ -268,7 +268,13 @@ class WztrPrompt(Cmd):
                                         {
                                             "keyword": "$APPLICATION",
                                             "keyword_type": "object",
-                                            "syntaxtree": []
+                                            "syntaxtree": [
+                                                {
+                                                    "keyword": "configuration",
+                                                    "keyword_type": "predicate",
+                                                    "syntaxtree": []
+                                                }
+                                            ]
                                         }
                                     ]
                                 },
@@ -489,7 +495,10 @@ class WztrPrompt(Cmd):
                     self.__ls_object(object_instance)
                 else:
                     self.__ls_objects(object_instance.applications().values())
-    
+            elif predicate == "configuration":
+                if isinstance(object_instance, WztrApplication):
+                    # config of app
+                    object_instance.configuration()
     
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
