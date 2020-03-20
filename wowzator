@@ -127,7 +127,7 @@ class WztrMachine():
     def detail_view(self):
         return {
             "Address": self.address,
-            "HTTPS": "YES" if self.use_https else "NO"
+            "HTTPS": "YES" if self.use_https else "NO",
             "Credentials": {
                 "user": self.user,
                 "pw": "*******"
