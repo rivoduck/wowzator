@@ -24,6 +24,8 @@ class WztrVhost():
         return "WztrVhost: %s" % self.name
     def list_view(self):
         return str(self)
+    def detail_view(self):
+        return self.applications()
     
     
     def applications(self):
@@ -68,7 +70,9 @@ class WztrMachine():
         return "WztrMachine: %s" % self.name
     def list_view(self):
         return " %-8s %-17s [%s]" % (self.name, "(" + self.address + ")", self.version())
-    
+    def detail_view(self):
+        return str(self)
+
     def __fetch(self, url):
         try:
             base_url="http://"
@@ -369,6 +373,7 @@ class WztrPrompt(Cmd):
         
     def __ls_object(self, object_instance, predicate=None):
         print("%s: %s" % (object_instance.header_singular, object_instance))
+        print(object_instance.detail_view())
     
     
     def complete_ls(self, text, line, begidx, endidx):
