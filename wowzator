@@ -77,7 +77,7 @@ class WztrVhost():
         return str(self)
     def detail_view(self):
         return {
-            "Connecting Addr/Port": "%s/%s" % (self.connectingIPAddress, self.connectingPort),
+            "Addr/Port": "%s/%s" % (self.connectingIPAddress, self.connectingPort),
             "SSL Enable": self.connectingSSLEnable
         }
     
@@ -128,6 +128,7 @@ class WztrMachine():
         return {
             "Address": self.address,
             "HTTPS": "YES" if self.use_https else "NO",
+            "Version": self.__version,
             "Credentials": {
                 "user": self.user,
                 "pw": "*******"
@@ -241,7 +242,11 @@ class WztrPrompt(Cmd):
                                 {
                                     "keyword": "applications",
                                     "keyword_type": "predicate",
-                                    "syntaxtree": []
+                                    "syntaxtree": [
+                                        "keyword": "$APPLICATION",
+                                        "keyword_type": "object",
+                                        "syntaxtree": []
+                                    ]
                                 },
                                 {
                                     "keyword": "transcoders",
@@ -411,6 +416,8 @@ class WztrPrompt(Cmd):
             expanded_dict["all"]=self.machines.values()
         elif keyword == "$VHOST":
             expanded_dict = self.command_object.vhosts()
+        elif keyword == "$APPLICATION":
+            expanded_dict = self.command_object.applications()
         
         return expanded_dict
 
@@ -460,13 +467,13 @@ class WztrPrompt(Cmd):
     @staticmethod
     def detail_formatter(data_dict, level=0):
         output=""
-        margin = "                         "[:level]
+        margin = "                            "[:level*2]
         for cur_key in data_dict.keys():
             if isinstance(data_dict[cur_key], dict):
-                output += "%s %-10s:\n" % (margin, cur_key)
+                output += "%s  %-12s:\n" % (margin, cur_key)
                 output += WztrPrompt.detail_formatter(data_dict[cur_key], level+1)
             else:
-                output += "%s %-10s: %s\n" % (margin, cur_key, data_dict[cur_key])
+                output += "%s  %-12s: %s\n" % (margin, cur_key, data_dict[cur_key])
         
         return output
 
@@ -478,6 +485,3 @@ p.cmdloop()
 
 
 
-
-    
-    
