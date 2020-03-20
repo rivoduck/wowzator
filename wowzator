@@ -61,6 +61,7 @@ class WztrApplication():
             self.__configuration={}
 
             result = self.vhost.machine.fetchJson(self.href)
+
             if 'Application' in result.keys():
                 entry = result['Application']
                 self.__configuration = entry
@@ -107,26 +108,16 @@ class WztrVhost():
             result = self.machine.fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name)
 
 
-
-            if 'Applications' in result.keys():
-                for entry in result['Applications']:
-                    item = entry['Application']
-                    newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
-                    newapp.vhost = self
-                    
-                    self.__applications[newapp.name] = newapp
-
-            '''
             if 'Applications' in result.keys():
                 entry = result['Applications']
                 if 'Application' in entry.keys():
-                    item_list = entry['Application']
-                    for item in item_list:
+                    items = entry['Application']
+                    for item in items:
                         newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
                         newapp.vhost = self
                     
                         self.__applications[newapp.name] = newapp
-            '''
+
         return self.__applications
     
     
@@ -199,7 +190,7 @@ class WztrMachine():
             xmlresponse,
             dict_constructor=dict,
             xml_attribs=True,
-            force_list=('VHosts', 'VHost', 'Applications', 'Application')
+            force_list=('VHosts')
         )
         
         return jsonresponse
@@ -214,6 +205,7 @@ class WztrMachine():
         if self.__vhosts is None:
             self.__vhosts={}
             vhosts = (self.fetchJson("/v2/servers/_defaultServer_/vhosts"))
+
             if 'VHosts' in vhosts.keys():
                 for vhost_entry in vhosts['VHosts']:
                     vhost = vhost_entry['Vhost']
@@ -503,7 +495,7 @@ class WztrPrompt(Cmd):
             elif predicate == "configuration":
                 if isinstance(object_instance, WztrApplication):
                     # config of app
-                    print(self.list_formatter(object_instance.configuration()))
+                    print(self.dict_formatter(object_instance.configuration()))
     
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
