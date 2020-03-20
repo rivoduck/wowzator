@@ -39,7 +39,10 @@ class WztrApplication():
     def __repr__(self):
         return "WztrVhost: %s" % self.name
     def list_view(self):
-        return "%-8s /%s/%s/%s" % (self.appType, self.vhost.machine.name, self.vhost.name, self.name)
+        return "%-10s %1s%1s%1s%1s /%s/%s/%s" % (self.appType, 
+            "X" if self.self.dvrEnabled else "-", "X" if self.self.drmEnabled else "-",
+            "X" if self.self.transcoderEnabled else "-", "X" if self.self.streamtargetsEnabled else "-",
+            vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         return {
             "App Type": self.appType,
@@ -120,7 +123,7 @@ class WztrMachine():
             self.port="8087"
 
     def __str__(self):
-        return " %-8s (%s)" % (self.name, self.address)
+        return self.name
     def __repr__(self):
         return "WztrMachine: %s" % self.name
     def list_view(self):
