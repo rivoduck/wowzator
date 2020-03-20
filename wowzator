@@ -56,7 +56,7 @@ class WztrVhost():
     header_singular="VHost"
     header_plural="VHosts"
 
-    def __init__(self, name, href, connectingPort, connectingIPAddress, connectingSSLEnable=False):
+    def __init__(self, name, href, connectingIPAddress, connectingPort, connectingSSLEnable=False):
         self.name = name
         self.href = href
         self.connectingPort = connectingPort
@@ -125,8 +125,15 @@ class WztrMachine():
     def list_view(self):
         return " %-8s %-17s [%s]" % (self.name, "(" + self.address + ")", self.version())
     def detail_view(self):
-        return str(self)
-
+        return {
+            "Address": self.address,
+            "HTTPS": "YES" if self.use_https else "NO"
+            "Credentials": {
+                "user": self.user,
+                "pw": "*******"
+            }
+        }
+        
     def __fetch(self, url):
         try:
             base_url="http://"
