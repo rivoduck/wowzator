@@ -290,6 +290,8 @@ class WztrPrompt(Cmd):
     prompt = 'wowzator> '
     intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands, TAB to autocomplete\n"
     
+    
+    # Syntax tree for the list commeand
     syntaxtree_ls = [
         {
             "keyword": "$MACHINE",
@@ -342,6 +344,53 @@ class WztrPrompt(Cmd):
             "keyword_type": "multi_object",
             "syntaxtree": []
         }
+    ]
+
+
+    # Syntax tree for the diff commeand (first argument)
+    syntaxtree_diff_1 = [
+        {
+            "keyword": "$MACHINE",
+            "keyword_type": "object",
+            "syntaxtree": [ 
+                { 
+                    "keyword": "vhosts",
+                    "keyword_type": "predicate",
+                    "syntaxtree": [ 
+                        { 
+                            "keyword": "$VHOST",
+                            "keyword_type": "object",
+                            "syntaxtree": [
+                                {
+                                    "keyword": "applications",
+                                    "keyword_type": "predicate",
+                                    "syntaxtree": [
+                                        {
+                                            "keyword": "$APPLICATION",
+                                            "keyword_type": "object",
+                                            "syntaxtree": []
+                                        }
+                                    ]
+                                },
+                                {
+                                    "keyword": "transcoders",
+                                    "keyword_type": "predicate",
+                                    "syntaxtree": []
+                                }
+                            ]
+                        } 
+                    ]
+                } 
+            ]
+        },
+    ]
+    # Syntax tree for the diff commeand (second argument)
+    syntaxtree_diff_2 = [
+        {
+            "keyword": "$MACHINE",
+            "keyword_type": "object",
+            "syntaxtree": []
+        },
     ]
     
     
@@ -563,7 +612,35 @@ class WztrPrompt(Cmd):
                 }
         return self.index_based_complete(text, line, begidx, endidx, index_dict=index_dict)
 
+    def do_diff(self, inp):
+        input_arr = inp.split(" ")
+        if len(input_arr) == 2:
+            self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, input_arr[0])
         
+            if self.command_error is None:
+                if self.command_object is None:
+                    if self.command_objects is None:
+                        self.__ls_objects(self.machines.values(), self.command_predicate)
+                    else:
+                        self.__ls_objects(self.command_objects, self.command_predicate)
+                else:
+                    self.__ls_object(self.command_object, self.command_predicate)
+            else:
+                print("** Error: %s" % self.command_error)
+        else:
+            print("** Error: usage: diff <application> <machine>")
+
+    def complete_diff(self, text, line, begidx, endidx):
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, text)
+        items_arg_1 = [i for i in result["completion"] if i.startswith(text)]
+        items_arg_2 = self.machines.keys()
+        
+        index_dict = {
+                1: items_arg_1,
+                2: items_arg_2
+                }
+        return self.index_based_complete(text, line, begidx, endidx, index_dict=index_dict)
+            
     def help_ls(self):
         print("List items and configurations")
         print("Application list reports four flags (\"X\" means enabled, \"-\" disabled): DVR DRM Transcoders Targets")
