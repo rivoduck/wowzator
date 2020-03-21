@@ -40,6 +40,10 @@ class WztrApplication():
         return self.name
     def __repr__(self):
         return "WztrVhost: %s" % self.name
+
+    @staticmethod
+    def list_view_header():
+        return "%-10s %1s%1s%1s%1s" % ("App Type", "(DVR)", "(DRM)", "(TC)", "(TG)")
     def list_view(self):
         return "%-10s %1s%1s%1s%1s  /%s/%s/%s" % (self.appType, 
             "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
@@ -124,6 +128,10 @@ class WztrVhost():
         return self.name
     def __repr__(self):
         return "WztrVhost: %s" % self.name
+
+    @staticmethod
+    def list_view_header():
+        return "VHost name"
     def list_view(self):
         return str(self)
     def detail_view(self):
@@ -176,6 +184,10 @@ class WztrMachine():
         return self.name
     def __repr__(self):
         return "WztrMachine: %s" % self.name
+
+    @staticmethod
+    def list_view_header():
+        return " %-8s %-17s [%s]" % (Name, "address", "Wowza version")
     def list_view(self):
         return " %-8s %-17s [%s]" % (self.name, "(" + self.address + ")", self.version())
     def detail_view(self):
@@ -509,6 +521,7 @@ class WztrPrompt(Cmd):
         object_list = list(object_list)
         if len(object_list) > 0:
             print("%s" % object_list[0].header_plural)
+            print("%s" % object_list[0].list_view.header())
             for cur_obj in object_list:
                 print(" %s" % cur_obj.list_view())
         else:
