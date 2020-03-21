@@ -570,7 +570,7 @@ class WztrPrompt(Cmd):
         object_list = list(object_list)
         if len(object_list) > 0:
             print("%s" % object_list[0].header_plural)
-            print("%s" % object_list[0].list_view.header())
+            print("%s" % object_list[0].list_view_header())
             for cur_obj in object_list:
                 print(" %s" % cur_obj.list_view())
         else:
