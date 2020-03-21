@@ -39,7 +39,7 @@ class WztrApplication():
     def __str__(self):
         return self.name
     def __repr__(self):
-        return "WztrVhost: %s" % self.name
+        return "WztrApplication: %s" % self.name
 
     @staticmethod
     def list_view_header():
@@ -619,10 +619,10 @@ class WztrPrompt(Cmd):
             result_arg_1 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, input_arr[0])
         
             if result_arg_1["error"] is None:
-                if result_arg_1["object"] is None:
+                if result_arg_1["object"] is not None:
                     if isinstance(result_arg_1["object"], WztrApplication):
                         if result_arg_2["error"] is None:
-                            if result_arg_2["object"] is None:
+                            if result_arg_2["object"] is not None:
                                 if isinstance(result_arg_2["object"], WztrMachine):
                                     # all objects have been provided!!
                                     
