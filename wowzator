@@ -43,7 +43,7 @@ class WztrApplication():
 
     @staticmethod
     def list_view_header():
-        return "%-10s %1s%1s%1s%1s" % ("App Type", "(DVR)", "(DRM)", "(TC)", "(TG)")
+        return "%-10s %1s%1s%1s%1s" % ("App Type", "(DVR)", "(DRM)", "(TRC)", "(STG)")
     def list_view(self):
         return "%-10s %1s%1s%1s%1s  /%s/%s/%s" % (self.appType, 
             "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
@@ -187,7 +187,7 @@ class WztrMachine():
 
     @staticmethod
     def list_view_header():
-        return " %-8s %-17s [%s]" % ("Name", "address", "Wowza version")
+        return " %-8s %-17s  %s" % ("Name", "address", "Wowza version")
     def list_view(self):
         return " %-8s %-17s [%s]" % (self.name, "(" + self.address + ")", self.version())
     def detail_view(self):
