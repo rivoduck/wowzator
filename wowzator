@@ -615,16 +615,50 @@ class WztrPrompt(Cmd):
     def do_diff(self, inp):
         input_arr = inp.split(" ")
         if len(input_arr) == 2:
+            result_arg_2 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_2, input_arr[1])
             self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, input_arr[0])
         
             if self.command_error is None:
                 if self.command_object is None:
-                    if self.command_objects is None:
-                        self.__ls_objects(self.machines.values(), self.command_predicate)
+                    if isinstance(self.command_object, WztrApplication):
+                        if result_arg_2["error"] is None:
+                            if result_arg_2["object"] is None:
+                                if isinstance(result_arg_2["object"], WztrMachine):
+                                    # all objects have been provided!!
+                                    
+                                    target_machine = result_arg_2["object"]
+                                    
+                                    # replace machine name in path of source obj
+                                    argument_1_arr = input_arr[0].split("/")
+                                    machine_index=1
+                                    if argument_1_arr[0] != "":
+                                        machine_index=0
+                                    
+                                    if argument_1_arr[machine_index] != target_machine.name:
+                                        argument_1_arr[machine_index] = target_machine.name
+                                        target_path = "/".join(argument_1_arr)
+                                        target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, target_path)
+                                        if target_path_result["object"] is not None:
+                                            if isinstance(target_path_result["object"], WztrApplication):
+                                                print("comparing %s with %s" % (self.command_object, target_path_result["object"]))
+                                            else:
+                                                print("** Error: object %s on machine %s is not an application" % (self.command_object.name, target_machine))
+                                        else:
+                                            print("** Error: cannot find application %s on machine %s" % (self.command_object.name, target_machine))
+                                    
+                                    else:
+                                        print("** Error: source and destination are the same")
+                                    
+                                else:
+                                    print("** Error: %s is not a machine" % self.command_object)
+                            else:
+                                print("** Error: please specify an object to compare")
+                        else:
+                            print("** Error: %s" % result_arg_2["error"])
                     else:
-                        self.__ls_objects(self.command_objects, self.command_predicate)
+                        print("** Error: %s is not an application object" % self.command_object)
                 else:
-                    self.__ls_object(self.command_object, self.command_predicate)
+                    print("** Error: please specify an object to compare")
             else:
                 print("** Error: %s" % self.command_error)
         else:
