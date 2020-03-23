@@ -95,6 +95,7 @@ class WztrApplication():
             if isinstance(config_dict[key], dict):
                 cleanitem = WztrApplication.__clean_config_dict(config_dict[key])
                 config_dict[key] = cleanitem
+        return config_dict
         
     # in wowza APIs, application Properties are referred to as application/advanced
     def configurationAdvanced(self):
