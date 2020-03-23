@@ -50,7 +50,7 @@ class WztrApplication():
         if config_dict is not None and 'StreamConfig' in config_dict.keys() and 'StreamType' in config_dict['StreamConfig'].keys():
             stream_type = config_dict['StreamConfig']['StreamType']
         
-        return "%-10s %-12s %1s%1s%1s%1s  /%s/%s/%s" % (self.appType, stream_type
+        return "%-10s %-12s %1s%1s%1s%1s  /%s/%s/%s" % (self.appType, stream_type,
             "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
             "X" if self.transcoderEnabled else "-", "X" if self.streamtargetsEnabled else "-",
             self.vhost.machine.name, self.vhost.name, self.name)
