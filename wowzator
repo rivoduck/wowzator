@@ -43,14 +43,14 @@ class WztrApplication():
 
     @staticmethod
     def list_view_header():
-        return "%-10s %-12s %1s%1s%1s%1s" % ("App Type", "Stream Tyope", "(DVR)", "(DRM)", "(TRC)", "(STG)")
+        return "%-10s %-15s %1s%1s%1s%1s" % ("App Type", "Stream Tyope", "(DVR)", "(DRM)", "(TRC)", "(STG)")
     def list_view(self):
         stream_type="n/a"
         config_dict = self.configuration()
         if config_dict is not None and 'StreamConfig' in config_dict.keys() and 'StreamType' in config_dict['StreamConfig'].keys():
             stream_type = config_dict['StreamConfig']['StreamType']
         
-        return "%-10s %-12s %1s%1s%1s%1s  /%s/%s/%s" % (self.appType, stream_type,
+        return "%-10s %-15s %1s%1s%1s%1s  /%s/%s/%s" % (self.appType, stream_type,
             "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
             "X" if self.transcoderEnabled else "-", "X" if self.streamtargetsEnabled else "-",
             self.vhost.machine.name, self.vhost.name, self.name)
@@ -376,7 +376,13 @@ class WztrPrompt(Cmd):
         {
             "keyword": "$ALL_MACHINES",
             "keyword_type": "multi_object",
-            "syntaxtree": []
+            "syntaxtree": [
+                {
+                    "keyword": "applications",
+                    "keyword_type": "predicate",
+                    "syntaxtree": []
+                }
+            ]
         }
     ]
 
@@ -603,10 +609,18 @@ class WztrPrompt(Cmd):
     def __ls_objects(self, object_list, predicate=None):
         object_list = list(object_list)
         if len(object_list) > 0:
-            print("%s" % object_list[0].header_plural)
-            print("%s" % object_list[0].list_view_header())
-            for cur_obj in object_list:
-                print(" %s" % cur_obj.list_view())
+            if predicate is None:
+                print("%s" % object_list[0].header_plural)
+                print("%s" % object_list[0].list_view_header())
+                for cur_obj in object_list:
+                    print(" %s" % cur_obj.list_view())
+            else:
+                if predicate == 'applications':
+                    application_list = []
+                    for machine in object_list:
+                        if isinstance(machine, WztrMachine):
+                            application_list += machine.applications().valiues()
+                    self.__ls_objects(application_list)
         else:
             print("empty list...")
         print()
