@@ -638,7 +638,7 @@ class WztrPrompt(Cmd):
                                         argument_1_arr[machine_index] = target_machine.name
                                         target_path = "/".join(argument_1_arr)
                                         target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, target_path)
-                                        if target_path_result["object"] is not None:
+                                        if target_path_result["error"] is None and target_path_result["object"] is not None:
                                             if isinstance(target_path_result["object"], WztrApplication):
                                                 print("comparing %s with %s" % (result_arg_1["object"], target_path_result["object"]))
                                             else:
