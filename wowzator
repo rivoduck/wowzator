@@ -619,7 +619,8 @@ class WztrPrompt(Cmd):
                     application_list = []
                     for machine in object_list:
                         if isinstance(machine, WztrMachine):
-                            application_list += machine.applications().valiues()
+                            for vhost in machine.vhosts().values():
+                                application_list += vhost.applications().valiues()
                     self.__ls_objects(application_list)
         else:
             print("empty list...")
