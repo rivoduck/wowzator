@@ -37,7 +37,7 @@ class WztrApplication():
         self.__configurationAdv = None # this is how app Properties are called in wowza APIs
         
     def __str__(self):
-        return self.name
+        return "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
     def __repr__(self):
         return "WztrApplication: %s" % self.name
 
