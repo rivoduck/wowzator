@@ -208,7 +208,7 @@ class WztrMachine():
         self.use_https=False
         self.__vhosts = None
         self.__version = None
-        self.__configuration = None
+        self.__licenses = None
         
         if port is not None:
             self.port=port
@@ -234,7 +234,7 @@ class WztrMachine():
                 "user": self.user,
                 "pw": "*******"
             },
-            "config": self.configuration()
+            "licenses": self.licenses()
         }
         
     def fetch(self, url):
@@ -311,14 +311,14 @@ class WztrMachine():
 
 
 
-    def configuration(self):
+    def licenses(self):
         # lazy-fetch machine config
-        if self.__configuration is None:
-            self.__configuration={}
+        if self.__licenses is None:
+            self.__licenses={}
 
-            result = self.fetchJson("/v2/servers/_defaultServer_")
+            result = self.fetchJson("/v2/servers/_defaultServer_/licenses")
             
-            self.__configuration = result
+            self.__licenses = result
             if 'Application' in result.keys():
                 entry = result['Application']
                 
@@ -333,9 +333,9 @@ class WztrMachine():
                 if not self.transcoderEnabled and 'TranscoderConfig' in entry.keys():
                     del entry['TranscoderConfig']
                 
-                self.__configuration = entry
+                self.__licenses = entry
 
-        return self.__configuration
+        return self.__licenses
 
 
 
