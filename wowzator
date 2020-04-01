@@ -43,7 +43,7 @@ class WztrApplication():
 
     @staticmethod
     def list_view_header():
-        return "%-8s %-28s %1s%1s%1s%1s" % ("App Type", "Stream Tyope", "(DVR)", "(DRM)", "(TRC)", "(STG)")
+        return "%-8s %-28s %1s%1s%1s%1s" % ("App Type", "Stream Type", "(DVR)", "(DRM)", "(TRC)", "(STG)")
     def list_view(self):
         stream_type="n/a"
         config_dict = self.configuration()
@@ -208,6 +208,7 @@ class WztrMachine():
         self.use_https=False
         self.__vhosts = None
         self.__version = None
+        self.__configuration = None
         
         if port is not None:
             self.port=port
@@ -232,7 +233,8 @@ class WztrMachine():
             "Credentials": {
                 "user": self.user,
                 "pw": "*******"
-            }
+            },
+            "config": self.configuration()
         }
         
     def fetch(self, url):
@@ -306,6 +308,34 @@ class WztrMachine():
                 pass
         
         return self.__version
+
+
+
+    def configuration(self):
+        # lazy-fetch machine config
+        if self.__configuration is None:
+            self.__configuration={}
+
+            result = self.fetchJson("/v2/servers/_defaultServer_")
+            
+            self.__configuration = result
+            if 'Application' in result.keys():
+                entry = result['Application']
+                
+                if 'Version' in entry.keys():
+                    del entry['Version']
+                
+                
+                if not self.dvrEnabled and 'DVRConfig' in entry.keys():
+                    del entry['DVRConfig']
+                if not self.drmEnabled and 'DRMConfig' in entry.keys():
+                    del entry['DRMConfig']
+                if not self.transcoderEnabled and 'TranscoderConfig' in entry.keys():
+                    del entry['TranscoderConfig']
+                
+                self.__configuration = entry
+
+        return self.__configuration
 
 
 
@@ -689,15 +719,16 @@ class WztrPrompt(Cmd):
                                         target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, target_path)
                                         if target_path_result["error"] is None and target_path_result["object"] is not None:
                                             if isinstance(target_path_result["object"], WztrApplication):
+                                                
                                                 print("comparing %s with %s" % (result_arg_1["object"], target_path_result["object"]))
+                                                
+                                            
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
                                         else:
                                             print("** Error: cannot find application %s on machine %s" % (result_arg_1["object"].name, target_machine))
-                                    
                                     else:
                                         print("** Error: source and destination are the same")
-                                    
                                 else:
                                     print("** Error: %s is not a machine" % result_arg_2["object"])
                             else:
@@ -736,6 +767,46 @@ class WztrPrompt(Cmd):
         print("refresh info from servers")
 
 
+    @staticmethod
+    def config_diff(config_obj_1, config_obj_2):
+        error=None
+        diffs=[]
+        if type(config_obj_1) == type(config_obj_2):
+            if isinstance(config_obj_1, dict):
+                # comparing dictionaries
+                keys_obj_1_found=[]
+                for key_1 in config_obj_1.keys():
+                    if key_1 in config_obj_2.keys():
+                        keys_obj_1_found.append(key_1)
+                        result = WztrPrompt.config_diff(config_obj_1[key_1], config_obj_2[key_1])
+                        if result is not None:
+                            result["key"] += key_1 + "/"
+                        
+                        return result
+                        
+            elif isinstance(config_obj_1, list):
+                # comparing lists
+                pass
+                
+            else:
+                # assuming objects can be compared directly
+                if config_obj_1 != config_obj_2:
+                    return {
+                        "key": "",
+                        "value_1": config_obj_1,
+                        "value_2": config_obj_2
+                    }
+                else:
+                    return None
+            
+        else:
+            error = "cannot compare %s with %s" % (type(config_dict_1), type(config_dict_2))
+        
+        return {
+            "diffs": diffs,
+            "error": error
+        }
+        
     @staticmethod
     def dict_formatter(data_dict, level=0):
         output=""
