@@ -222,7 +222,7 @@ class WztrLicense():
         }
     
     def add_server(self, machine):
-        self.servers.append(machine)
+        self.servers.append(machine.name)
 
 
     
@@ -689,7 +689,7 @@ class WztrPrompt(Cmd):
                     item_dict = {}
                     for machine in object_list:
                         if isinstance(machine, WztrMachine):
-                            for licensekey in machine.licenses.values():
+                            for licensekey in machine.licenses().values():
                                 if licensekey not in item_dict.keys():
                                     item_dict[licensekey] = WztrLicense(licensekey)
                                 item_dict[licensekey].add_server(machine)
