@@ -201,9 +201,9 @@ class WztrLicense():
     header_singular="License"
     header_plural="Licenses"
     
-    def __init__(self, key, servers):
+    def __init__(self, key):
         self.key=key
-        self.servers=servers
+        self.servers=[]
 
     def __str__(self):
         return self.key
@@ -220,7 +220,9 @@ class WztrLicense():
             "License key": self.key,
             "Servers": self.serers(),
         }
-
+    
+    def add_server(self, machine):
+        self.servers.append(machine)
 
 
     
@@ -435,6 +437,11 @@ class WztrPrompt(Cmd):
             "syntaxtree": [
                 {
                     "keyword": "applications",
+                    "keyword_type": "predicate",
+                    "syntaxtree": []
+                },
+                {
+                    "keyword": "licenses",
                     "keyword_type": "predicate",
                     "syntaxtree": []
                 }
@@ -672,12 +679,22 @@ class WztrPrompt(Cmd):
                     print(" %s" % cur_obj.list_view())
             else:
                 if predicate == 'applications':
-                    application_list = []
+                    item_list = []
                     for machine in object_list:
                         if isinstance(machine, WztrMachine):
                             for vhost in machine.vhosts().values():
-                                application_list += vhost.applications().values()
-                    self.__ls_objects(application_list)
+                                item_list += vhost.applications().values()
+                    self.__ls_objects(item_list)
+                elif predicate == 'licenses':
+                    item_dict = {}
+                    for machine in object_list:
+                        if isinstance(machine, WztrMachine):
+                            for licensekey in machine.licenses.values():
+                                if licensekey not in item_dict.keys():
+                                    item_dict[licensekey] = WztrLicense(licensekey)
+                                item_dict[licensekey].add_server(machine)
+                    self.__ls_objects(item_dict.values())
+                    
         else:
             print("empty list...")
         print()
