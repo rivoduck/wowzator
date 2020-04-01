@@ -354,9 +354,12 @@ class WztrMachine():
                     entry = entry['Licenses']
                     if 'string' in entry.keys():
                         index=0
-                        for lic in entry['string']:
-                            self.__licenses[index] = lic
-                            index += 1
+                        if isinstance(entry['string'], list):
+                            for lic in entry['string']:
+                                self.__licenses[index] = lic
+                                index += 1
+                        else:
+                            self.__licenses[index] = entry['string']
 
         return self.__licenses
 
