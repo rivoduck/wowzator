@@ -194,7 +194,35 @@ class WztrVhost():
                         self.__applications[newapp.name] = newapp
 
         return self.__applications
+
+# class used to create a temporary list of licenses and associated servers
+# using a class in order to avail of the code to render lists
+class WztrLicense():
+    header_singular="License"
+    header_plural="Licenses"
     
+    def __init__(self, key, servers):
+        self.key=key
+        self.servers=servers
+
+    def __str__(self):
+        return self.key
+    def __repr__(self):
+        return "WztrLicense: %s" % self.key
+    
+    @staticmethod
+    def list_view_header():
+        return " %-36s  servers" % ("License key")
+    def list_view(self):
+        return " %-36s [%s]" % (self.key, ", ".join(self.servers))
+    def detail_view(self):
+        return {
+            "License key": self.key,
+            "Servers": self.serers(),
+        }
+
+
+
     
 class WztrMachine():
     header_singular="Machine"
@@ -234,7 +262,7 @@ class WztrMachine():
                 "user": self.user,
                 "pw": "*******"
             },
-            "licenses": self.licenses()
+            "Licenses": self.licenses()
         }
         
     def fetch(self, url):
@@ -318,22 +346,17 @@ class WztrMachine():
 
             result = self.fetchJson("/v2/servers/_defaultServer_/licenses")
             
-            self.__licenses = result
-            if 'Application' in result.keys():
-                entry = result['Application']
+            self.__licenses = {}
+            if 'ServerLicenses' in result.keys():
+                entry = result['ServerLicenses']
                 
-                if 'Version' in entry.keys():
-                    del entry['Version']
-                
-                
-                if not self.dvrEnabled and 'DVRConfig' in entry.keys():
-                    del entry['DVRConfig']
-                if not self.drmEnabled and 'DRMConfig' in entry.keys():
-                    del entry['DRMConfig']
-                if not self.transcoderEnabled and 'TranscoderConfig' in entry.keys():
-                    del entry['TranscoderConfig']
-                
-                self.__licenses = entry
+                if 'Licenses' in entry.keys():
+                    entry = entry['Licenses']
+                    if 'string' in entry.keys():
+                        index=0
+                        for lic in entry['string']:
+                            self.__licenses[index] = lic
+                            index += 1
 
         return self.__licenses
 
@@ -469,6 +492,7 @@ class WztrPrompt(Cmd):
         Cmd.__init__(self)
         
         self.machines = {}
+        self.relationsLicenseServer = []
         
         try:
             with open(_CONFIGFILE) as json_file:
@@ -491,7 +515,6 @@ class WztrPrompt(Cmd):
     do_EOF=do_exit
     do_q=do_exit
 
-                    
     # return an array of objects or a single instance depending on what the path points to
     def __get_obj_by_path(self, syntax_tree, path):
         self.command_object = None
