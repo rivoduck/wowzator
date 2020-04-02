@@ -353,10 +353,9 @@ class WztrMachine():
     def licenses(self):
         # lazy-fetch machine licenses
         if self.__licenses is None:
-
+            self.__licenses = {}
             result = self.fetchDict("/v2/servers/_defaultServer_/licenses")
             if result["status"] == "OK":
-                self.__licenses = {}
                 if 'ServerLicenses' in result["data"].keys():
                     entry = result["data"]['ServerLicenses']
                 
