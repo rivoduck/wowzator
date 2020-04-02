@@ -75,10 +75,10 @@ class WztrApplication():
         if self.__configuration is None:
             self.__configuration={}
 
-            result = self.vhost.machine.fetchJson(self.href)
+            result = self.vhost.machine.fetchDict(self.href)
             if result["status"] == "OK":
                 if 'Application' in result["data"].keys():
-                    entry = result['Application']
+                    entry = result["data"]['Application']
                 
                     if 'Version' in entry.keys():
                         del entry['Version']
@@ -113,10 +113,10 @@ class WztrApplication():
         if self.__configurationAdv is None:
             self.__configurationAdv={}
             
-            result = self.vhost.machine.fetchJson(self.href + "/adv")
+            result = self.vhost.machine.fetchDict(self.href + "/adv")
             if result["status"] == "OK":
                 if 'ApplicationAdv' in result["data"].keys():
-                    if 'AdvancedSettings' in result['ApplicationAdv'].keys():
+                    if 'AdvancedSettings' in result["data"]['ApplicationAdv'].keys():
                         advSettings = result['ApplicationAdv']['AdvancedSettings']
                         if 'AdvancedSetting' in advSettings.keys():
                             # show only active properties
@@ -182,11 +182,11 @@ class WztrVhost():
         # lazy-fetch applications
         if self.__applications is None:
             self.__applications={}
-            result = self.machine.fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name)
+            result = self.machine.fetchDict("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name)
 
             if result["status"] == "OK":
                 if 'Applications' in result["data"].keys():
-                    entry = result['Applications']
+                    entry = result["data"]['Applications']
                     if 'Application' in entry.keys():
                         items = entry['Application']
                         for item in items:
@@ -300,7 +300,7 @@ class WztrMachine():
         
         return {"data": data, "status": status}
         
-    def fetchJson(self, url):
+    def fetchDict(self, url):
         response = self.fetch(url)
         
         if response["status"] == "OK":
@@ -326,7 +326,7 @@ class WztrMachine():
         # lazy-fetch vhosts
         if self.__vhosts is None:
             self.__vhosts={}
-            result = self.fetchJson("/v2/servers/_defaultServer_/vhosts")
+            result = self.fetchDict("/v2/servers/_defaultServer_/vhosts")
             if result["status"] == "OK":
                 if 'VHosts' in result["data"].keys():
                     for vhost_entry in result["data"]['VHosts']:
@@ -354,11 +354,11 @@ class WztrMachine():
         # lazy-fetch machine licenses
         if self.__licenses is None:
 
-            result = self.fetchJson("/v2/servers/_defaultServer_/licenses")
+            result = self.fetchDict("/v2/servers/_defaultServer_/licenses")
             if result["status"] == "OK":
                 self.__licenses = {}
                 if 'ServerLicenses' in result["data"].keys():
-                    entry = result['ServerLicenses']
+                    entry = result["data"]['ServerLicenses']
                 
                     if 'Licenses' in entry.keys():
                         entry = entry['Licenses']
