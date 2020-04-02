@@ -285,7 +285,7 @@ class WztrMachine():
                 auth=httpx.DigestAuth(
                     self.user, self.pw
                 ),
-                timeout=httpx.Timeout(timeout=5)
+                timeout=httpx.Timeout(timeout=3)
             )
             
             data = response.text
@@ -471,15 +471,9 @@ class WztrPrompt(Cmd):
                     "keyword_type": "object",
                     "syntaxtree": [
                         {
-                            "keyword": "applications",
-                            "keyword_type": "predicate",
-                            "syntaxtree": [
-                                {
-                                    "keyword": "$APPLICATION",
-                                    "keyword_type": "object",
-                                    "syntaxtree": []
-                                }
-                            ]
+                            "keyword": "$APPLICATION",
+                            "keyword_type": "object",
+                            "syntaxtree": []
                         },
                         {
                             "keyword": "transcoders",
