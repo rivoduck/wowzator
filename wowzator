@@ -577,7 +577,10 @@ class WztrPrompt(Cmd):
                     cur_path = "/" + cur_path
             
                 for syntax_el in expanded_syntax_tree:
-                    completion.append( cur_path + syntax_el["keyword"] )
+                    completion_item = cur_path + syntax_el["keyword"]
+                    if completion_item == path:
+                        completion_item += "/"
+                    completion.append( completion_item )
                     # if len(syntax_el["syntaxtree"]) > 0:
                     #    completion.append( cur_path + syntax_el["keyword"] +"/" )
 
@@ -594,7 +597,10 @@ class WztrPrompt(Cmd):
                 cur_path = "/" + cur_path
         
             for syntax_el in expanded_syntax_tree:
-                completion.append( cur_path + syntax_el["keyword"] )
+                completion_item = cur_path + syntax_el["keyword"]
+                if completion_item == path:
+                    completion_item += "/"
+                completion.append( completion_item )
                 # if len(syntax_el["syntaxtree"]) > 0:
                 #    completion.append( cur_path + syntax_el["keyword"] +"/" )
             
