@@ -328,8 +328,8 @@ class WztrMachine():
             self.__vhosts={}
             result = self.fetchJson("/v2/servers/_defaultServer_/vhosts")
             if result["status"] == "OK":
-                if 'VHosts' in (result["data"]).keys():
-                    for vhost_entry in vhosts['VHosts']:
+                if 'VHosts' in result["data"].keys():
+                    for vhost_entry in result["data"]['VHosts']:
                         vhost = vhost_entry['Vhost']
                         newvh = WztrVhost(vhost['@id'], vhost['@href'], vhost['@connectingIPAddress'], vhost['@connectingPort'], vhost['@connectingSSLEnable'])
                         newvh.machine = self
