@@ -600,11 +600,6 @@ class WztrPrompt(Cmd):
                 # if len(syntax_el["syntaxtree"]) > 0:
                 #    completion.append( cur_path + syntax_el["keyword"] +"/" )
             
-                        
-            
-        if len(completion) == 1:
-            completion[0] += "/"
-        
         
         return {
             "object": self.command_object,
