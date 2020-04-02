@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import httpx
+from httpx._exceptions import NetworkError
 import xmltodict
 import json
 
@@ -75,22 +76,22 @@ class WztrApplication():
             self.__configuration={}
 
             result = self.vhost.machine.fetchJson(self.href)
-
-            if 'Application' in result.keys():
-                entry = result['Application']
+            if result["status"] == "OK":
+                if 'Application' in result["data"].keys():
+                    entry = result['Application']
                 
-                if 'Version' in entry.keys():
-                    del entry['Version']
+                    if 'Version' in entry.keys():
+                        del entry['Version']
                 
                 
-                if not self.dvrEnabled and 'DVRConfig' in entry.keys():
-                    del entry['DVRConfig']
-                if not self.drmEnabled and 'DRMConfig' in entry.keys():
-                    del entry['DRMConfig']
-                if not self.transcoderEnabled and 'TranscoderConfig' in entry.keys():
-                    del entry['TranscoderConfig']
+                    if not self.dvrEnabled and 'DVRConfig' in entry.keys():
+                        del entry['DVRConfig']
+                    if not self.drmEnabled and 'DRMConfig' in entry.keys():
+                        del entry['DRMConfig']
+                    if not self.transcoderEnabled and 'TranscoderConfig' in entry.keys():
+                        del entry['TranscoderConfig']
                 
-                self.__configuration = WztrApplication.__clean_config_dict(entry)
+                    self.__configuration = WztrApplication.__clean_config_dict(entry)
 
         return self.__configuration
     
@@ -113,30 +114,31 @@ class WztrApplication():
             self.__configurationAdv={}
             
             result = self.vhost.machine.fetchJson(self.href + "/adv")
-            if 'ApplicationAdv' in result.keys():
-                if 'AdvancedSettings' in result['ApplicationAdv'].keys():
-                    advSettings = result['ApplicationAdv']['AdvancedSettings']
-                    if 'AdvancedSetting' in advSettings.keys():
-                        # show only active properties
-                        properties=[]
-                        for prop in advSettings['AdvancedSetting']:
-                            if prop['@enabled'] == 'true':
-                                shortprop = {
-                                    'Name': prop['Name'],
-                                    'Type': prop['Type'],
-                                    'Value': prop['Value'],
-                                    'SectionName': "",
-                                    'Section': ""
+            if result["status"] == "OK":
+                if 'ApplicationAdv' in result["data"].keys():
+                    if 'AdvancedSettings' in result['ApplicationAdv'].keys():
+                        advSettings = result['ApplicationAdv']['AdvancedSettings']
+                        if 'AdvancedSetting' in advSettings.keys():
+                            # show only active properties
+                            properties=[]
+                            for prop in advSettings['AdvancedSetting']:
+                                if prop['@enabled'] == 'true':
+                                    shortprop = {
+                                        'Name': prop['Name'],
+                                        'Type': prop['Type'],
+                                        'Value': prop['Value'],
+                                        'SectionName': "",
+                                        'Section': ""
                                     
-                                }
-                                if 'Section' in prop.keys():
-                                    shortprop['Section'] = prop['Section']
-                                if 'SectionName' in prop.keys():
-                                    shortprop['SectionName'] = prop['SectionName']
+                                    }
+                                    if 'Section' in prop.keys():
+                                        shortprop['Section'] = prop['Section']
+                                    if 'SectionName' in prop.keys():
+                                        shortprop['SectionName'] = prop['SectionName']
                             
-                                properties.append(shortprop)
+                                    properties.append(shortprop)
                             
-                        self.__configurationAdv=properties
+                            self.__configurationAdv=properties
 
         return self.__configurationAdv
         
@@ -182,16 +184,16 @@ class WztrVhost():
             self.__applications={}
             result = self.machine.fetchJson("/v2/servers/_defaultServer_/vhosts/%s/applications" % self.name)
 
-
-            if 'Applications' in result.keys():
-                entry = result['Applications']
-                if 'Application' in entry.keys():
-                    items = entry['Application']
-                    for item in items:
-                        newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
-                        newapp.vhost = self
+            if result["status"] == "OK":
+                if 'Applications' in result["data"].keys():
+                    entry = result['Applications']
+                    if 'Application' in entry.keys():
+                        items = entry['Application']
+                        for item in items:
+                            newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
+                            newapp.vhost = self
                     
-                        self.__applications[newapp.name] = newapp
+                            self.__applications[newapp.name] = newapp
 
         return self.__applications
 
@@ -268,6 +270,8 @@ class WztrMachine():
         }
         
     def fetch(self, url):
+        data=""
+        status="OK"
         try:
             base_url="http://"
             if self.use_https:
@@ -284,27 +288,34 @@ class WztrMachine():
                 timeout=httpx.Timeout(timeout=5)
             )
             
-            return response.text
+            data = response.text
 
-        except httpx.exceptions.ConnectTimeout:
-            print('timeout getting %s on machine %s' % (url, self))
-            return False
+        except NetworkError:
+            data='timeout getting %s on machine %s' % (url, self)
+            status="KO"
         except Exception as e:
-            print('error getting %s on machine %s' % (url, self))
+            data='error getting %s on machine %s' % (url, self)
             print(e)
-            return False
+            status="KO"
+        
+        return {"data": data, "status": status}
         
     def fetchJson(self, url):
-        xmlresponse = self.fetch(url)
+        response = self.fetch(url)
         
-        jsonresponse = xmltodict.parse(
-            xmlresponse,
-            dict_constructor=dict,
-            xml_attribs=True,
-            force_list=('VHosts')
-        )
-        
-        return jsonresponse
+        if response["status"] == "OK":
+            try:
+                response["data"] = xmltodict.parse(
+                    response["data"],
+                    dict_constructor=dict,
+                    xml_attribs=True,
+                    force_list=('VHosts')
+                )
+            except:
+                response["status"] = "KO"
+                response["data"] = "invalid XML reply"
+                
+        return response
     
     
     def reset_cache(self):
@@ -315,15 +326,15 @@ class WztrMachine():
         # lazy-fetch vhosts
         if self.__vhosts is None:
             self.__vhosts={}
-            vhosts = (self.fetchJson("/v2/servers/_defaultServer_/vhosts"))
-
-            if 'VHosts' in vhosts.keys():
-                for vhost_entry in vhosts['VHosts']:
-                    vhost = vhost_entry['Vhost']
-                    newvh = WztrVhost(vhost['@id'], vhost['@href'], vhost['@connectingIPAddress'], vhost['@connectingPort'], vhost['@connectingSSLEnable'])
-                    newvh.machine = self
+            result = self.fetchJson("/v2/servers/_defaultServer_/vhosts")
+            if result["status"] == "OK":
+                if 'VHosts' in (result["data"]).keys():
+                    for vhost_entry in vhosts['VHosts']:
+                        vhost = vhost_entry['Vhost']
+                        newvh = WztrVhost(vhost['@id'], vhost['@href'], vhost['@connectingIPAddress'], vhost['@connectingPort'], vhost['@connectingSSLEnable'])
+                        newvh.machine = self
                     
-                    self.__vhosts[newvh.name] = newvh
+                        self.__vhosts[newvh.name] = newvh
 
         return self.__vhosts
 
@@ -331,37 +342,34 @@ class WztrMachine():
         # lazy-fetch version
         if self.__version is None:
             self.__version = "*** No connection ***"
-            try:
-                self.__version = (self.fetch(""))
-            
-            except:
-                pass
+            result = self.fetch("")
+            if result["status"] == "OK":
+                self.__version = (result["data"])
         
         return self.__version
 
 
 
     def licenses(self):
-        # lazy-fetch machine config
+        # lazy-fetch machine licenses
         if self.__licenses is None:
-            self.__licenses={}
 
             result = self.fetchJson("/v2/servers/_defaultServer_/licenses")
-            
-            self.__licenses = {}
-            if 'ServerLicenses' in result.keys():
-                entry = result['ServerLicenses']
+            if result["status"] == "OK":
+                self.__licenses = {}
+                if 'ServerLicenses' in result["data"].keys():
+                    entry = result['ServerLicenses']
                 
-                if 'Licenses' in entry.keys():
-                    entry = entry['Licenses']
-                    if 'string' in entry.keys():
-                        index=0
-                        if isinstance(entry['string'], list):
-                            for lic in entry['string']:
-                                self.__licenses[index] = lic
-                                index += 1
-                        else:
-                            self.__licenses[index] = entry['string']
+                    if 'Licenses' in entry.keys():
+                        entry = entry['Licenses']
+                        if 'string' in entry.keys():
+                            index=0
+                            if isinstance(entry['string'], list):
+                                for lic in entry['string']:
+                                    self.__licenses[index] = lic
+                                    index += 1
+                            else:
+                                self.__licenses[index] = entry['string']
 
         return self.__licenses
 
