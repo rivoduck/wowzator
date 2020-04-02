@@ -254,7 +254,7 @@ class WztrMachine():
 
     @staticmethod
     def list_view_header():
-        return " %-10s %-17s  %s" % ("Name", "address", "Wowza version")
+        return " %-10s %-17s  %s" % ("Name", " address", "Wowza version")
     def list_view(self):
         return " %-10s %-17s [%s]" % (self.name, "(" + self.address + ")", self.version())
     def detail_view(self):
@@ -397,45 +397,48 @@ class WztrPrompt(Cmd):
             "keyword_type": "object",
             "syntaxtree": [ 
                 { 
-                    "keyword": "vhosts",
-                    "keyword_type": "predicate",
-                    "syntaxtree": [ 
-                        { 
-                            "keyword": "$VHOST",
+                    "keyword": "$VHOST",
+                    "keyword_type": "object",
+                    "syntaxtree": [
+                        {
+                            "keyword": "$APPLICATION",
                             "keyword_type": "object",
                             "syntaxtree": [
                                 {
-                                    "keyword": "applications",
+                                    "keyword": "configuration",
                                     "keyword_type": "predicate",
                                     "syntaxtree": [
                                         {
-                                            "keyword": "$APPLICATION",
-                                            "keyword_type": "object",
-                                            "syntaxtree": [
-                                                {
-                                                    "keyword": "configuration",
-                                                    "keyword_type": "predicate",
-                                                    "syntaxtree": [
-                                                        {
-                                                            "keyword": "properties",
-                                                            "keyword_type": "predicate",
-                                                            "syntaxtree": []
-                                                        }
-                                                    ]
-                                                }
-                                            ]
+                                            "keyword": "properties",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": []
                                         }
                                     ]
                                 },
                                 {
-                                    "keyword": "transcoders",
+                                    "keyword": "details",
                                     "keyword_type": "predicate",
                                     "syntaxtree": []
                                 }
                             ]
-                        } 
+                        },
+                        {
+                            "keyword": "details",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        },
+                        {
+                            "keyword": "transcoders",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        }
                     ]
-                } 
+                },
+                {
+                    "keyword": "details",
+                    "keyword_type": "predicate",
+                    "syntaxtree": []
+                }
             ]
         },
         {
@@ -464,31 +467,25 @@ class WztrPrompt(Cmd):
             "keyword_type": "object",
             "syntaxtree": [ 
                 { 
-                    "keyword": "vhosts",
-                    "keyword_type": "predicate",
-                    "syntaxtree": [ 
-                        { 
-                            "keyword": "$VHOST",
-                            "keyword_type": "object",
+                    "keyword": "$VHOST",
+                    "keyword_type": "object",
+                    "syntaxtree": [
+                        {
+                            "keyword": "applications",
+                            "keyword_type": "predicate",
                             "syntaxtree": [
                                 {
-                                    "keyword": "applications",
-                                    "keyword_type": "predicate",
-                                    "syntaxtree": [
-                                        {
-                                            "keyword": "$APPLICATION",
-                                            "keyword_type": "object",
-                                            "syntaxtree": []
-                                        }
-                                    ]
-                                },
-                                {
-                                    "keyword": "transcoders",
-                                    "keyword_type": "predicate",
+                                    "keyword": "$APPLICATION",
+                                    "keyword_type": "object",
                                     "syntaxtree": []
                                 }
                             ]
-                        } 
+                        },
+                        {
+                            "keyword": "transcoders",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        }
                     ]
                 } 
             ]
@@ -686,6 +683,7 @@ class WztrPrompt(Cmd):
                     print(" %s" % cur_obj.list_view())
             else:
                 if predicate == 'applications':
+                    # list all applications
                     item_list = []
                     for machine in object_list:
                         if isinstance(machine, WztrMachine):
@@ -693,6 +691,7 @@ class WztrPrompt(Cmd):
                                 item_list += vhost.applications().values()
                     self.__ls_objects(item_list)
                 elif predicate == 'licenses':
+                    # list all licences
                     item_dict = {}
                     for machine in object_list:
                         if isinstance(machine, WztrMachine):
@@ -708,21 +707,17 @@ class WztrPrompt(Cmd):
         
     def __ls_object(self, object_instance, predicate=None):
         if predicate is None:
-            print("%s: %s" % (object_instance.header_singular, object_instance))
-            print( self.dict_formatter( object_instance.detail_view() ) )
+            if isinstance(object_instance, WztrMachine):
+                # machine specified, list vhosts
+                self.__ls_objects(object_instance.vhosts().values())
+            elif isinstance(object_instance, WztrVhost):
+                # vhost specified, list applications
+                self.__ls_objects(object_instance.applications().values())
         else:
-            if predicate == "vhosts":
-                if isinstance(object_instance, WztrVhost):
-                    # details of vhost
-                    self.__ls_object(object_instance)
-                else:
-                    self.__ls_objects(object_instance.vhosts().values())
-            elif predicate == "applications":
-                if isinstance(object_instance, WztrApplication):
-                    # details of app
-                    self.__ls_object(object_instance)
-                else:
-                    self.__ls_objects(object_instance.applications().values())
+            if predicate == "details":
+                print("%s: %s" % (object_instance.header_singular, object_instance))
+                print( self.dict_formatter( object_instance.detail_view() ) )
+
             elif predicate == "configuration":
                 if isinstance(object_instance, WztrApplication):
                     # config of app
