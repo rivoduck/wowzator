@@ -117,7 +117,7 @@ class WztrApplication():
             if result["status"] == "OK":
                 if 'ApplicationAdv' in result["data"].keys():
                     if 'AdvancedSettings' in result["data"]['ApplicationAdv'].keys():
-                        advSettings = result['ApplicationAdv']['AdvancedSettings']
+                        advSettings = result["data"]['ApplicationAdv']['AdvancedSettings']
                         if 'AdvancedSetting' in advSettings.keys():
                             # show only active properties
                             properties=[]
@@ -578,8 +578,8 @@ class WztrPrompt(Cmd):
             
                 for syntax_el in expanded_syntax_tree:
                     completion.append( cur_path + syntax_el["keyword"] )
-                    if len(syntax_el["syntaxtree"]) > 0:
-                        completion.append( cur_path + syntax_el["keyword"] +"/" )
+                    # if len(syntax_el["syntaxtree"]) > 0:
+                    #    completion.append( cur_path + syntax_el["keyword"] +"/" )
 
                 break
             
@@ -595,8 +595,8 @@ class WztrPrompt(Cmd):
         
             for syntax_el in expanded_syntax_tree:
                 completion.append( cur_path + syntax_el["keyword"] )
-                if len(syntax_el["syntaxtree"]) > 0:
-                    completion.append( cur_path + syntax_el["keyword"] +"/" )
+                # if len(syntax_el["syntaxtree"]) > 0:
+                #    completion.append( cur_path + syntax_el["keyword"] +"/" )
             
                         
             
