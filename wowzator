@@ -757,10 +757,9 @@ class WztrPrompt(Cmd):
                                         target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, target_path)
                                         if target_path_result["error"] is None and target_path_result["object"] is not None:
                                             if isinstance(target_path_result["object"], WztrApplication):
-                                                
-                                                print("comparing %s with %s" % (result_arg_1["object"], target_path_result["object"]))
                                                 diff_result = WztrPrompt.config_diff(result_arg_1["object"].configuration(), target_path_result["object"].configuration())
-                                                WztrPrompt.diff_formatter(diff_result["diffs"])
+                                                print(WztrPrompt.diff_formatter(result_arg_1["object"], target_path_result["object"], diff_result["diffs"]))
+
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
                                         else:
@@ -927,10 +926,20 @@ class WztrPrompt(Cmd):
         return output
 
     @staticmethod
-    def diff_formatter(diff_list):
-        output=""
+    def diff_formatter(obj_1, obj_2, diff_list):
+        output="  %-20s %-20s %-20s\n" % (Key, obj_1, obj_2)
         for cur_item in diff_list:
-            output += "  %-20s %-20s %-20s" % (cur_item["key"], cur_item["value_1"], cur_item["value_2"])
+            val1 = cur_item["value_1"]
+            val2 = cur_item["value_2"]
+            if isinstance(val1, list):
+                val1 = "<List>"
+            if isinstance(val1, dict):
+                val1 = "<Dict>"
+            if isinstance(val2, list):
+                val2 = "<List>"
+            if isinstance(val2, dict):
+                val2 = "<Dict>"
+            output += "  %-20s %-20s %-20s\n" % (cur_item["key"], val1, val2)
         
         return output
         
