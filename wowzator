@@ -473,7 +473,13 @@ class WztrPrompt(Cmd):
                         {
                             "keyword": "$APPLICATION",
                             "keyword_type": "object",
-                            "syntaxtree": []
+                            "syntaxtree": [
+                                {
+                                    "keyword": "config",
+                                    "keyword_type": "predicate",
+                                    "syntaxtree": []
+                                }
+                            ]
                         },
                         {
                             "keyword": "transcoders",
@@ -756,8 +762,16 @@ class WztrPrompt(Cmd):
                                         target_path = "/".join(argument_1_arr)
                                         target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, target_path)
                                         if target_path_result["error"] is None and target_path_result["object"] is not None:
+                                            obj_1 = result_arg_1["object"]
+                                            obj_2 = target_path_result["object"]
+                                            # perform difference
                                             if isinstance(target_path_result["object"], WztrApplication):
-                                                diff_result = WztrPrompt.config_diff(result_arg_1["object"].configuration(), target_path_result["object"].configuration())
+                                                # for application objects, perform difference on config
+                                                # and advanced config
+                                                diff_result = WztrPrompt.config_diff(obj_1.configuration(), obj_2.configuration())
+                                                diffs = diff_result["diffs"]
+                                                diff_result = WztrPrompt.config_diff(obj_1.configurationAdvanced(), obj_2.configurationAdvanced())
+                                                diffs += diff_result["diffs"]
                                                 print(WztrPrompt.diff_formatter(result_arg_1["object"], target_path_result["object"], diff_result["diffs"]))
 
                                             else:
@@ -932,6 +946,7 @@ class WztrPrompt(Cmd):
             output += "  No differences found between %s and %s" % (obj_1, obj_2)
         else:
             output += "%-40s %-40s %-40s\n" % ("Key", obj_1, obj_2)
+            output += "-----------------------------------------------------------------------------------------------------------------------\n"
             for cur_item in diff_list:
                 val1 = cur_item["value_1"]
                 val2 = cur_item["value_2"]
