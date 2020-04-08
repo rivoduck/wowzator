@@ -772,7 +772,7 @@ class WztrPrompt(Cmd):
                                                 diffs = diff_result["diffs"]
                                                 diff_result = WztrPrompt.config_diff(obj_1.configurationAdvanced(), obj_2.configurationAdvanced())
                                                 diffs += diff_result["diffs"]
-                                                print(WztrPrompt.diff_formatter(result_arg_1["object"], target_path_result["object"], diff_result["diffs"]))
+                                                print(WztrPrompt.diff_formatter(result_arg_1["object"], target_path_result["object"], diffs))
 
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
