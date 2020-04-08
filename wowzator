@@ -927,11 +927,11 @@ class WztrPrompt(Cmd):
 
     @staticmethod
     def diff_formatter(obj_1, obj_2, diff_list):
-        output=""
+        output="\n"
         if len(diff_list) == 0:
-            output="%s and %s do not differ" % (obj_1, obj_2)
+            output += "  No differences found between %s and %s" % (obj_1, obj_2)
         else:
-            output="%-20s %-40s %-40s\n" % ("Key", obj_1, obj_2)
+            output += "\n%-40s %-40s %-40s\n" % ("Key", obj_1, obj_2)
             for cur_item in diff_list:
                 val1 = cur_item["value_1"]
                 val2 = cur_item["value_2"]
@@ -943,8 +943,9 @@ class WztrPrompt(Cmd):
                     val2 = "<List>"
                 if isinstance(val2, dict):
                     val2 = "<Dict>"
-                output += "%-20s %-40s %-40s\n" % (cur_item["key"], val1, val2)
+                output += "%-40s %-40s %-40s\n" % (cur_item["key"], val1, val2)
         
+        output += "\n"
         return output
         
 
