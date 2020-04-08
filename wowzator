@@ -743,7 +743,7 @@ class WztrPrompt(Cmd):
         
             if result_arg_1["error"] is None:
                 if result_arg_1["object"] is not None:
-                    if isinstance(result_arg_1["object"], WztrApplication) or sinstance(result_arg_1["object"], WztrVhost):
+                    if isinstance(result_arg_1["object"], WztrApplication) or isinstance(result_arg_1["object"], WztrVhost):
                         if result_arg_2["error"] is None:
                             if result_arg_2["object"] is not None:
                                 if isinstance(result_arg_2["object"], WztrMachine):
@@ -781,15 +781,15 @@ class WztrPrompt(Cmd):
                                                 # for vhost obj, perform a difference on
                                                 # the list of applications
                                                 diffs = []
-                                                apps_1 = obj_1.applications().values()
-                                                apps_2 = obj_2.applications().values()
+                                                apps_1 = list(obj_1.applications().values())
+                                                apps_2 = list(obj_2.applications().values())
                                                 # comparing lists
                                                 index = 0
                                                 for item1 in apps_1:
                                                     if index < len(apps_2):
                                                         item2 = apps_2[index]
                                                         diff_state = "no diff"
-                                                        app_diffs = WztrPrompt.WztrPrompt.__diff_application_configs(item1.configuration(), item2.configuration())
+                                                        app_diffs = WztrPrompt.__diff_application_configs(item1.configuration(), item2.configuration())
                                                         if len(app_diffs) > 0:
                                                             diff_state = "*** conf mismatch"
                                                                 
@@ -846,9 +846,9 @@ class WztrPrompt(Cmd):
     def __diff_application_configs(app1, app2):
         # for application objects, perform difference on config
         # and advanced config
-        diff_result = WztrPrompt.config_diff(obj_1.configuration(), obj_2.configuration())
+        diff_result = WztrPrompt.config_diff(app1.configuration(), app2.configuration())
         diffs = diff_result["diffs"]
-        diff_result = WztrPrompt.config_diff(obj_1.configurationAdvanced(), obj_2.configurationAdvanced())
+        diff_result = WztrPrompt.config_diff(app1.configurationAdvanced(), app2.configurationAdvanced())
         diffs += diff_result["diffs"]
         
         return diffs
