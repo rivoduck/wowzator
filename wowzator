@@ -793,23 +793,13 @@ class WztrPrompt(Cmd):
                                                             "value_2": "*** no app"
                                                         })
                                                 # trova le app che sono presenti in apps_2 ma non in apps_1
-                                                for obj2key in obj_2_keys:
-                                                    if obj2key not in obj_1_keys:
+                                                for app2key in apps_2_keys:
+                                                    if app2key not in apps_1_keys:
                                                         diffs.append( {
-                                                            "key": obj2key,
+                                                            "key": app2key,
                                                             "value_1": "*** no app",
                                                             "value_2": "app present"
                                                         })
-                                                
-                                                # controlla se la lista apps_2 contiene piu' elementi di apps_1
-                                                while index < len(apps_2):
-                                                    item2 = apps_2[index]
-                                                    diffs.append( {
-                                                        "key": str(item2.name),
-                                                        "value_1": "*** no app",
-                                                        "value_2": "app present"
-                                                    })
-                                                    index += 1
                                                 
                                                 
                                             else:
