@@ -782,7 +782,7 @@ class WztrPrompt(Cmd):
                                                 for key_1 in apps_1_keys:
                                                     if key_1 in apps_2_keys:
                                                         apps_1_found_in_apps_2.append(key_1)
-                                                        result = WztrPrompt.__diff_application_configs(apps_1[key_1], apps_2[key_1])
+                                                        app_diffs = WztrPrompt.__diff_application_configs(apps_1[key_1], apps_2[key_1])
                                                         if len(app_diffs) > 0:
                                                             diff_state = "*** conf mismatch"
                                                     else:
