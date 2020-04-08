@@ -759,8 +759,8 @@ class WztrPrompt(Cmd):
                                             if isinstance(target_path_result["object"], WztrApplication):
                                                 
                                                 print("comparing %s with %s" % (result_arg_1["object"], target_path_result["object"]))
-                                                
-                                            
+                                                diff_result = WztrPrompt.config_diff(result_arg_1["object"].configuration(), target_path_result["object"].configuration())
+                                                print(diff_result)
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
                                         else:
@@ -812,33 +812,79 @@ class WztrPrompt(Cmd):
         if type(config_obj_1) == type(config_obj_2):
             if isinstance(config_obj_1, dict):
                 # comparing dictionaries
-                keys_obj_1_found=[]
-                for key_1 in config_obj_1.keys():
-                    if key_1 in config_obj_2.keys():
-                        keys_obj_1_found.append(key_1)
+                keys_obj1_found_in_obj2=[]
+                obj_1_keys = config_obj_1.keys()
+                obj_2_keys = config_obj_2.keys()
+                for key_1 in obj_1_keys:
+                    if key_1 in obj_2_keys:
+                        keys_obj1_found_in_obj2.append(key_1)
                         result = WztrPrompt.config_diff(config_obj_1[key_1], config_obj_2[key_1])
-                        if result is not None:
-                            result["key"] += key_1 + "/"
+                        for diff in result["diffs"]:
+                            diff["key"] = "%s/%s" % (key_1, diff["key"])
+                            diffs.append(diff)
+                    else:
+                        # la key e' presente in obj_1 ma non in obj_2
+                        diffs.append( {
+                            "key": key_1,
+                            "value_1": config_obj_1[key_1],
+                            "value_2": None
+                        })
+                # trova le key che sono presenti in obj_2 ma non in obj_1
+                for obj2key in obj_2_keys:
+                    if obj2key not in obj_1_keys:
+                        diffs.append( {
+                            "key": obj2key,
+                            "value_1": None,
+                            "value_2": config_obj_2[obj2key]
+                        })
                         
-                        return result
+                        
                         
             elif isinstance(config_obj_1, list):
                 # comparing lists
-                pass
-                
+                index = 0
+                for item1 in config_obj_1:
+                    if index < len(config_obj_2):
+                        item2 = config_obj_2[index]
+                        result = WztrPrompt.config_diff(item1, item2)
+                        for diff in result["diffs"]:
+                            diff["key"] = "%s/%s" % (key_1, diff["key"])
+                            diffs.append(diff)
+                    else:
+                        # la lista config_obj_1 contiene piu' elementi di config_obj_2
+                        diffs.append( {
+                            "key": str(index),
+                            "value_1": item1,
+                            "value_2": None
+                        })
+                    index += 1
+                    
+                # cntrolla se la lista config_obj_2 contiene piu' elementio di config_obj_1
+                while index < len(config_obj_2):
+                    item2 = config_obj_2[index]
+                    diffs.append( {
+                        "key": str(index),
+                        "value_1": None,
+                        "value_2": item2
+                    })
+                    index += 1
             else:
-                # assuming objects can be compared directly
+                # assuming objects that are not lists of dicts can be compared directly
                 if config_obj_1 != config_obj_2:
-                    return {
+                    diffs.append( {
                         "key": "",
                         "value_1": config_obj_1,
                         "value_2": config_obj_2
-                    }
-                else:
-                    return None
+                    })
             
         else:
             error = "cannot compare %s with %s" % (type(config_dict_1), type(config_dict_2))
+            diffs.append( {
+                "key": "",
+                "value_1": "type=%s" % type(config_dict_1),
+                "value_2": "type=%s" % type(config_dict_2)
+            })
+            
         
         return {
             "diffs": diffs,
