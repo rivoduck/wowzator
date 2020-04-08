@@ -949,11 +949,11 @@ class WztrPrompt(Cmd):
                     })
             
         else:
-            error = "cannot compare %s with %s" % (type(config_dict_1), type(config_dict_2))
+            #error = "cannot compare %s with %s" % (type(config_obj_1), type(config_obj_2))
             diffs.append( {
                 "key": "",
-                "value_1": "type=%s" % type(config_dict_1),
-                "value_2": "type=%s" % type(config_dict_2)
+                "value_1": "type=%s" % type(config_obj_1),
+                "value_2": "type=%s" % type(config_obj_2)
             })
             
         
