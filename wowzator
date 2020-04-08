@@ -794,14 +794,14 @@ class WztrPrompt(Cmd):
                                                             diff_state = "*** conf mismatch"
                                                                 
                                                         diffs.append( {
-                                                            "key": str(item2),
+                                                            "key": str(item2.name),
                                                             "value_1": diff_state,
                                                             "value_2": diff_state
                                                         })
                                                     else:
                                                         # la lista apps_1 contiene piu' elementi di apps_2
                                                         diffs.append( {
-                                                            "key": str(item1),
+                                                            "key": str(item1.name),
                                                             "value_1": "app present",
                                                             "value_2": "*** no app"
                                                         })
@@ -811,7 +811,7 @@ class WztrPrompt(Cmd):
                                                 while index < len(apps_2):
                                                     item2 = apps_2[index]
                                                     diffs.append( {
-                                                        "key": str(item2),
+                                                        "key": str(item2.name),
                                                         "value_1": "*** no app",
                                                         "value_2": "app present"
                                                     })
