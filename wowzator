@@ -760,7 +760,7 @@ class WztrPrompt(Cmd):
                                                 
                                                 print("comparing %s with %s" % (result_arg_1["object"], target_path_result["object"]))
                                                 diff_result = WztrPrompt.config_diff(result_arg_1["object"].configuration(), target_path_result["object"].configuration())
-                                                print(diff_result)
+                                                WztrPrompt.diff_formatter(diff_result["diffs"])
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
                                         else:
@@ -926,6 +926,14 @@ class WztrPrompt(Cmd):
         
         return output
 
+    @staticmethod
+    def diff_formatter(diff_list):
+        output=""
+        for cur_item in diff_list:
+            output += "  %-20s %-20s %-20s" % (cur_item["key"], cur_item["value_1"], cur_item["value_2"])
+        
+        return output
+        
 
 p=WztrPrompt()
 p.cmdloop()
