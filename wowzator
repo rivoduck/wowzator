@@ -847,7 +847,7 @@ class WztrPrompt(Cmd):
                         item2 = config_obj_2[index]
                         result = WztrPrompt.config_diff(item1, item2)
                         for diff in result["diffs"]:
-                            diff["key"] = "%s/%s" % (key_1, diff["key"])
+                            diff["key"] = "%s/%s" % (str(index), diff["key"])
                             diffs.append(diff)
                     else:
                         # la lista config_obj_1 contiene piu' elementi di config_obj_2
@@ -931,7 +931,7 @@ class WztrPrompt(Cmd):
         if len(diff_list) == 0:
             output += "  No differences found between %s and %s" % (obj_1, obj_2)
         else:
-            output += "\n%-40s %-40s %-40s\n" % ("Key", obj_1, obj_2)
+            output += "%-40s %-40s %-40s\n" % ("Key", obj_1, obj_2)
             for cur_item in diff_list:
                 val1 = cur_item["value_1"]
                 val2 = cur_item["value_2"]
