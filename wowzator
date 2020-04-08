@@ -767,7 +767,7 @@ class WztrPrompt(Cmd):
                                             # perform difference
                                             diffs = None
                                             if isinstance(obj_2, WztrApplication):
-                                                diffs = WztrPrompt.__diff_application_configs(obj_1.configuration(), obj_2.configuration())
+                                                diffs = WztrPrompt.__diff_application_configs(obj_1, obj_2)
                                                 # for application objects, perform difference on config
                                                 # and advanced config
                                                 '''
@@ -789,7 +789,7 @@ class WztrPrompt(Cmd):
                                                     if index < len(apps_2):
                                                         item2 = apps_2[index]
                                                         diff_state = "no diff"
-                                                        app_diffs = WztrPrompt.__diff_application_configs(item1.configuration(), item2.configuration())
+                                                        app_diffs = WztrPrompt.__diff_application_configs(item1, item2)
                                                         if len(app_diffs) > 0:
                                                             diff_state = "*** conf mismatch"
                                                                 
