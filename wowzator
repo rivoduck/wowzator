@@ -927,7 +927,7 @@ class WztrPrompt(Cmd):
 
     @staticmethod
     def diff_formatter(obj_1, obj_2, diff_list):
-        output="  %-20s %-20s %-20s\n" % ("Key", obj_1, obj_2)
+        output="%-20s %-40s %-40s\n" % ("Key", obj_1, obj_2)
         for cur_item in diff_list:
             val1 = cur_item["value_1"]
             val2 = cur_item["value_2"]
@@ -939,7 +939,7 @@ class WztrPrompt(Cmd):
                 val2 = "<List>"
             if isinstance(val2, dict):
                 val2 = "<Dict>"
-            output += "  %-20s %-20s %-20s\n" % (cur_item["key"], val1, val2)
+            output += "%-20s %-40s %-40s\n" % (cur_item["key"], val1, val2)
         
         return output
         
