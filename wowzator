@@ -785,6 +785,13 @@ class WztrPrompt(Cmd):
                                                         app_diffs = WztrPrompt.__diff_application_configs(apps_1[key_1], apps_2[key_1])
                                                         if len(app_diffs) > 0:
                                                             diff_state = "*** conf mismatch"
+                                                        else:
+                                                            diff_state = "no diff"
+                                                        diffs.append( {
+                                                            "key": key_1,
+                                                            "value_1": diff_state,
+                                                            "value_2": diff_state
+                                                        })
                                                     else:
                                                         # la app e' presente in apps_1 ma non in apps_2
                                                         diffs.append( {
