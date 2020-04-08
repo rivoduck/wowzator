@@ -761,21 +761,68 @@ class WztrPrompt(Cmd):
                                         argument_1_arr[machine_index] = target_machine.name
                                         target_path = "/".join(argument_1_arr)
                                         target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, target_path)
-                                        if target_path_result["error"] is None and target_path_result["object"] is not None:
-                                            obj_1 = result_arg_1["object"]
-                                            obj_2 = target_path_result["object"]
+                                        obj_1 = result_arg_1["object"]
+                                        obj_2 = target_path_result["object"]
+                                        if target_path_result["error"] is None and obj_2 is not None:
                                             # perform difference
-                                            if isinstance(target_path_result["object"], WztrApplication):
+                                            diffs = None
+                                            if isinstance(obj_2, WztrApplication):
+                                                diffs = WztrPrompt.__diff_application_configs(obj_1.configuration(), obj_2.configuration())
                                                 # for application objects, perform difference on config
                                                 # and advanced config
+                                                '''
                                                 diff_result = WztrPrompt.config_diff(obj_1.configuration(), obj_2.configuration())
                                                 diffs = diff_result["diffs"]
                                                 diff_result = WztrPrompt.config_diff(obj_1.configurationAdvanced(), obj_2.configurationAdvanced())
                                                 diffs += diff_result["diffs"]
-                                                print(WztrPrompt.diff_formatter(result_arg_1["object"], target_path_result["object"], diffs))
-
+                                                print(WztrPrompt.diff_formatter(obj_1, obj_2, diffs))
+                                                '''
+                                            elif if isinstance(obj_2, WztrVhost):
+                                                # for vhost obj, perform a difference on
+                                                # the list of applications
+                                                diffs = []
+                                                apps_1 = obj_1.applications().values()
+                                                apps_2 = obj_2.applications().values()
+                                                # comparing lists
+                                                index = 0
+                                                for item1 in apps_1:
+                                                    if index < len(apps_2):
+                                                        item2 = apps_2[index]
+                                                        diff_state = "no diff"
+                                                        app_diffs = WztrPrompt.WztrPrompt.__diff_application_configs(item1.configuration(), item2.configuration())
+                                                        if len(app_diffs) > 0:
+                                                            diff_state = "*** conf mismatch"
+                                                                
+                                                        diffs.append( {
+                                                            "key": str(item2),
+                                                            "value_1": diff_state,
+                                                            "value_2": diff_state
+                                                        })
+                                                    else:
+                                                        # la lista apps_1 contiene piu' elementi di apps_2
+                                                        diffs.append( {
+                                                            "key": str(item1),
+                                                            "value_1": "app present",
+                                                            "value_2": "*** no app"
+                                                        })
+                                                    index += 1
+                                                    
+                                                # cntrolla se la lista apps_2 contiene piu' elementi di apps_1
+                                                while index < len(apps_2):
+                                                    item2 = apps_2[index]
+                                                    diffs.append( {
+                                                        "key": str(item2),
+                                                        "value_1": "*** no app",
+                                                        "value_2": "app present"
+                                                    })
+                                                    index += 1
+                                                
+                                                
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
+
+                                            print(WztrPrompt.diff_formatter(obj_1, obj_2, diffs))
+                                            
                                         else:
                                             print("** Error: cannot find application %s on machine %s" % (result_arg_1["object"].name, target_machine))
                                     else:
@@ -794,6 +841,17 @@ class WztrPrompt(Cmd):
                 print("** Error: %s" % result_arg_1["error"])
         else:
             print("** Error: usage: diff <application> <machine>")
+
+    @staticmethod
+    def __diff_application_configs(app1, app2):
+        # for application objects, perform difference on config
+        # and advanced config
+        diff_result = WztrPrompt.config_diff(obj_1.configuration(), obj_2.configuration())
+        diffs = diff_result["diffs"]
+        diff_result = WztrPrompt.config_diff(obj_1.configurationAdvanced(), obj_2.configurationAdvanced())
+        diffs += diff_result["diffs"]
+        
+        return diffs
 
     def complete_diff(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, text)
@@ -942,25 +1000,26 @@ class WztrPrompt(Cmd):
     @staticmethod
     def diff_formatter(obj_1, obj_2, diff_list):
         output="\n"
-        if len(diff_list) == 0:
-            output += "  No differences found between %s and %s" % (obj_1, obj_2)
-        else:
-            output += "%-40s %-40s %-40s\n" % ("Key", obj_1, obj_2)
-            output += "-----------------------------------------------------------------------------------------------------------------------\n"
-            for cur_item in diff_list:
-                val1 = cur_item["value_1"]
-                val2 = cur_item["value_2"]
-                if isinstance(val1, list):
-                    val1 = "<List>"
-                if isinstance(val1, dict):
-                    val1 = "<Dict>"
-                if isinstance(val2, list):
-                    val2 = "<List>"
-                if isinstance(val2, dict):
-                    val2 = "<Dict>"
-                output += "%-40s %-40s %-40s\n" % (cur_item["key"], val1, val2)
+        if diff_list is not None:
+            if len(diff_list) == 0:
+                output += "  No differences found between %s and %s" % (obj_1, obj_2)
+            else:
+                output += "%-40s %-40s %-40s\n" % ("Key", obj_1, obj_2)
+                output += "-----------------------------------------------------------------------------------------------------------------------\n"
+                for cur_item in diff_list:
+                    val1 = cur_item["value_1"]
+                    val2 = cur_item["value_2"]
+                    if isinstance(val1, list):
+                        val1 = "<List>"
+                    if isinstance(val1, dict):
+                        val1 = "<Dict>"
+                    if isinstance(val2, list):
+                        val2 = "<List>"
+                    if isinstance(val2, dict):
+                        val2 = "<Dict>"
+                    output += "%-40s %-40s %-40s\n" % (cur_item["key"], val1, val2)
         
-        output += "\n"
+            output += "\n"
         return output
         
 
