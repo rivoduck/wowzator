@@ -161,7 +161,7 @@ class WztrVhost():
         self.machine=None
     
     def __str__(self):
-        return self.name
+        return "/%s/%s" % (self.machine.name, self.name)
     def __repr__(self):
         return "WztrVhost: %s" % self.name
 
@@ -768,46 +768,40 @@ class WztrPrompt(Cmd):
                                             diffs = None
                                             if isinstance(obj_2, WztrApplication):
                                                 diffs = WztrPrompt.__diff_application_configs(obj_1, obj_2)
-                                                # for application objects, perform difference on config
-                                                # and advanced config
-                                                '''
-                                                diff_result = WztrPrompt.config_diff(obj_1.configuration(), obj_2.configuration())
-                                                diffs = diff_result["diffs"]
-                                                diff_result = WztrPrompt.config_diff(obj_1.configurationAdvanced(), obj_2.configurationAdvanced())
-                                                diffs += diff_result["diffs"]
-                                                print(WztrPrompt.diff_formatter(obj_1, obj_2, diffs))
-                                                '''
                                             elif isinstance(obj_2, WztrVhost):
                                                 # for vhost obj, perform a difference on
                                                 # the list of applications
                                                 diffs = []
-                                                apps_1 = list(obj_1.applications().values())
-                                                apps_2 = list(obj_2.applications().values())
-                                                # comparing lists
-                                                index = 0
-                                                for item1 in apps_1:
-                                                    if index < len(apps_2):
-                                                        item2 = apps_2[index]
-                                                        diff_state = "no diff"
-                                                        app_diffs = WztrPrompt.__diff_application_configs(item1, item2)
+                                                apps_1 = obj_1.applications()
+                                                apps_2 = obj_2.applications()
+                                                
+                                                # comparing dictionaries
+                                                apps_1_found_in_apps_2=[]
+                                                apps_1_keys = apps_1.keys()
+                                                apps_2_keys = apps_2.keys()
+                                                for key_1 in apps_1_keys:
+                                                    if key_1 in apps_2_keys:
+                                                        apps_1_found_in_apps_2.append(key_1)
+                                                        result = WztrPrompt.__diff_application_configs(apps_1[key_1], apps_2[key_1])
                                                         if len(app_diffs) > 0:
                                                             diff_state = "*** conf mismatch"
-                                                                
-                                                        diffs.append( {
-                                                            "key": str(item2.name),
-                                                            "value_1": diff_state,
-                                                            "value_2": diff_state
-                                                        })
                                                     else:
-                                                        # la lista apps_1 contiene piu' elementi di apps_2
+                                                        # la app e' presente in apps_1 ma non in apps_2
                                                         diffs.append( {
-                                                            "key": str(item1.name),
+                                                            "key": key_1,
                                                             "value_1": "app present",
                                                             "value_2": "*** no app"
                                                         })
-                                                    index += 1
-                                                    
-                                                # cntrolla se la lista apps_2 contiene piu' elementi di apps_1
+                                                # trova le app che sono presenti in apps_2 ma non in apps_1
+                                                for obj2key in obj_2_keys:
+                                                    if obj2key not in obj_1_keys:
+                                                        diffs.append( {
+                                                            "key": obj2key,
+                                                            "value_1": "*** no app",
+                                                            "value_2": "app present"
+                                                        })
+                                                
+                                                # controlla se la lista apps_2 contiene piu' elementi di apps_1
                                                 while index < len(apps_2):
                                                     item2 = apps_2[index]
                                                     diffs.append( {
