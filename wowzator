@@ -204,11 +204,9 @@ class WztrVhost():
             
             result = self.machine.fetchDict(self.href + "/adv")
             if result["status"] == "OK":
-                print(result["data"])
-                '''
-                if 'ApplicationAdv' in result["data"].keys():
-                    if 'AdvancedSettings' in result["data"]['ApplicationAdv'].keys():
-                        advSettings = result["data"]['ApplicationAdv']['AdvancedSettings']
+                if 'VhostAdv' in result["data"].keys():
+                    if 'AdvancedSettings' in result["data"]['VhostAdv'].keys():
+                        advSettings = result["data"]['VhostAdv']['AdvancedSettings']
                         if 'AdvancedSetting' in advSettings.keys():
                             # show only active properties
                             properties=[]
@@ -230,7 +228,6 @@ class WztrVhost():
                                     properties.append(shortprop)
                             
                             self.__configurationAdv=properties
-                '''
         return self.__configurationAdv
 
 
