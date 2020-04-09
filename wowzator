@@ -186,7 +186,8 @@ class WztrVhost():
             result = self.machine.fetchDict(self.href)
             if result["status"] == "OK":
                 if 'VHost' in result["data"].keys():
-                    entry = result["data"]['VHost']
+                    # result["data"]['VHost'] is a list that contains one element, using "pop()" to get it
+                    entry = result["data"]['VHost'].pop()
                 
                     if 'Version' in entry.keys():
                         del entry['Version']
