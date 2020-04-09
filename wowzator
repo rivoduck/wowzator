@@ -206,7 +206,7 @@ class WztrVhost():
             if result["status"] == "OK":
                 if 'VHostAdv' in result["data"].keys():
                     if 'AdvancedSettings' in result["data"]['VHostAdv'].keys():
-                        advSettings = result["data"]['VhostAdv']['AdvancedSettings']
+                        advSettings = result["data"]['VHostAdv']['AdvancedSettings']
                         if 'AdvancedSetting' in advSettings.keys():
                             # show only active properties
                             properties=[]
