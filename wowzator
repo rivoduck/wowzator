@@ -158,6 +158,7 @@ class WztrVhost():
             self.connectingSSLEnable = False
         
         self.__configuration = None
+        self.__configurationAdv = None
         self.__applications = None
         self.machine=None
     
@@ -195,7 +196,45 @@ class WztrVhost():
                     self.__configuration = entry
         return self.__configuration
     
-    
+    # in wowza APIs, VHost Properties are referred to as vhost/advanced
+    def configurationAdvanced(self):
+        # lazy-fetch application advanced config
+        if self.__configurationAdv is None:
+            self.__configurationAdv={}
+            
+            result = self.vhost.machine.fetchDict(self.href + "/adv")
+            if result["status"] == "OK":
+                print(result["data"])
+                '''
+                if 'ApplicationAdv' in result["data"].keys():
+                    if 'AdvancedSettings' in result["data"]['ApplicationAdv'].keys():
+                        advSettings = result["data"]['ApplicationAdv']['AdvancedSettings']
+                        if 'AdvancedSetting' in advSettings.keys():
+                            # show only active properties
+                            properties=[]
+                            for prop in advSettings['AdvancedSetting']:
+                                if prop['@enabled'] == 'true':
+                                    shortprop = {
+                                        'Name': prop['Name'],
+                                        'Type': prop['Type'],
+                                        'Value': prop['Value'],
+                                        'SectionName': "",
+                                        'Section': ""
+                                    
+                                    }
+                                    if 'Section' in prop.keys():
+                                        shortprop['Section'] = prop['Section']
+                                    if 'SectionName' in prop.keys():
+                                        shortprop['SectionName'] = prop['SectionName']
+                            
+                                    properties.append(shortprop)
+                            
+                            self.__configurationAdv=properties
+                '''
+        return self.__configurationAdv
+
+
+
     def applications(self):
         # lazy-fetch applications
         if self.__applications is None:
@@ -443,7 +482,13 @@ class WztrPrompt(Cmd):
                         {
                             "keyword": "configuration",
                             "keyword_type": "predicate",
-                            "syntaxtree": []
+                            "syntaxtree": [
+                                {
+                                    "keyword": "properties",
+                                    "keyword_type": "predicate",
+                                    "syntaxtree": []
+                                }
+                            ]
                         },
                         {
                             "keyword": "details",
@@ -751,7 +796,7 @@ class WztrPrompt(Cmd):
                     # show config
                     print(self.dict_formatter(object_instance.configuration()))
             elif predicate == "properties":
-                if isinstance(object_instance, WztrApplication):
+                if isinstance(object_instance, WztrApplication) or isinstance(object_instance, WztrVhost):
                     # properties (adv config) of app
                     print(self.list_formatter(object_instance.configurationAdvanced()))
     
@@ -801,8 +846,7 @@ class WztrPrompt(Cmd):
                                                 if result_arg_1["predicate"] is not None and result_arg_1["predicate"] == "configuration":
                                                     # for vhost obj with a "configuration" predicate,
                                                     # perform a difference on the vhost config
-                                                    diff_result = WztrPrompt.config_diff(obj_1.configuration(), obj_2.configuration())
-                                                    diffs = diff_result["diffs"]
+                                                    diffs = WztrPrompt.__diff_application_configs(obj_1, obj_2)
                                                 else:
                                                     # for vhost obj without predicate,
                                                     # perform a difference on the list of applications
