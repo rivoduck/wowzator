@@ -156,7 +156,8 @@ class WztrVhost():
             self.connectingSSLEnable = True
         else:
             self.connectingSSLEnable = False
-    
+        
+        self.__configuration = None:
         self.__applications = None
         self.machine=None
     
@@ -176,6 +177,33 @@ class WztrVhost():
             "Addr/Port": "%s/%s" % (self.connectingIPAddress, self.connectingPort),
             "SSL": "YES" if self.connectingSSLEnable else "NO",
         }
+    
+    def configuration(self):
+        # lazy-fetch vhost config
+        if self.__configuration is None:
+            self.__configuration={}
+
+            result = self.machine.fetchDict(self.href)
+            if result["status"] == "OK":
+                print(result["data"])
+                '''
+                if 'Application' in result["data"].keys():
+                    entry = result["data"]['Application']
+                
+                    if 'Version' in entry.keys():
+                        del entry['Version']
+                
+                
+                    if not self.dvrEnabled and 'DVRConfig' in entry.keys():
+                        del entry['DVRConfig']
+                    if not self.drmEnabled and 'DRMConfig' in entry.keys():
+                        del entry['DRMConfig']
+                    if not self.transcoderEnabled and 'TranscoderConfig' in entry.keys():
+                        del entry['TranscoderConfig']
+                
+                    self.__configuration = WztrApplication.__clean_config_dict(entry)
+                '''
+        return self.__configuration
     
     
     def applications(self):
@@ -421,6 +449,11 @@ class WztrPrompt(Cmd):
                                     "syntaxtree": []
                                 }
                             ]
+                        },
+                        {
+                            "keyword": "configuration",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
                         },
                         {
                             "keyword": "details",
@@ -718,8 +751,9 @@ class WztrPrompt(Cmd):
                 print( self.dict_formatter( object_instance.detail_view() ) )
 
             elif predicate == "configuration":
-                if isinstance(object_instance, WztrApplication):
-                    # config of app
+                if isinstance(object_instance, WztrApplication) or
+                   isinstance(object_instance, WztrVhost):
+                    # show config
                     print(self.dict_formatter(object_instance.configuration()))
             elif predicate == "properties":
                 if isinstance(object_instance, WztrApplication):
