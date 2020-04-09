@@ -505,6 +505,11 @@ class WztrPrompt(Cmd):
                             ]
                         },
                         {
+                            "keyword": "configuration",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        },
+                        {
                             "keyword": "transcoders",
                             "keyword_type": "predicate",
                             "syntaxtree": []
@@ -793,44 +798,49 @@ class WztrPrompt(Cmd):
                                             if isinstance(obj_2, WztrApplication):
                                                 diffs = WztrPrompt.__diff_application_configs(obj_1, obj_2)
                                             elif isinstance(obj_2, WztrVhost):
-                                                # for vhost obj, perform a difference on
-                                                # the list of applications
-                                                diffs = []
-                                                apps_1 = obj_1.applications()
-                                                apps_2 = obj_2.applications()
+                                                if result_arg_1["predicate"] is not None and if result_arg_1["predicate"] == "configuration":
+                                                    # for vhost obj with a "configuration" predicate,
+                                                    # perform a difference on the vhost config
+                                                    diffs = WztrPrompt.__diff_application_configs(obj_1, obj_2)
+                                                else:
+                                                    # for vhost obj without predicate,
+                                                    # perform a difference on the list of applications
+                                                    diffs = []
+                                                    apps_1 = obj_1.applications()
+                                                    apps_2 = obj_2.applications()
                                                 
-                                                # comparing dictionaries
-                                                apps_1_found_in_apps_2=[]
-                                                apps_1_keys = apps_1.keys()
-                                                apps_2_keys = apps_2.keys()
-                                                for key_1 in apps_1_keys:
-                                                    if key_1 in apps_2_keys:
-                                                        apps_1_found_in_apps_2.append(key_1)
-                                                        app_diffs = WztrPrompt.__diff_application_configs(apps_1[key_1], apps_2[key_1])
-                                                        if len(app_diffs) > 0:
-                                                            diff_state = "*** conf mismatch"
+                                                    # comparing dictionaries
+                                                    apps_1_found_in_apps_2=[]
+                                                    apps_1_keys = apps_1.keys()
+                                                    apps_2_keys = apps_2.keys()
+                                                    for key_1 in apps_1_keys:
+                                                        if key_1 in apps_2_keys:
+                                                            apps_1_found_in_apps_2.append(key_1)
+                                                            app_diffs = WztrPrompt.__diff_application_configs(apps_1[key_1], apps_2[key_1])
+                                                            if len(app_diffs) > 0:
+                                                                diff_state = "*** conf mismatch"
+                                                            else:
+                                                                diff_state = "no diff"
+                                                            diffs.append( {
+                                                                "key": key_1,
+                                                                "value_1": diff_state,
+                                                                "value_2": diff_state
+                                                            })
                                                         else:
-                                                            diff_state = "no diff"
-                                                        diffs.append( {
-                                                            "key": key_1,
-                                                            "value_1": diff_state,
-                                                            "value_2": diff_state
-                                                        })
-                                                    else:
-                                                        # la app e' presente in apps_1 ma non in apps_2
-                                                        diffs.append( {
-                                                            "key": key_1,
-                                                            "value_1": "app present",
-                                                            "value_2": "*** no app"
-                                                        })
-                                                # trova le app che sono presenti in apps_2 ma non in apps_1
-                                                for app2key in apps_2_keys:
-                                                    if app2key not in apps_1_keys:
-                                                        diffs.append( {
-                                                            "key": app2key,
-                                                            "value_1": "*** no app",
-                                                            "value_2": "app present"
-                                                        })
+                                                            # la app e' presente in apps_1 ma non in apps_2
+                                                            diffs.append( {
+                                                                "key": key_1,
+                                                                "value_1": "app present",
+                                                                "value_2": "*** no app"
+                                                            })
+                                                    # trova le app che sono presenti in apps_2 ma non in apps_1
+                                                    for app2key in apps_2_keys:
+                                                        if app2key not in apps_1_keys:
+                                                            diffs.append( {
+                                                                "key": app2key,
+                                                                "value_1": "*** no app",
+                                                                "value_2": "app present"
+                                                            })
                                                 
                                                 
                                             else:
