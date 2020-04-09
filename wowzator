@@ -802,7 +802,7 @@ class WztrPrompt(Cmd):
                                                     # for vhost obj with a "configuration" predicate,
                                                     # perform a difference on the vhost config
                                                     diff_result = WztrPrompt.config_diff(obj_1.configuration(), obj_2.configuration())
-                                                    diffs = resutl["diffs"]
+                                                    diffs = result["diffs"]
                                                 else:
                                                     # for vhost obj without predicate,
                                                     # perform a difference on the list of applications
