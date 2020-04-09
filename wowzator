@@ -157,7 +157,7 @@ class WztrVhost():
         else:
             self.connectingSSLEnable = False
         
-        self.__configuration = None:
+        self.__configuration = None
         self.__applications = None
         self.machine=None
     
@@ -185,24 +185,13 @@ class WztrVhost():
 
             result = self.machine.fetchDict(self.href)
             if result["status"] == "OK":
-                print(result["data"])
-                '''
-                if 'Application' in result["data"].keys():
-                    entry = result["data"]['Application']
+                if 'VHost' in result["data"].keys():
+                    entry = result["data"]['VHost']
                 
                     if 'Version' in entry.keys():
                         del entry['Version']
                 
-                
-                    if not self.dvrEnabled and 'DVRConfig' in entry.keys():
-                        del entry['DVRConfig']
-                    if not self.drmEnabled and 'DRMConfig' in entry.keys():
-                        del entry['DRMConfig']
-                    if not self.transcoderEnabled and 'TranscoderConfig' in entry.keys():
-                        del entry['TranscoderConfig']
-                
-                    self.__configuration = WztrApplication.__clean_config_dict(entry)
-                '''
+                    self.__configuration = entry
         return self.__configuration
     
     
@@ -751,7 +740,7 @@ class WztrPrompt(Cmd):
                 print( self.dict_formatter( object_instance.detail_view() ) )
 
             elif predicate == "configuration":
-                if isinstance(object_instance, WztrApplication) or
+                if isinstance(object_instance, WztrApplication) or \
                    isinstance(object_instance, WztrVhost):
                     # show config
                     print(self.dict_formatter(object_instance.configuration()))
