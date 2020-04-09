@@ -202,7 +202,7 @@ class WztrVhost():
         if self.__configurationAdv is None:
             self.__configurationAdv={}
             
-            result = self.vhost.machine.fetchDict(self.href + "/adv")
+            result = self.machine.fetchDict(self.href + "/adv")
             if result["status"] == "OK":
                 print(result["data"])
                 '''
