@@ -801,7 +801,8 @@ class WztrPrompt(Cmd):
                                                 if result_arg_1["predicate"] is not None and result_arg_1["predicate"] == "configuration":
                                                     # for vhost obj with a "configuration" predicate,
                                                     # perform a difference on the vhost config
-                                                    diffs = WztrPrompt.__diff_application_configs(obj_1, obj_2)
+                                                    diff_result = WztrPrompt.config_diff(obj_1.configuration(), obj_2.configuration())
+                                                    diffs = resutl["diffs"]
                                                 else:
                                                     # for vhost obj without predicate,
                                                     # perform a difference on the list of applications
