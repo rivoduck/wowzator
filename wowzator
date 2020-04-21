@@ -963,15 +963,10 @@ class WztrPrompt(Cmd):
         return diffs
 
     def complete_diff(self, text, line, begidx, endidx):
-        text_arr=text.split()
-        items_arg_1=[]
-        items_arg_2=[]
-        if len(text_arr >= 0):
-            result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, text)
-            items_arg_1 = [i for i in result["completion"] if i.startswith(text)]
-        if len(text_arr > 1):
-            result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_2, text_arr[1])
-            items_arg_2 = [i for i in result["completion"] if i.startswith(text_arr[1])]
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, text)
+        items_arg_1 = [i for i in result["completion"] if i.startswith(text)]
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_2, text)
+        items_arg_2 = [i for i in result["completion"] if i.startswith(text)]
         
         index_dict = {
                 1: items_arg_1,
