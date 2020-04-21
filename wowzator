@@ -142,7 +142,32 @@ class WztrApplication():
 
         return self.__configurationAdv
         
-        
+class WztrTranscodertemplate():
+    header_singular="Transcoder Template"
+    header_plural="Transcoder Templates"
+
+    def __init__(self, name, href):
+        self.name = name
+        self.href = href
+        self.__configuration = None
+        self.vhost=None
+
+    def __str__(self):
+        return "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
+    def __repr__(self):
+        return "WztrTranscodertemplate: %s" % self.name
+
+    @staticmethod
+    def list_view_header():
+        return "%-18s" % ("template name")
+    def list_view(self):
+        return "%-18s  /%s/%s/%s" % (self.name,
+            self.vhost.machine.name, self.vhost.name, self.name)
+    def detail_view(self):
+        return {
+            "Transcoder template name": self.name
+        }
+
 class WztrVhost():
     header_singular="VHost"
     header_plural="VHosts"
@@ -160,6 +185,7 @@ class WztrVhost():
         self.__configuration = None
         self.__configurationAdv = None
         self.__applications = None
+        self.__transcoderTemplates = None
         self.machine=None
     
     def __str__(self):
@@ -250,6 +276,27 @@ class WztrVhost():
                             self.__applications[newapp.name] = newapp
 
         return self.__applications
+        
+    def transcodertemplates(self):
+        # lazy-fetch transcoder templates
+        if self.__transcodertemplates is None:
+            self.__transcodertemplates={}
+            result = self.machine.fetchDict("/v2/servers/_defaultServer_/vhosts/%s/transcoder/templates" % self.name)
+
+            if result["status"] == "OK":
+                print(result["data"])
+                '''
+                if 'Applications' in result["data"].keys():
+                    entry = result["data"]['Applications']
+                    if 'Application' in entry.keys():
+                        items = entry['Application']
+                        for item in items:
+                            newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
+                            newapp.vhost = self
+                    
+                            self.__applications[newapp.name] = newapp
+                '''
+        return self.__transcodertemplates
 
 # class used to create a temporary list of licenses and associated servers
 # using a class in order to avail of the code to render lists
@@ -526,7 +573,7 @@ class WztrPrompt(Cmd):
 
 
     # Syntax tree for the diff commeand (first argument)
-    syntaxtree_diff_1 = [
+    syntaxtree_diff_source = [
         {
             "keyword": "$MACHINE",
             "keyword_type": "object",
@@ -562,7 +609,7 @@ class WztrPrompt(Cmd):
         },
     ]
     # Syntax tree for the diff commeand (second argument)
-    syntaxtree_diff_2 = [
+    syntaxtree_diff_target = [
         {
             "keyword": "$MACHINE",
             "keyword_type": "object",
@@ -804,11 +851,21 @@ class WztrPrompt(Cmd):
                    isinstance(object_instance, WztrVhost):
                     # show config
                     print(self.dict_formatter(object_instance.configuration()))
+                else:
+                    print("WARNING: no %s defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "properties":
                 if isinstance(object_instance, WztrApplication) or isinstance(object_instance, WztrVhost):
                     # properties (adv config) of app
                     print(self.list_formatter(object_instance.configurationAdvanced()))
-    
+                else:
+                    print("WARNING: no %s defined for object of type %s" % (predicate, type(object_instance)))
+            elif predicate == "transcoders":
+                if isinstance(object_instance, WztrVhost):
+                    # transcodertemplates
+                    print(self.list_formatter(object_instance.transcodertemplates()))
+                else:
+                    print("WARNING: no %s defined for object of type %s" % (predicate, type(object_instance)))
+                    
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
         items = [i for i in result["completion"] if i.startswith(text)]
@@ -821,8 +878,8 @@ class WztrPrompt(Cmd):
     def do_diff(self, inp):
         input_arr = inp.split(" ")
         if len(input_arr) == 2:
-            result_arg_2 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_2, input_arr[1])
-            result_arg_1 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, input_arr[0])
+            result_arg_2 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_target, input_arr[1])
+            result_arg_1 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, input_arr[0])
         
             if result_arg_1["error"] is None:
                 if result_arg_1["object"] is not None:
@@ -877,7 +934,7 @@ class WztrPrompt(Cmd):
                                         
                                     if target_path != source_path:
                                         # check target obj exists
-                                        target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, target_path)
+                                        target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, target_path)
                                         target_obj = target_path_result["object"]
                                         
                                         if target_path_result["error"] is None and target_obj is not None:
@@ -963,14 +1020,14 @@ class WztrPrompt(Cmd):
         return diffs
 
     def complete_diff(self, text, line, begidx, endidx):
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, text)
-        items_arg_1 = [i for i in result["completion"] if i.startswith(text)]
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_2, text)
-        items_arg_2 = [i for i in result["completion"] if i.startswith(text)]
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_,source text)
+        items_arg_source = [i for i in result["completion"] if i.startswith(text)]
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_target, text)
+        items_arg_target = [i for i in result["completion"] if i.startswith(text)]
         
         index_dict = {
-                1: items_arg_1,
-                2: items_arg_2
+                1: items_arg_source,
+                2: items_arg_target
                 }
         return self.index_based_complete(text, line, begidx, endidx, index_dict=index_dict)
             
