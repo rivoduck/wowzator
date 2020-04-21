@@ -829,7 +829,7 @@ class WztrPrompt(Cmd):
                     source_machine = None
                     source_vhost = None
                     source_app = None
-                    if isinstance(result_arg_1["object"], WztrApplication)
+                    if isinstance(result_arg_1["object"], WztrApplication):
                         source_app = result_arg_1["object"]
                         source_vhost = source_app.vhost
                         source_machine = source_vhost.machine
@@ -963,9 +963,15 @@ class WztrPrompt(Cmd):
         return diffs
 
     def complete_diff(self, text, line, begidx, endidx):
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, text)
-        items_arg_1 = [i for i in result["completion"] if i.startswith(text)]
-        items_arg_2 = self.machines.keys()
+        text_arr=text.split()
+        items_arg_1=[]
+        items_arg_2=[]
+        if len(text_arr >= 0):
+            result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, text)
+            items_arg_1 = [i for i in result["completion"] if i.startswith(text)]
+        if len(text_arr > 1):
+            result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_2, text_arr[1])
+            items_arg_2 = [i for i in result["completion"] if i.startswith(text_arr[1])]
         
         index_dict = {
                 1: items_arg_1,
