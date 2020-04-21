@@ -191,7 +191,7 @@ class WztrTranscodertemplate():
                             for encode in entry['Encodes']['TranscoderEncode']:
                                 if encode['Enable'] == 'true':
                                     active_encodes.append(encode)
-                            entry['Encodes'] = active_encodes
+                            entry['Encodes']['TranscoderEncode'] = active_encodes
                             
                     self.__configuration = WztrTranscodertemplate.__clean_config_dict(entry)
 
