@@ -950,7 +950,7 @@ class WztrPrompt(Cmd):
                     source_machine = None
                     source_vhost = None
                     source_app = None
-                    source_transtemp = None
+                    source_transtempl = None
                     if isinstance(result_arg_1["object"], WztrApplication):
                         source_app = result_arg_1["object"]
                         source_vhost = source_app.vhost
@@ -959,11 +959,11 @@ class WztrPrompt(Cmd):
                         source_vhost = result_arg_1["object"]
                         source_machine = source_vhost.machine
                     elif isinstance(result_arg_1["object"], WztrTranscodertemplate):
-                        source_transtemp = result_arg_1["object"]
-                        source_vhost = source_transtemp.vhost
+                        source_transtempl = result_arg_1["object"]
+                        source_vhost = source_transtempl.vhost
                         source_machine = source_vhost.machine
                     else:
-                        print("** Error: %s is not an application or vhost object" % result_arg_1["object"])
+                        print("** Error: %s is not an application, transcoder template or vhost object" % result_arg_1["object"])
                     
                     if source_machine is not None:
                         if result_arg_2["error"] is None:
@@ -972,7 +972,7 @@ class WztrPrompt(Cmd):
                                 target_machine = None
                                 target_vhost = None
                                 target_app = None
-                                target_transtemp = None
+                                target_transtempl = None
                                 if isinstance(result_arg_2["object"], WztrMachine):
                                     target_machine = result_arg_2["object"]
                                 elif isinstance(result_arg_2["object"], WztrVhost):
@@ -983,7 +983,7 @@ class WztrPrompt(Cmd):
                                     target_vhost = target_app.vhost
                                     target_machine = target_vhost.machine
                                 elif isinstance(result_arg_2["object"], WztrTranscodertemplate):
-                                    target_transtemp = result_arg_2["object"]
+                                    target_transtempl = result_arg_2["object"]
                                     target_vhost = target_transtemp.vhost
                                     target_machine = target_vhost.machine
                                 else:
@@ -994,6 +994,9 @@ class WztrPrompt(Cmd):
                                         target_app = source_app
                                     if target_vhost is None:
                                         target_vhost = source_vhost
+                                    if target_transtempl is None:
+                                        target_transtempl = source_transtempl
+                                        
                                     target_path = ""
                                     source_path = ""
                                     source_obj = None
@@ -1001,10 +1004,11 @@ class WztrPrompt(Cmd):
                                         target_path = "%s/%s/%s" % (target_machine.name, target_vhost.name, target_app.name)
                                         source_path = "%s/%s/%s" % (source_machine.name, source_vhost.name, source_app.name)
                                         source_obj = source_app
-                                    elif target_transtemp is not None:
+                                        
+                                    elif source_transtempl is not None:
                                         target_path = "%s/%s/transcoders/%s" % (target_machine.name, target_vhost.name, target_transtemp.name)
                                         source_path = "%s/%s/transcoders/%s" % (source_machine.name, source_vhost.name, target_transtemp.name)
-                                        source_obj = target_transtemp
+                                        source_obj = source_transtempl
                                         
                                     elif source_vhost is not None:
                                         target_path = "%s/%s" % (target_machine.name, target_vhost.name)
