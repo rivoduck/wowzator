@@ -646,7 +646,13 @@ class WztrPrompt(Cmd):
                         {
                             "keyword": "transcoders",
                             "keyword_type": "predicate",
-                            "syntaxtree": []
+                            "syntaxtree": [
+                                {
+                                    "keyword": "$TRANSCODERTEMPLATE",
+                                    "keyword_type": "object",
+                                    "syntaxtree": []
+                                }
+                            ]
                         }
                     ]
                 } 
@@ -938,12 +944,17 @@ class WztrPrompt(Cmd):
                     source_machine = None
                     source_vhost = None
                     source_app = None
+                    source_transtemp = None
                     if isinstance(result_arg_1["object"], WztrApplication):
                         source_app = result_arg_1["object"]
                         source_vhost = source_app.vhost
                         source_machine = source_vhost.machine
                     elif isinstance(result_arg_1["object"], WztrVhost):
                         source_vhost = result_arg_1["object"]
+                        source_machine = source_vhost.machine
+                    elif isinstance(result_arg_1["object"], WztrTranscodertemplate):
+                        source_transtemp = result_arg_1["object"]
+                        source_vhost = source_transtemp.vhost
                         source_machine = source_vhost.machine
                     else:
                         print("** Error: %s is not an application or vhost object" % result_arg_1["object"])
@@ -955,6 +966,7 @@ class WztrPrompt(Cmd):
                                 target_machine = None
                                 target_vhost = None
                                 target_app = None
+                                target_transtemp = None
                                 if isinstance(result_arg_2["object"], WztrMachine):
                                     target_machine = result_arg_2["object"]
                                 elif isinstance(result_arg_2["object"], WztrVhost):
@@ -964,8 +976,12 @@ class WztrPrompt(Cmd):
                                     target_app = result_arg_2["object"]
                                     target_vhost = target_app.vhost
                                     target_machine = target_vhost.machine
+                                elif isinstance(result_arg_2["object"], WztrTranscodertemplate):
+                                    target_transtemp = result_arg_2["object"]
+                                    target_vhost = target_transtemp.vhost
+                                    target_machine = target_vhost.machine
                                 else:
-                                    print("** Error: %s is not a machine, vhost or application" % result_arg_2["object"])
+                                    print("** Error: %s is not a machine, vhost, transcoder template or application" % result_arg_2["object"])
                                 if target_machine is not None:
                                     # create path for target obj
                                     if target_app is None:
@@ -979,6 +995,11 @@ class WztrPrompt(Cmd):
                                         target_path = "%s/%s/%s" % (target_machine.name, target_vhost.name, target_app.name)
                                         source_path = "%s/%s/%s" % (source_machine.name, source_vhost.name, source_app.name)
                                         source_obj = source_app
+                                    elif target_transtemp is not None:
+                                        target_path = "%s/%s/transcoders/%s" % (target_machine.name, target_vhost.name, target_transtemp.name)
+                                        source_path = "%s/%s/transcoders/%s" % (source_machine.name, source_vhost.name, target_transtemp.name)
+                                        source_obj = target_transtemp
+                                        
                                     elif source_vhost is not None:
                                         target_path = "%s/%s" % (target_machine.name, target_vhost.name)
                                         source_path = "%s/%s" % (source_machine.name, source_vhost.name)
@@ -995,10 +1016,51 @@ class WztrPrompt(Cmd):
                                             if isinstance(target_obj, WztrApplication):
                                                 diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
                                             elif isinstance(target_obj, WztrVhost):
-                                                if result_arg_1["predicate"] is not None and result_arg_1["predicate"] == "configuration":
-                                                    # for vhost obj with a "configuration" predicate,
-                                                    # perform a difference on the vhost config
-                                                    diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
+                                                if result_arg_1["predicate"] is not None:
+                                                    if result_arg_1["predicate"] == "configuration":
+                                                        # for vhost obj with a "configuration" predicate,
+                                                        # perform a difference on the vhost config
+                                                        diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
+                                                    if result_arg_1["predicate"] == "transcoders":
+                                                        # for vhost obj with a "transcoders" predicate,
+                                                        # perform a difference on the list of transcoder templates
+                                                        diffs = []
+                                                        templ_source = source_obj.transcoders()
+                                                        templ_target = target_obj.transcoders()
+                                                
+                                                        # comparing dictionaries
+                                                        templ_source_found_in_templ_target=[]
+                                                        templ_source_keys = templ_source.keys()
+                                                        templ_target_keys = templ_target.keys()
+                                                        for key_source in templ_source_keys:
+                                                            if key_source in templ_target_keys:
+                                                                templ_source_found_in_templ_target.append(key_source)
+                                                                templ_diffs = WztrPrompt.config_diff(templ_source[key_source].configuration(), templ_target[key_source].configuration())
+                                                                if len(templ_diffs) > 0:
+                                                                    diff_state = "*** conf mismatch"
+                                                                else:
+                                                                    diff_state = "no diff"
+                                                                diffs.append( {
+                                                                    "key": key_source,
+                                                                    "value_1": diff_state,
+                                                                    "value_2": diff_state
+                                                                })
+                                                            else:
+                                                                # il template e' presente in source ma non in target
+                                                                diffs.append( {
+                                                                    "key": key_source,
+                                                                    "value_1": "template present",
+                                                                    "value_2": "*** no template"
+                                                                })
+                                                        # trova i template che sono presenti in target ma non in source
+                                                        for key_target in templ_target_keys:
+                                                            if key_target not in templ_source_keys:
+                                                                diffs.append( {
+                                                                    "key": key_target,
+                                                                    "value_1": "*** no template",
+                                                                    "value_2": "template present"
+                                                                })
+                                                        
                                                 else:
                                                     # for vhost obj without predicate,
                                                     # perform a difference on the list of applications
@@ -1038,7 +1100,13 @@ class WztrPrompt(Cmd):
                                                                 "value_1": "*** no app",
                                                                 "value_2": "app present"
                                                             })
-                                                
+                                            elif isinstance(target_obj, WztrTranscodertemplate):
+                                                if result_arg_1["predicate"] is not None and result_arg_1["predicate"] == "configuration":
+                                                    # for a transcoder template obj with a "configuration" predicate,
+                                                    # perform a difference on the template config
+                                                    diff_result = WztrPrompt.config_diff(source_obj.configuration(), target_obj.configuration())
+                                                    diffs = diff_result["diffs"]
+                                            
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
 
