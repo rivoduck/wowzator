@@ -97,7 +97,7 @@ class WztrApplication():
     
     @staticmethod
     # recursively remove irrelevant items from configuration dictionary
-    def __clean_config_dict(config_dict, previuosKey=None):
+    def __clean_config_dict(config_dict, previousKey=None):
         if '@serverName' in config_dict.keys():
             del config_dict['@serverName']
         
@@ -170,6 +170,27 @@ class WztrTranscodertemplate():
         return {
             "Transcoder template name": self.name
         }
+
+    def configuration(self):
+        # lazy-fetch transcoder template config
+        if self.__configuration is None:
+            self.__configuration={}
+
+            result = self.vhost.machine.fetchDict(self.href)
+            if result["status"] == "OK":
+                if 'TranscoderTemplate' in result["data"].keys():
+                    entry = result["data"]['TranscoderTemplate']
+                
+                    if 'Version' in entry.keys():
+                        del entry['Version']
+                
+                
+                    self.__configuration = WztrApplication.__clean_config_dict(entry)
+
+        return self.__configuration
+
+
+
 
 class WztrVhost():
     header_singular="VHost"
@@ -543,7 +564,19 @@ class WztrPrompt(Cmd):
                         {
                             "keyword": "transcoders",
                             "keyword_type": "predicate",
-                            "syntaxtree": []
+                            "syntaxtree": [
+                                {
+                                    "keyword": "$TRANSCODERTEMPLATE",
+                                    "keyword_type": "object",
+                                    "syntaxtree": [
+                                        {
+                                            "keyword": "configuration",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": []
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 },
@@ -774,15 +807,15 @@ class WztrPrompt(Cmd):
         expanded_dict = {}
         if keyword == "$MACHINE":
             expanded_dict = self.machines
-            #for machine_name in self.machines.keys():
-            #    expanded_dict[machine_name]=self.machines[machine_name]
         elif keyword == "$ALL_MACHINES":
             expanded_dict["all"]=self.machines.values()
         elif keyword == "$VHOST":
             expanded_dict = self.command_object.vhosts()
         elif keyword == "$APPLICATION":
             expanded_dict = self.command_object.applications()
-        
+        elif keyword == "$TRANSCODERTEMPLATE":
+            expanded_dict = self.command_object.transcodertemplates()
+
         return expanded_dict
 
 
@@ -849,6 +882,7 @@ class WztrPrompt(Cmd):
 
             elif predicate == "configuration":
                 if isinstance(object_instance, WztrApplication) or \
+                   isinstance(object_instance, WztrTranscodertemplate) or \
                    isinstance(object_instance, WztrVhost):
                     # show config
                     print(self.dict_formatter(object_instance.configuration()))
@@ -987,7 +1021,6 @@ class WztrPrompt(Cmd):
                                                                 "value_1": "*** no app",
                                                                 "value_2": "app present"
                                                             })
-                                                
                                                 
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
