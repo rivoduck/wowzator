@@ -330,7 +330,7 @@ class WztrVhost():
                 if 'TranscoderTemplates' in result["data"].keys():
                     entry = result["data"]['TranscoderTemplates']
                     if 'Template' in entry.keys():
-                        items = entry['Template']['TranscoderEncode']
+                        items = entry['Template']
                         for item in items:
                             newtranstempl = WztrTranscodertemplate(item['@id'], item['@href'])
                             newtranstempl.vhost = self
