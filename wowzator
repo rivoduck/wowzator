@@ -859,8 +859,8 @@ class WztrPrompt(Cmd):
                     print("WARNING: no %s defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "transcoders":
                 if isinstance(object_instance, WztrVhost):
-                    # transcodertemplates
-                    print(self.list_formatter(object_instance.transcodertemplates()))
+                    # transcoder templates for vhost
+                    self.__ls_objects(object_instance.transcodertemplates().values())
                 else:
                     print("WARNING: no %s defined for object of type %s" % (predicate, type(object_instance)))
                     
