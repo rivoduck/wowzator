@@ -650,7 +650,13 @@ class WztrPrompt(Cmd):
                                 {
                                     "keyword": "$TRANSCODERTEMPLATE",
                                     "keyword_type": "object",
-                                    "syntaxtree": []
+                                    "syntaxtree": [
+                                        {
+                                            "keyword": "config",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": []
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -1021,12 +1027,18 @@ class WztrPrompt(Cmd):
                                                         # for vhost obj with a "configuration" predicate,
                                                         # perform a difference on the vhost config
                                                         diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
+                                                    elif isinstance(target_obj, WztrTranscodertemplate):
+                                                        # for a transcoder template obj with a "configuration" predicate,
+                                                        # perform a difference on the template config
+                                                        diff_result = WztrPrompt.config_diff(source_obj.configuration(), target_obj.configuration())
+                                                        diffs = diff_result["diffs"]
+                                                    
                                                     if result_arg_1["predicate"] == "transcoders":
                                                         # for vhost obj with a "transcoders" predicate,
                                                         # perform a difference on the list of transcoder templates
                                                         diffs = []
-                                                        templ_source = source_obj.transcoders()
-                                                        templ_target = target_obj.transcoders()
+                                                        templ_source = source_obj.transcodertemplates()
+                                                        templ_target = target_obj.transcodertemplates()
                                                 
                                                         # comparing dictionaries
                                                         templ_source_found_in_templ_target=[]
