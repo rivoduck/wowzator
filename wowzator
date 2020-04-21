@@ -185,9 +185,20 @@ class WztrTranscodertemplate():
                         del entry['Version']
                 
                 
-                    self.__configuration = WztrApplication.__clean_config_dict(entry)
+                    self.__configuration = WztrTranscodertemplate.__clean_config_dict(entry)
 
         return self.__configuration
+
+    # recursively remove irrelevant items from configuration dictionary
+    def __clean_config_dict(config_dict, previousKey=None):
+        if '@serverName' in config_dict.keys():
+            del config_dict['@serverName']
+        
+        for key in config_dict.keys():
+            if isinstance(config_dict[key], dict):
+                cleanitem = WztrApplication.__clean_config_dict(config_dict[key], key)
+                config_dict[key] = cleanitem
+        return config_dict
 
 
 
@@ -875,6 +886,9 @@ class WztrPrompt(Cmd):
             elif isinstance(object_instance, WztrVhost):
                 # vhost specified, list applications
                 self.__ls_objects(object_instance.applications().values())
+            elif isinstance(object_instance, WztrApplication):
+                # application specified without any predicate
+                print("/configuration\n/details\n\n")
         else:
             if predicate == "details":
                 print("%s: %s" % (object_instance.header_singular, object_instance))
@@ -887,19 +901,22 @@ class WztrPrompt(Cmd):
                     # show config
                     print(self.dict_formatter(object_instance.configuration()))
                 else:
-                    print("WARNING: no %s defined for object of type %s" % (predicate, type(object_instance)))
+                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "properties":
                 if isinstance(object_instance, WztrApplication) or isinstance(object_instance, WztrVhost):
                     # properties (adv config) of app
                     print(self.list_formatter(object_instance.configurationAdvanced()))
                 else:
-                    print("WARNING: no %s defined for object of type %s" % (predicate, type(object_instance)))
+                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "transcoders":
                 if isinstance(object_instance, WztrVhost):
                     # transcoder templates for vhost
                     self.__ls_objects(object_instance.transcodertemplates().values())
+                elif isinstance(object_instance, WztrTranscodertemplate):
+                    # transcoder template specified withoutany further predicate
+                    print("/configuration\n\n")
                 else:
-                    print("WARNING: no %s defined for object of type %s" % (predicate, type(object_instance)))
+                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
                     
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
