@@ -186,11 +186,12 @@ class WztrTranscodertemplate():
                     
                     # remove non active encodings
                     if 'Encodes' in entry.keys():
-                        active_encodes=[]
-                        for encode in entry['Encodes']:
-                            if encode['Enable'] == 'true':
-                                active_encodes.append(encode)
-                        entry['Encodes'] = active_encodes
+                        if 'TranscoderEncode' in entry['Encodes'].keys():
+                            active_encodes=[]
+                            for encode in entry['Encodes']['TranscoderEncode']:
+                                if encode['Enable'] == 'true':
+                                    active_encodes.append(encode)
+                            entry['Encodes'] = active_encodes
                             
                     self.__configuration = WztrTranscodertemplate.__clean_config_dict(entry)
 
@@ -329,13 +330,12 @@ class WztrVhost():
                 if 'TranscoderTemplates' in result["data"].keys():
                     entry = result["data"]['TranscoderTemplates']
                     if 'Template' in entry.keys():
-                        if 'TranscoderEncode' in entry['Template'].keys():
-                            items = entry['Template']['TranscoderEncode']
-                            for item in items:
-                                newtranstempl = WztrTranscodertemplate(item['@id'], item['@href'])
-                                newtranstempl.vhost = self
-                    
-                                self.__transcoderTemplates[newtranstempl.name] = newtranstempl
+                        items = entry['Template']['TranscoderEncode']
+                        for item in items:
+                            newtranstempl = WztrTranscodertemplate(item['@id'], item['@href'])
+                            newtranstempl.vhost = self
+                
+                            self.__transcoderTemplates[newtranstempl.name] = newtranstempl
                 
         return self.__transcoderTemplates
 
