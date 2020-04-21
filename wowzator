@@ -284,8 +284,6 @@ class WztrVhost():
             result = self.machine.fetchDict("/v2/servers/_defaultServer_/vhosts/%s/transcoder/templates" % self.name)
 
             if result["status"] == "OK":
-                print(result["data"])
-                
                 if 'TranscoderTemplates' in result["data"].keys():
                     entry = result["data"]['TranscoderTemplates']
                     if 'Template' in entry.keys():
@@ -294,7 +292,7 @@ class WztrVhost():
                             newtranstempl = WztrTranscodertemplate(item['@id'], item['@href'])
                             newtranstempl.vhost = self
                     
-                            self.__applications[newtranstempl.name] = newtranstempl
+                            self.__transcoderTemplates[newtranstempl.name] = newtranstempl
                 
         return self.__transcoderTemplates
 
