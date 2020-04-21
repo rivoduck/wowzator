@@ -313,7 +313,7 @@ class WztrMachine():
         return " %-10s %-17s [%s]" % (self.name, "(" + self.address + ")", self.version())
     def detail_view(self):
         return {
-            "Address": self.address,
+            "API Address/port": "%s/%s" % (self.address, self.port),
             "Version": self.version(),
             "HTTPS": "YES" if self.use_https else "NO",
             "Credentials": {
@@ -566,7 +566,19 @@ class WztrPrompt(Cmd):
         {
             "keyword": "$MACHINE",
             "keyword_type": "object",
-            "syntaxtree": []
+            "syntaxtree": [
+                { 
+                    "keyword": "$VHOST",
+                    "keyword_type": "object",
+                    "syntaxtree": [
+                        {
+                            "keyword": "$APPLICATION",
+                            "keyword_type": "object",
+                            "syntaxtree": []
+                        }
+                    ]
+                } 
+            ]
         },
     ]
     
@@ -814,42 +826,76 @@ class WztrPrompt(Cmd):
         
             if result_arg_1["error"] is None:
                 if result_arg_1["object"] is not None:
-                    if isinstance(result_arg_1["object"], WztrApplication) or isinstance(result_arg_1["object"], WztrVhost):
+                    source_machine = None
+                    source_vhost = None
+                    source_app = None
+                    if isinstance(result_arg_1["object"], WztrApplication)
+                        source_app = result_arg_1["object"]
+                        source_vhost = source_app.vhost
+                        source_machine = source_vhost.machine
+                    elif isinstance(result_arg_1["object"], WztrVhost):
+                        source_vhost = result_arg_1["object"]
+                        source_machine = source_vhost.machine
+                    else:
+                        print("** Error: %s is not an application or vhost object" % result_arg_1["object"])
+                    
+                    if source_machine is not None:
                         if result_arg_2["error"] is None:
                             if result_arg_2["object"] is not None:
+                                # all objects have been provided, check the target instance
+                                target_machine = None
+                                target_vhost = None
+                                target_app = None
                                 if isinstance(result_arg_2["object"], WztrMachine):
-                                    # all objects have been provided!!
-                                    
                                     target_machine = result_arg_2["object"]
-                                    
-                                    # replace machine name in path of source obj
-                                    argument_1_arr = input_arr[0].split("/")
-                                    machine_index=1
-                                    if argument_1_arr[0] != "":
-                                        machine_index=0
-                                    
-                                    if argument_1_arr[machine_index] != target_machine.name:
-                                        argument_1_arr[machine_index] = target_machine.name
-                                        target_path = "/".join(argument_1_arr)
+                                elif isinstance(result_arg_2["object"], WztrVhost):
+                                    target_vhost = result_arg_2["object"]
+                                    target_machine = target_vhost.machine
+                                elif isinstance(result_arg_2["object"], WztrApplication):
+                                    target_app = result_arg_2["object"]
+                                    target_vhost = target_app.vhost
+                                    target_machine = target_vhost.machine
+                                else:
+                                    print("** Error: %s is not a machine, vhost or application" % result_arg_2["object"])
+                                if target_machine is not None:
+                                    # create path for target obj
+                                    if target_app is None:
+                                        target_app = source_app
+                                    if target_vhost is None:
+                                        target_vhost = source_vhost
+                                    target_path = ""
+                                    source_path = ""
+                                    source_obj = None
+                                    if source_app is not None:
+                                        target_path = "%s/%s/%s" % (target_machine.name, target_vhost.name, target_app.name)
+                                        source_path = "%s/%s/%s" % (source_machine.name, source_vhost.name, source_app.name)
+                                        source_obj = source_app
+                                    elif source_vhost is not None:
+                                        target_path = "%s/%s" % (target_machine.name, target_vhost.name)
+                                        source_path = "%s/%s" % (source_machine.name, source_vhost.name)
+                                        source_obj = source_vhost
+                                        
+                                    if target_path != source_path:
+                                        # check target obj exists
                                         target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_1, target_path)
-                                        obj_1 = result_arg_1["object"]
-                                        obj_2 = target_path_result["object"]
-                                        if target_path_result["error"] is None and obj_2 is not None:
+                                        target_obj = target_path_result["object"]
+                                        
+                                        if target_path_result["error"] is None and target_obj is not None:
                                             # perform difference
                                             diffs = None
-                                            if isinstance(obj_2, WztrApplication):
-                                                diffs = WztrPrompt.__diff_application_configs(obj_1, obj_2)
-                                            elif isinstance(obj_2, WztrVhost):
+                                            if isinstance(target_obj, WztrApplication):
+                                                diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
+                                            elif isinstance(target_obj, WztrVhost):
                                                 if result_arg_1["predicate"] is not None and result_arg_1["predicate"] == "configuration":
                                                     # for vhost obj with a "configuration" predicate,
                                                     # perform a difference on the vhost config
-                                                    diffs = WztrPrompt.__diff_application_configs(obj_1, obj_2)
+                                                    diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
                                                 else:
                                                     # for vhost obj without predicate,
                                                     # perform a difference on the list of applications
                                                     diffs = []
-                                                    apps_1 = obj_1.applications()
-                                                    apps_2 = obj_2.applications()
+                                                    apps_1 = source_obj.applications()
+                                                    apps_2 = target_obj.applications()
                                                 
                                                     # comparing dictionaries
                                                     apps_1_found_in_apps_2=[]
@@ -888,20 +934,16 @@ class WztrPrompt(Cmd):
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
 
-                                            print(WztrPrompt.diff_formatter(obj_1, obj_2, diffs))
+                                            print(WztrPrompt.diff_formatter(source_obj, target_obj, diffs))
                                             
                                         else:
-                                            print("** Error: cannot find application %s on machine %s" % (result_arg_1["object"].name, target_machine))
+                                            print("** Error: cannot find object %s" % (target_path))
                                     else:
                                         print("** Error: source and destination are the same")
-                                else:
-                                    print("** Error: %s is not a machine" % result_arg_2["object"])
                             else:
                                 print("** Error: please specify an object to compare")
                         else:
                             print("** Error: %s" % result_arg_2["error"])
-                    else:
-                        print("** Error: %s is not an application or vhost object" % result_arg_1["object"])
                 else:
                     print("** Error: please specify a source object to compare")
             else:
