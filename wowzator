@@ -1021,18 +1021,17 @@ class WztrPrompt(Cmd):
                                             diffs = None
                                             if isinstance(target_obj, WztrApplication):
                                                 diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
+                                            elif isinstance(target_obj, WztrTranscodertemplate):
+                                                # for a transcoder template obj with a "configuration" predicate,
+                                                # perform a difference on the template config
+                                                diff_result = WztrPrompt.config_diff(source_obj.configuration(), target_obj.configuration())
+                                                diffs = diff_result["diffs"]
                                             elif isinstance(target_obj, WztrVhost):
                                                 if result_arg_1["predicate"] is not None:
                                                     if result_arg_1["predicate"] == "configuration":
                                                         # for vhost obj with a "configuration" predicate,
                                                         # perform a difference on the vhost config
                                                         diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
-                                                    elif isinstance(target_obj, WztrTranscodertemplate):
-                                                        # for a transcoder template obj with a "configuration" predicate,
-                                                        # perform a difference on the template config
-                                                        diff_result = WztrPrompt.config_diff(source_obj.configuration(), target_obj.configuration())
-                                                        diffs = diff_result["diffs"]
-                                                    
                                                     if result_arg_1["predicate"] == "transcoders":
                                                         # for vhost obj with a "transcoders" predicate,
                                                         # perform a difference on the list of transcoder templates
