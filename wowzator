@@ -1013,8 +1013,8 @@ class WztrPrompt(Cmd):
                                         source_obj = source_app
                                         
                                     elif source_transtempl is not None:
-                                        target_path = "%s/%s/transcoders/%s" % (target_machine.name, target_vhost.name, target_transtemp.name)
-                                        source_path = "%s/%s/transcoders/%s" % (source_machine.name, source_vhost.name, target_transtemp.name)
+                                        target_path = "%s/%s/transcoders/%s" % (target_machine.name, target_vhost.name, target_transtempl.name)
+                                        source_path = "%s/%s/transcoders/%s" % (source_machine.name, source_vhost.name, target_transtempl.name)
                                         source_obj = source_transtempl
                                         
                                     elif source_vhost is not None:
