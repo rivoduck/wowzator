@@ -279,24 +279,24 @@ class WztrVhost():
         
     def transcodertemplates(self):
         # lazy-fetch transcoder templates
-        if self.__transcodertemplates is None:
-            self.__transcodertemplates={}
+        if self.__transcoderTemplates is None:
+            self.__transcoderTemplates={}
             result = self.machine.fetchDict("/v2/servers/_defaultServer_/vhosts/%s/transcoder/templates" % self.name)
 
             if result["status"] == "OK":
                 print(result["data"])
-                '''
-                if 'Applications' in result["data"].keys():
-                    entry = result["data"]['Applications']
-                    if 'Application' in entry.keys():
-                        items = entry['Application']
+                
+                if 'TranscoderTemplates' in result["data"].keys():
+                    entry = result["data"]['TranscoderTemplates']
+                    if 'Template' in entry.keys():
+                        items = entry['Template']
                         for item in items:
-                            newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
-                            newapp.vhost = self
+                            newtranstempl = WztrTranscodertemplate(item['@id'], item['@href'])
+                            newtranstempl.vhost = self
                     
-                            self.__applications[newapp.name] = newapp
-                '''
-        return self.__transcodertemplates
+                            self.__applications[newtranstempl.name] = newtranstempl
+                
+        return self.__transcoderTemplates
 
 # class used to create a temporary list of licenses and associated servers
 # using a class in order to avail of the code to render lists
@@ -1020,7 +1020,7 @@ class WztrPrompt(Cmd):
         return diffs
 
     def complete_diff(self, text, line, begidx, endidx):
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_,source text)
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, text)
         items_arg_source = [i for i in result["completion"] if i.startswith(text)]
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_target, text)
         items_arg_target = [i for i in result["completion"] if i.startswith(text)]
