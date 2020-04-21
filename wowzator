@@ -196,7 +196,7 @@ class WztrTranscodertemplate():
         
         for key in config_dict.keys():
             if isinstance(config_dict[key], dict):
-                cleanitem = WztrApplication.__clean_config_dict(config_dict[key], key)
+                cleanitem = WztrTranscodertemplate.__clean_config_dict(config_dict[key], key)
                 config_dict[key] = cleanitem
         return config_dict
 
