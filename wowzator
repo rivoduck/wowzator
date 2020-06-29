@@ -543,24 +543,30 @@ class WztrPrompt(Cmd):
                     "keyword_type": "object",
                     "syntaxtree": [
                         {
-                            "keyword": "$APPLICATION",
-                            "keyword_type": "object",
+                            "keyword": "apps",
+                            "keyword_type": "predicate",
                             "syntaxtree": [
                                 {
-                                    "keyword": "configuration",
-                                    "keyword_type": "predicate",
+                                    "keyword": "$APPLICATION",
+                                    "keyword_type": "object",
                                     "syntaxtree": [
                                         {
-                                            "keyword": "properties",
+                                            "keyword": "configuration",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": [
+                                                {
+                                                    "keyword": "properties",
+                                                    "keyword_type": "predicate",
+                                                    "syntaxtree": []
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "keyword": "details",
                                             "keyword_type": "predicate",
                                             "syntaxtree": []
                                         }
                                     ]
-                                },
-                                {
-                                    "keyword": "details",
-                                    "keyword_type": "predicate",
-                                    "syntaxtree": []
                                 }
                             ]
                         },
