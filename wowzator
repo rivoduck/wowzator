@@ -36,6 +36,7 @@ class WztrApplication():
         self.vhost=None
         self.__configuration = None
         self.__configurationAdv = None # this is how app Properties are called in wowza APIs
+        self.__smilfiles = None
         
     def __str__(self):
         return "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
@@ -51,7 +52,7 @@ class WztrApplication():
         if config_dict is not None and 'StreamConfig' in config_dict.keys() and 'StreamType' in config_dict['StreamConfig'].keys():
             stream_type = config_dict['StreamConfig']['StreamType']
         
-        return "%-8s %-28s %1s%1s%1s%1s  /%s/%s/%s" % (self.appType, stream_type,
+        return "%-8s %-28s %1s%1s%1s%1s  /%s/%s/apps/%s" % (self.appType, stream_type,
             "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
             "X" if self.transcoderEnabled else "-", "X" if self.streamtargetsEnabled else "-",
             self.vhost.machine.name, self.vhost.name, self.name)
@@ -62,7 +63,7 @@ class WztrApplication():
             stream_type = config_dict['StreamConfig']['StreamType']
         return {
             "App/Stream type": self.appType + " / " + stream_type,
-            "Server": "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name),
+            "Server": "/%s/%s/apps/%s" % (self.vhost.machine.name, self.vhost.name, self.name),
             "DVR": "** ON" if self.dvrEnabled else "OFF",
             "DRM": "** ON" if self.drmEnabled else "OFF",
             "Transcoder": "** ON" if self.transcoderEnabled else "OFF",
@@ -144,7 +145,32 @@ class WztrApplication():
                             self.__configurationAdv=properties
 
         return self.__configurationAdv
+
+    # SMIL files are taken from the application so that files in the application-specific
+    # content directory are taken into account, this generates a lot of duplicates in memory
+    # but it is needed for accurate results
+    def smilfiles(self):
+        # lazy-fetch smil file list
+        if self.__smilfiles is None:
+            self.__smilfiles={}
+            
+            result = self.vhost.machine.fetchDict(self.href + "/smilfiles")
+            if result["status"] == "OK":
+                if 'SMILFiles' in result["data"].keys():
+                    entry = result["data"]['SMILFiles']
+                    if 'SMILFile' in entry.keys():
+                        items = entry['SMILFile']
+                        for item in items:
+                            newobj = WztrSmilFile(item['@id'], item['@href'])
+                            newobj.application = self
         
+                            self.__smilfiles[newobj.name] = newobj
+                
+        return self.__smilfiles
+                
+
+
+
 class WztrTranscodertemplate():
     header_singular="Transcoder Template"
     header_plural="Transcoder Templates"
@@ -156,19 +182,85 @@ class WztrTranscodertemplate():
         self.vhost=None
 
     def __str__(self):
-        return "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
+        return "/%s/%s/transcoders/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
     def __repr__(self):
         return "WztrTranscodertemplate: %s" % self.name
 
     @staticmethod
     def list_view_header():
-        return "%-18s" % ("template name")
+        return "%-22s" % ("template name")
     def list_view(self):
-        return "%-18s  /%s/%s/%s" % (self.name,
+        return "%-22s  /%s/%s/transcoders/%s" % (self.name,
             self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         return {
             "Transcoder template name": self.name
+        }
+
+    def configuration(self):
+        # lazy-fetch transcoder template config
+        if self.__configuration is None:
+            self.__configuration={}
+
+            result = self.vhost.machine.fetchDict(self.href)
+            if result["status"] == "OK":
+                if 'TranscoderTemplate' in result["data"].keys():
+                    entry = result["data"]['TranscoderTemplate']
+                
+                    if 'Version' in entry.keys():
+                        del entry['Version']
+                    
+                    # remove non active encodings
+                    if 'Encodes' in entry.keys():
+                        if 'TranscoderEncode' in entry['Encodes'].keys():
+                            active_encodes=[]
+                            for encode in entry['Encodes']['TranscoderEncode']:
+                                if encode['Enable'] == 'true':
+                                    active_encodes.append(encode)
+                            entry['Encodes']['TranscoderEncode'] = active_encodes
+                            
+                    self.__configuration = WztrTranscodertemplate.__clean_config_dict(entry)
+
+        return self.__configuration
+
+    # recursively remove irrelevant items from configuration dictionary
+    def __clean_config_dict(config_dict, previousKey=None):
+        if '@serverName' in config_dict.keys():
+            del config_dict['@serverName']
+        
+        for key in config_dict.keys():
+            if isinstance(config_dict[key], dict):
+                cleanitem = WztrTranscodertemplate.__clean_config_dict(config_dict[key], key)
+                config_dict[key] = cleanitem
+        return config_dict
+
+
+
+
+class WztrSmilFile():
+    header_singular="SMIL file"
+    header_plural="SMIL files"
+
+    def __init__(self, name, href):
+        self.name = name
+        self.href = href
+        self.__configuration = None
+        self.application=None
+
+    def __str__(self):
+        return "/%s/%s/apps/%s/smil/%s" % (self.application.vhost.machine.name, self.application.vhost.name, self.application.name, self.name)
+    def __repr__(self):
+        return "WztrSmilFile: %s" % self.name
+
+    @staticmethod
+    def list_view_header():
+        return "%-22s" % ("SMIL file name")
+    def list_view(self):
+        return "%-20s  /%s/%s/apps/%s/smil/%s" % (self.name,
+            self.application.vhost.machine.name, self.application.vhost.name, self.application.name, self.name)
+    def detail_view(self):
+        return {
+            "SMIL file name": self.name
         }
 
     def configuration(self):
@@ -451,7 +543,7 @@ class WztrMachine():
                     response["data"],
                     dict_constructor=dict,
                     xml_attribs=True,
-                    force_list=('VHosts')
+                    force_list=('VHosts', 'TranscoderEncode')
                 )
             except:
                 response["status"] = "KO"
@@ -565,6 +657,11 @@ class WztrPrompt(Cmd):
                                             "keyword": "details",
                                             "keyword_type": "predicate",
                                             "syntaxtree": []
+                                        },
+                                        {
+                                            "keyword": "smil",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": []
                                         }
                                     ]
                                 }
@@ -617,7 +714,7 @@ class WztrPrompt(Cmd):
             "keyword_type": "multi_object",
             "syntaxtree": [
                 {
-                    "keyword": "applications",
+                    "keyword": "apps",
                     "keyword_type": "predicate",
                     "syntaxtree": []
                 },
@@ -642,13 +739,19 @@ class WztrPrompt(Cmd):
                     "keyword_type": "object",
                     "syntaxtree": [
                         {
-                            "keyword": "$APPLICATION",
-                            "keyword_type": "object",
+                            "keyword": "apps",
+                            "keyword_type": "predicate",
                             "syntaxtree": [
                                 {
-                                    "keyword": "config",
-                                    "keyword_type": "predicate",
-                                    "syntaxtree": []
+                                    "keyword": "$APPLICATION",
+                                    "keyword_type": "object",
+                                    "syntaxtree": [
+                                        {
+                                            "keyword": "config",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": []
+                                        }
+                                    ]
                                 }
                             ]
                         },
@@ -881,7 +984,7 @@ class WztrPrompt(Cmd):
                 for cur_obj in object_list:
                     print(" %s" % cur_obj.list_view())
             else:
-                if predicate == 'applications':
+                if predicate == 'apps':
                     # list all applications
                     item_list = []
                     for machine in object_list:
@@ -909,16 +1012,12 @@ class WztrPrompt(Cmd):
             if isinstance(object_instance, WztrMachine):
                 # machine specified, list vhosts
                 self.__ls_objects(object_instance.vhosts().values())
-            elif isinstance(object_instance, WztrVhost):
-                # vhost specified, list applications
-                self.__ls_objects(object_instance.applications().values())
-            elif isinstance(object_instance, WztrApplication):
-                # application specified without any predicate
-                print("/configuration\n/details\n\n")
         else:
             if predicate == "details":
                 print("%s: %s" % (object_instance.header_singular, object_instance))
                 print( self.dict_formatter( object_instance.detail_view() ) )
+            elif predicate == "smil":
+                self.__ls_objects(object_instance.smilfiles().values())
 
             elif predicate == "configuration":
                 if isinstance(object_instance, WztrApplication) or \
@@ -943,7 +1042,15 @@ class WztrPrompt(Cmd):
                     print("/configuration\n\n")
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
-                    
+            elif predicate == "apps":
+                if isinstance(object_instance, WztrApplication):
+                    # application specified, return possible predicates
+                    print("/configuration\n/details\n\n")
+                elif isinstance(object_instance, WztrVhost):
+                    # vhost specified, list applications
+                    self.__ls_objects(object_instance.applications().values())
+                
+            
     def complete_ls(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
         items = [i for i in result["completion"] if i.startswith(text)]
@@ -1015,8 +1122,8 @@ class WztrPrompt(Cmd):
                                     source_path = ""
                                     source_obj = None
                                     if source_app is not None:
-                                        target_path = "%s/%s/%s" % (target_machine.name, target_vhost.name, target_app.name)
-                                        source_path = "%s/%s/%s" % (source_machine.name, source_vhost.name, source_app.name)
+                                        target_path = "%s/%s/apps/%s" % (target_machine.name, target_vhost.name, target_app.name)
+                                        source_path = "%s/%s/apps/%s" % (source_machine.name, source_vhost.name, source_app.name)
                                         source_obj = source_app
                                         
                                     elif source_transtempl is not None:
@@ -1025,8 +1132,8 @@ class WztrPrompt(Cmd):
                                         source_obj = source_transtempl
                                         
                                     elif source_vhost is not None:
-                                        target_path = "%s/%s" % (target_machine.name, target_vhost.name)
-                                        source_path = "%s/%s" % (source_machine.name, source_vhost.name)
+                                        target_path = "%s/%s/apps" % (target_machine.name, target_vhost.name)
+                                        source_path = "%s/%s/apps" % (source_machine.name, source_vhost.name)
                                         source_obj = source_vhost
                                         
                                     if target_path != source_path:
@@ -1050,7 +1157,7 @@ class WztrPrompt(Cmd):
                                                         # for vhost obj with a "configuration" predicate,
                                                         # perform a difference on the vhost config
                                                         diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
-                                                    if result_arg_1["predicate"] == "transcoders":
+                                                    elif result_arg_1["predicate"] == "transcoders":
                                                         # for vhost obj with a "transcoders" predicate,
                                                         # perform a difference on the list of transcoder templates
                                                         diffs = []
@@ -1065,7 +1172,7 @@ class WztrPrompt(Cmd):
                                                             if key_source in templ_target_keys:
                                                                 templ_source_found_in_templ_target.append(key_source)
                                                                 templ_diffs = WztrPrompt.config_diff(templ_source[key_source].configuration(), templ_target[key_source].configuration())
-                                                                if len(templ_diffs) > 0:
+                                                                if len(templ_diffs["diffs"]) > 0:
                                                                     diff_state = "*** conf mismatch"
                                                                 else:
                                                                     diff_state = "no diff"
@@ -1089,46 +1196,13 @@ class WztrPrompt(Cmd):
                                                                     "value_1": "*** no template",
                                                                     "value_2": "template present"
                                                                 })
-                                                        
-                                                else:
-                                                    # for vhost obj without predicate,
-                                                    # perform a difference on the list of applications
-                                                    diffs = []
-                                                    apps_1 = source_obj.applications()
-                                                    apps_2 = target_obj.applications()
-                                                
-                                                    # comparing dictionaries
-                                                    apps_1_found_in_apps_2=[]
-                                                    apps_1_keys = apps_1.keys()
-                                                    apps_2_keys = apps_2.keys()
-                                                    for key_1 in apps_1_keys:
-                                                        if key_1 in apps_2_keys:
-                                                            apps_1_found_in_apps_2.append(key_1)
-                                                            app_diffs = WztrPrompt.__diff_application_configs(apps_1[key_1], apps_2[key_1])
-                                                            if len(app_diffs) > 0:
-                                                                diff_state = "*** conf mismatch"
-                                                            else:
-                                                                diff_state = "no diff"
-                                                            diffs.append( {
-                                                                "key": key_1,
-                                                                "value_1": diff_state,
-                                                                "value_2": diff_state
-                                                            })
-                                                        else:
-                                                            # la app e' presente in apps_1 ma non in apps_2
-                                                            diffs.append( {
-                                                                "key": key_1,
-                                                                "value_1": "app present",
-                                                                "value_2": "*** no app"
-                                                            })
-                                                    # trova le app che sono presenti in apps_2 ma non in apps_1
-                                                    for app2key in apps_2_keys:
-                                                        if app2key not in apps_1_keys:
-                                                            diffs.append( {
-                                                                "key": app2key,
-                                                                "value_1": "*** no app",
-                                                                "value_2": "app present"
-                                                            })
+                                                    elif result_arg_1["predicate"] == "apps":
+                                                        # perform a difference on the list of applications
+                                                        diffs = self.__diff_application_list(source_obj.applications(), target_obj.applications())
+                                                    else:
+                                                        # for vhost obj without predicate
+                                                        pass
+                                                    
                                             elif isinstance(target_obj, WztrTranscodertemplate):
                                                 if result_arg_1["predicate"] is not None and result_arg_1["predicate"] == "configuration":
                                                     # for a transcoder template obj with a "configuration" predicate,
@@ -1166,7 +1240,62 @@ class WztrPrompt(Cmd):
         diffs += diff_result["diffs"]
         
         return diffs
+    
+    @staticmethod
+    def __diff_application_list_execute(apps_1, apps_2):
+        identical_lists = True
+        # perform a difference on the list of applications
+        diffs = []
 
+        # comparing dictionaries
+        apps_1_found_in_apps_2=[]
+        apps_1_keys = apps_1.keys()
+        apps_2_keys = apps_2.keys()
+        for key_1 in apps_1_keys:
+            if key_1 in apps_2_keys:
+                apps_1_found_in_apps_2.append(key_1)
+                app_diffs = WztrPrompt.__diff_application_configs(apps_1[key_1], apps_2[key_1])
+                if len(app_diffs) > 0:
+                    diff_state = "*** conf mismatch"
+                    identical_lists = False
+                else:
+                    diff_state = "no diff"
+                diffs.append( {
+                    "key": key_1,
+                    "value_1": diff_state,
+                    "value_2": diff_state
+                })
+            else:
+                # la app e' presente in apps_1 ma non in apps_2
+                diffs.append( {
+                    "key": key_1,
+                    "value_1": "app present",
+                    "value_2": "*** no app"
+                })
+                identical_lists = False
+        # trova le app che sono presenti in apps_2 ma non in apps_1
+        for app2key in apps_2_keys:
+            if app2key not in apps_1_keys:
+                diffs.append( {
+                    "key": app2key,
+                    "value_1": "*** no app",
+                    "value_2": "app present"
+                })
+                identical_lists = False
+        return diffs, identical_lists
+
+
+    @staticmethod
+    def __diff_application_list(apps_1, apps_2):
+        diffs, identical_lists = WztrPrompt.__diff_application_list_execute(apps_1, apps_2)
+        return diffs
+
+    @staticmethod
+    def __diff_application_list_aggregate(apps_1, apps_2):
+        diffs, identical_lists = WztrPrompt.__diff_application_list_execute(apps_1, apps_2)
+        return identical_lists
+        
+        
     def complete_diff(self, text, line, begidx, endidx):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, text)
         items_arg_source = [i for i in result["completion"] if i.startswith(text)]
