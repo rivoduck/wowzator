@@ -1041,8 +1041,8 @@ class WztrPrompt(Cmd):
                    isinstance(object_instance, WztrVhost) or \
                    isinstance(object_instance, WztrSmilFile):
                     table_attr = None
+                    # force modules to be rendered as a table
                     if isinstance(object_instance, WztrApplication):
-                        # force modules to be rendered as a table
                         table_attr = {
                             "Module": [
                                 {
@@ -1063,6 +1063,91 @@ class WztrPrompt(Cmd):
                                 }
                             ]
                         }
+                    elif isinstance(object_instance, WztrTranscodertemplate):
+                        table_attr = {
+                            "TranscoderEncode": [
+                                {
+                                    "key": "Name",
+                                    "length": "6"
+                                },
+                                {
+                                    "key": "Enable",
+                                    "title": "Enab",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "StreamName",
+                                    "length": "30"
+                                },
+                                {
+                                    "key": "VideoCodec",
+                                    "title": "video",
+                                    "length": "8"
+                                },
+                                {
+                                    "key": "GPUID",
+                                    "title": "GPU",
+                                    "length": "3"
+                                },
+                                {
+                                    "key": "VideoBitrate",
+                                    "title": "vid.br",
+                                    "length": "21"
+                                },
+                                {
+                                    "key": "FollowSource",
+                                    "title": "F.src",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "Interval",
+                                    "title": "int",
+                                    "length": "3"
+                                },
+                                {
+                                    "key": "Width",
+                                    "title": "wid.",
+                                    "length": "4"
+                                },
+                                {
+                                    "key": "Height",
+                                    "title": "hei.",
+                                    "length": "4"
+                                },
+                                {
+                                    "key": "AudioCodec",
+                                    "title": "audio",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "AudioBitrate",
+                                    "title": "aud.br",
+                                    "length": "6"
+                                },
+                                {
+                                    "key": "Overlays",
+                                }
+                            ],
+                            "com.wowza.wms.rest.vhosts.transcoder.TranscoderMemberConfig": [
+                                {
+                                    "key": "MemberName",
+                                    "length": "10"
+                                },
+                                {
+                                    "key": "EncodeName",
+                                    "length": "10"
+                                },
+                                {
+                                    "key": "WowzaVideoOnly",
+                                    "length": "14"
+                                },
+                                {
+                                    "key": "WowzaAudioOnly",
+                                    "length": "14"
+                                }
+                            ]
+                        }
+                        
                     # show config
                     print(self.dict_formatter(object_instance.configuration(), 0, table_attr))
                 else:
@@ -1485,7 +1570,7 @@ class WztrPrompt(Cmd):
                     else:
                         if type(data_dict[cur_key][0]) is dict:
                             output += "%s  %-14s:\n" % (margin, cur_key)
-                            output += WztrPrompt.list_formatter(data_dict[cur_key], level+1)
+                            output += WztrPrompt.list_formatter(data_dict[cur_key], level+1, table_attrs)
                         else:
                             output += "%s  %-14s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
             else:
@@ -1494,14 +1579,14 @@ class WztrPrompt(Cmd):
         return output
 
     @staticmethod
-    def list_formatter(data_list, level=0):
+    def list_formatter(data_list, level=0, table_attrs=None):
         output=""
         margin = " " * (level*2)
         
         output += margin + "[\n"
         for cur_item in data_list:
             output += margin + "  {\n"
-            output += WztrPrompt.dict_formatter(cur_item, level+1)
+            output += WztrPrompt.dict_formatter(cur_item, level+1, table_attrs)
             output += margin + "  }\n"
         output += margin + "]\n"
         
