@@ -264,28 +264,20 @@ class WztrSmilFile():
         }
 
     def configuration(self):
-        # lazy-fetch transcoder template config
+        # lazy-fetch smil file config
         if self.__configuration is None:
             self.__configuration={}
 
-            result = self.vhost.machine.fetchDict(self.href)
+            result = self.application.vhost.machine.fetchDict(self.href)
+            
             if result["status"] == "OK":
-                if 'TranscoderTemplate' in result["data"].keys():
-                    entry = result["data"]['TranscoderTemplate']
+                if 'SMILFile' in result["data"].keys():
+                    entry = result["data"]['SMILFile']
                 
                     if 'Version' in entry.keys():
                         del entry['Version']
                     
-                    # remove non active encodings
-                    if 'Encodes' in entry.keys():
-                        if 'TranscoderEncode' in entry['Encodes'].keys():
-                            active_encodes=[]
-                            for encode in entry['Encodes']['TranscoderEncode']:
-                                if encode['Enable'] == 'true':
-                                    active_encodes.append(encode)
-                            entry['Encodes']['TranscoderEncode'] = active_encodes
-                            
-                    self.__configuration = WztrTranscodertemplate.__clean_config_dict(entry)
+                    self.__configuration = WztrSmilFile.__clean_config_dict(entry)
 
         return self.__configuration
 
@@ -296,7 +288,7 @@ class WztrSmilFile():
         
         for key in config_dict.keys():
             if isinstance(config_dict[key], dict):
-                cleanitem = WztrTranscodertemplate.__clean_config_dict(config_dict[key], key)
+                cleanitem = WztrSmilFile.__clean_config_dict(config_dict[key], key)
                 config_dict[key] = cleanitem
         return config_dict
 
@@ -349,7 +341,7 @@ class WztrVhost():
             if result["status"] == "OK":
                 if 'VHost' in result["data"].keys():
                     # result["data"]['VHost'] is a list that contains one element, using "pop()" to get it
-                    entry = result["data"]['VHost'].pop()
+                    entry = result["data"]['VHost']
                 
                     if 'Version' in entry.keys():
                         del entry['Version']
@@ -522,14 +514,17 @@ class WztrMachine():
                 timeout=httpx.Timeout(timeout=3)
             )
             
-            data = response.text
-
+            if int(response.status_code) >= 200 and int(response.status_code) <= 299:
+                data = response.text
+            else:
+                data = 'HTTP error %s' % response.status_code
+                status="KO"
+                
         except NetworkError:
             data='timeout getting %s on machine %s' % (url, self)
             status="KO"
         except Exception as e:
             data='error getting %s on machine %s' % (url, self)
-            print(e)
             status="KO"
         
         return {"data": data, "status": status}
@@ -661,7 +656,19 @@ class WztrPrompt(Cmd):
                                         {
                                             "keyword": "smil",
                                             "keyword_type": "predicate",
-                                            "syntaxtree": []
+                                            "syntaxtree": [
+                                                {
+                                                    "keyword": "$SMILFILES",
+                                                    "keyword_type": "object",
+                                                    "syntaxtree": [
+                                                        {
+                                                            "keyword": "configuration",
+                                                            "keyword_type": "predicate",
+                                                            "syntaxtree": []
+                                                        }
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     ]
                                 }
@@ -955,6 +962,8 @@ class WztrPrompt(Cmd):
             expanded_dict = self.command_object.applications()
         elif keyword == "$TRANSCODERTEMPLATE":
             expanded_dict = self.command_object.transcodertemplates()
+        elif keyword == "$SMILFILES":
+            expanded_dict = self.command_object.smilfiles()
 
         return expanded_dict
 
@@ -1017,20 +1026,71 @@ class WztrPrompt(Cmd):
                 print("%s: %s" % (object_instance.header_singular, object_instance))
                 print( self.dict_formatter( object_instance.detail_view() ) )
             elif predicate == "smil":
-                self.__ls_objects(object_instance.smilfiles().values())
-
+                if isinstance(object_instance, WztrApplication):
+                    # SMIL files for application
+                    self.__ls_objects(object_instance.smilfiles().values())
+                elif isinstance(object_instance, WztrSmilFile):
+                    # SMIL file specified withoutany further predicate
+                    print("/configuration\n\n")
+                else:
+                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
+                
             elif predicate == "configuration":
                 if isinstance(object_instance, WztrApplication) or \
                    isinstance(object_instance, WztrTranscodertemplate) or \
-                   isinstance(object_instance, WztrVhost):
+                   isinstance(object_instance, WztrVhost) or \
+                   isinstance(object_instance, WztrSmilFile):
+                    table_attr = None
+                    if isinstance(object_instance, WztrApplication):
+                        # force modules to be rendered as a table
+                        table_attr = {
+                            "Module": [
+                                {
+                                    "key": "Order",
+                                    "title": "ord",
+                                    "length": "3"
+                                },
+                                {
+                                    "key": "Name",
+                                    "length": "24"
+                                },
+                                {
+                                    "key": "Description",
+                                    "length": "22"
+                                },
+                                {
+                                    "key": "Class"
+                                }
+                            ]
+                        }
                     # show config
-                    print(self.dict_formatter(object_instance.configuration()))
+                    print(self.dict_formatter(object_instance.configuration(), 0, table_attr))
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "properties":
                 if isinstance(object_instance, WztrApplication) or isinstance(object_instance, WztrVhost):
                     # properties (adv config) of app
-                    print(self.list_formatter(object_instance.configurationAdvanced()))
+                    fields = [
+                        {
+                            "key": "Name",
+                            "length": "36"
+                        },
+                        {
+                            "key": "Type",
+                            "length": "8"
+                        },
+                        {
+                            "key": "Value",
+                            "length": "18"
+                        },
+                        {
+                            "key": "SectionName"
+                        },
+                        {
+                            "key": "Section"
+                        }
+                    ]
+                    print(self.table_formatter(object_instance.configurationAdvanced(), fields))
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "transcoders":
@@ -1407,22 +1467,27 @@ class WztrPrompt(Cmd):
         }
         
     @staticmethod
-    def dict_formatter(data_dict, level=0):
+    def dict_formatter(data_dict, level=0, table_attrs=None):
         output=""
-        margin = "                            "[:level*2]
+        margin = " " * (level*2)
         for cur_key in data_dict.keys():
             if isinstance(data_dict[cur_key], dict):
                 output += "%s  %-14s:\n" % (margin, cur_key)
-                output += WztrPrompt.dict_formatter(data_dict[cur_key], level+1)
+                output += WztrPrompt.dict_formatter(data_dict[cur_key], level+1, table_attrs)
             elif type(data_dict[cur_key]) is list:
-                if len(data_dict[cur_key]) == 0:
-                    output += "%s  %-14s: []\n" % (margin, cur_key)
+                
+                # controlla se questo elemento deve essere renderizzato come tabella
+                if table_attrs is not None and cur_key in table_attrs.keys():
+                    output += WztrPrompt.table_formatter(data_dict[cur_key], table_attrs[cur_key])
                 else:
-                    if type(data_dict[cur_key][0]) is dict:
-                        output += "%s  %-14s:\n" % (margin, cur_key)
-                        output += WztrPrompt.list_formatter(data_dict[cur_key], level+1)
+                    if len(data_dict[cur_key]) == 0:
+                        output += "%s  %-14s: []\n" % (margin, cur_key)
                     else:
-                        output += "%s  %-14s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
+                        if type(data_dict[cur_key][0]) is dict:
+                            output += "%s  %-14s:\n" % (margin, cur_key)
+                            output += WztrPrompt.list_formatter(data_dict[cur_key], level+1)
+                        else:
+                            output += "%s  %-14s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
             else:
                 output += "%s  %-14s: %s\n" % (margin, cur_key, data_dict[cur_key])
         
@@ -1431,7 +1496,7 @@ class WztrPrompt(Cmd):
     @staticmethod
     def list_formatter(data_list, level=0):
         output=""
-        margin = "                            "[:level*2]
+        margin = " " * (level*2)
         
         output += margin + "[\n"
         for cur_item in data_list:
@@ -1450,7 +1515,8 @@ class WztrPrompt(Cmd):
                 output += "  No differences found between %s and %s" % (obj_1, obj_2)
             else:
                 output += "%-40s %-40s %-40s\n" % ("Key", obj_1, obj_2)
-                output += "-----------------------------------------------------------------------------------------------------------------------\n"
+                output += "-" * 120
+                output += "\n"
                 for cur_item in diff_list:
                     val1 = cur_item["value_1"]
                     val2 = cur_item["value_2"]
@@ -1466,7 +1532,52 @@ class WztrPrompt(Cmd):
         
             output += "\n"
         return output
+
+
+    @staticmethod
+    def table_formatter(data_list, field_list):
+        # field_list contiene un oggetto strutturato come da esempio:
+        # key: <field name in the list>
+        # title: <name of field in the table header> (optional)
+        # length: <number of characters in the field> (optional)
+        output=""
+        format_string=""
+        row=[]
+        headerlength=0
+        for title_item in field_list:
+            if "title" in title_item.keys():
+                row.append(title_item["title"])
+            else:
+                row.append(title_item["key"])
+            
+            if "length" in title_item.keys():
+                format_string += "%-" + title_item["length"] + "s "
+                headerlength += int(title_item["length"])
+            else:
+                format_string += "%s "
+                headerlength += 14
+                
+        format_string += "\n"
         
+
+        output = format_string % tuple(row)
+        output += "-" * headerlength + "\n"
+        
+            
+        for cur_item in data_list:
+            row = []
+            for title_item in field_list:
+                if title_item["key"] in cur_item.keys():
+                    row.append(cur_item[title_item["key"]])
+                else:
+                    row.append("-")
+            
+            output += format_string % tuple(row)
+        
+        output += "-" * headerlength + "\n"
+        
+        return output
+
 
 p=WztrPrompt()
 p.cmdloop()
