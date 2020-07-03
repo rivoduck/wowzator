@@ -1175,10 +1175,12 @@ class WztrPrompt(Cmd):
                                 },
                                 {
                                     "key": "Width",
+                                    "title": "wdt",
                                     "length": "5"
                                 },
                                 {
                                     "key": "Height",
+                                    "title": "hght",
                                     "length": "5"
                                 },
                                 {
