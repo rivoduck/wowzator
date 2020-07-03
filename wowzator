@@ -1147,7 +1147,63 @@ class WztrPrompt(Cmd):
                                 }
                             ]
                         }
-                        
+                    elif isinstance(object_instance, WztrSmilFile):
+                        table_attr = {
+                            "SMILStream": [
+                                {
+                                    "key": "Index",
+                                    "title": "ind",
+                                    "length": "3"
+                                },
+                                {
+                                    "key": "Type",
+                                    "length": "8"
+                                },
+                                {
+                                    "key": "Src",
+                                    "length": "28"
+                                },
+                                {
+                                    "key": "SystemLanguage",
+                                    "title": "Lang",
+                                    "length": "8"
+                                },
+                                {
+                                    "key": "SystemBitrate",
+                                    "title": "Sys br",
+                                    "length": "7"
+                                },
+                                {
+                                    "key": "Width",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "Height",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "VideoBitrate",
+                                    "title": "V. br",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "VideoCodecId",
+                                    "title": "V. cod"
+                                    "length": "8"
+                                },
+                                {
+                                    "key": "AudioBitrate",
+                                    "title": "A. br",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "AudioCodecId",
+                                    "title": "A. cod"
+                                    "length": "8"
+                                }
+                            ]
+                        }
+                    
                     # show config
                     print(self.dict_formatter(object_instance.configuration(), 0, table_attr))
                 else:
