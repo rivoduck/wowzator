@@ -1185,22 +1185,22 @@ class WztrPrompt(Cmd):
                                 },
                                 {
                                     "key": "VideoBitrate",
-                                    "title": "V. br",
+                                    "title": "V.br",
                                     "length": "7"
                                 },
                                 {
                                     "key": "VideoCodecId",
-                                    "title": "V. cod",
+                                    "title": "V.cod",
                                     "length": "12"
                                 },
                                 {
                                     "key": "AudioBitrate",
-                                    "title": "A. br",
+                                    "title": "A.br",
                                     "length": "5"
                                 },
                                 {
                                     "key": "AudioCodecId",
-                                    "title": "A. cod",
+                                    "title": "A.cod",
                                     "length": "12"
                                 }
                             ]
