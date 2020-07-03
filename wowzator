@@ -1272,7 +1272,7 @@ class WztrPrompt(Cmd):
             elif predicate == "apps":
                 if isinstance(object_instance, WztrApplication):
                     # application specified, return possible predicates
-                    print("/configuration\n/details\n\n")
+                    print("/configuration\n/details\n/smil\n\n")
                 elif isinstance(object_instance, WztrVhost):
                     # vhost specified, list applications
                     self.__ls_objects(object_instance.applications().values())
@@ -1400,11 +1400,11 @@ class WztrPrompt(Cmd):
                                             if isinstance(target_obj, WztrApplication):
                                                 if result_arg_1["predicate"] is not None:
                                                     if result_arg_1["predicate"] == "smil":
-                                                        pass
-                                                        # diffs = WztrPrompt.config_diff(templ_source[key_source].configuration(), templ_target[key_source].configuration())
-                                                else:
-                                                    # application objects with no predicate
-                                                    diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
+                                                        diffs = self.__diff_smilfile_list(source_obj.smilfiles(), target_obj.smilfiles())
+                                                        
+                                                    else:
+                                                        # application objects with no (recognized) predicate
+                                                        diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
                                                     
                                             elif isinstance(target_obj, WztrTranscodertemplate):
                                                 # for a transcoder template obj with a "configuration" predicate,
@@ -1551,6 +1551,63 @@ class WztrPrompt(Cmd):
     @staticmethod
     def __diff_application_list_aggregate(apps_1, apps_2):
         diffs, identical_lists = WztrPrompt.__diff_application_list_execute(apps_1, apps_2)
+        return identical_lists
+
+
+
+    @staticmethod
+    def __diff_smilfile_list_execute(items_1, items_2):
+        identical_lists = True
+        # perform a difference on the list of smil files
+        diffs = []
+
+        # comparing dictionaries
+        apps_1_found_in_apps_2=[]
+        apps_1_keys = items_1.keys()
+        apps_2_keys = items_2.keys()
+        for key_1 in apps_1_keys:
+            if key_1 in apps_2_keys:
+                apps_1_found_in_apps_2.append(key_1)
+                result = WztrPrompt.config_diff(items_1[key_1].configuration(), items_2[key_1].configuration())
+                item_diffs = result["diffs"]
+                if len(item_diffs) > 0:
+                    diff_state = "*** SMIL mismatch"
+                    identical_lists = False
+                else:
+                    diff_state = "no diff"
+                diffs.append( {
+                    "key": key_1,
+                    "value_1": diff_state,
+                    "value_2": diff_state
+                })
+            else:
+                # la app e' presente in apps_1 ma non in apps_2
+                diffs.append( {
+                    "key": key_1,
+                    "value_1": "SMIL present",
+                    "value_2": "*** no SMIL"
+                })
+                identical_lists = False
+        # trova le app che sono presenti in apps_2 ma non in apps_1
+        for app2key in apps_2_keys:
+            if app2key not in apps_1_keys:
+                diffs.append( {
+                    "key": app2key,
+                    "value_1": "*** no SMIL",
+                    "value_2": "SMIL present"
+                })
+                identical_lists = False
+        return diffs, identical_lists
+
+
+    @staticmethod
+    def __diff_smilfile_list(apps_1, apps_2):
+        diffs, identical_lists = WztrPrompt.__diff_smilfile_list_execute(apps_1, apps_2)
+        return diffs
+
+    @staticmethod
+    def __diff_smilfile_list_aggregate(apps_1, apps_2):
+        diffs, identical_lists = WztrPrompt.__diff_smilfile_list_execute(apps_1, apps_2)
         return identical_lists
         
         
