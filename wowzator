@@ -1161,7 +1161,7 @@ class WztrPrompt(Cmd):
                                 },
                                 {
                                     "key": "Src",
-                                    "length": "28"
+                                    "length": "30"
                                 },
                                 {
                                     "key": "SystemLanguage",
