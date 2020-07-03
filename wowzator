@@ -1152,12 +1152,12 @@ class WztrPrompt(Cmd):
                             "SMILStream": [
                                 {
                                     "key": "Index",
-                                    "title": "ind",
-                                    "length": "3"
+                                    "title": "id",
+                                    "length": "2"
                                 },
                                 {
                                     "key": "Type",
-                                    "length": "8"
+                                    "length": "6"
                                 },
                                 {
                                     "key": "Src",
@@ -1166,7 +1166,7 @@ class WztrPrompt(Cmd):
                                 {
                                     "key": "SystemLanguage",
                                     "title": "Lang",
-                                    "length": "8"
+                                    "length": "6"
                                 },
                                 {
                                     "key": "SystemBitrate",
@@ -1184,12 +1184,12 @@ class WztrPrompt(Cmd):
                                 {
                                     "key": "VideoBitrate",
                                     "title": "V. br",
-                                    "length": "5"
+                                    "length": "7"
                                 },
                                 {
                                     "key": "VideoCodecId",
                                     "title": "V. cod",
-                                    "length": "8"
+                                    "length": "12"
                                 },
                                 {
                                     "key": "AudioBitrate",
@@ -1199,7 +1199,7 @@ class WztrPrompt(Cmd):
                                 {
                                     "key": "AudioCodecId",
                                     "title": "A. cod",
-                                    "length": "8"
+                                    "length": "12"
                                 }
                             ]
                         }
