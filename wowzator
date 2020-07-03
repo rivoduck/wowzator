@@ -1188,7 +1188,7 @@ class WztrPrompt(Cmd):
                                 },
                                 {
                                     "key": "VideoCodecId",
-                                    "title": "V. cod"
+                                    "title": "V. cod",
                                     "length": "8"
                                 },
                                 {
@@ -1198,7 +1198,7 @@ class WztrPrompt(Cmd):
                                 },
                                 {
                                     "key": "AudioCodecId",
-                                    "title": "A. cod"
+                                    "title": "A. cod",
                                     "length": "8"
                                 }
                             ]
