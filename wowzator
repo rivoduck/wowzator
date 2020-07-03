@@ -754,9 +754,15 @@ class WztrPrompt(Cmd):
                                     "keyword_type": "object",
                                     "syntaxtree": [
                                         {
-                                            "keyword": "config",
+                                            "keyword": "smil",
                                             "keyword_type": "predicate",
-                                            "syntaxtree": []
+                                            "syntaxtree": [
+                                                {
+                                                    "keyword": "$SMILFILES",
+                                                    "keyword_type": "object",
+                                                    "syntaxtree": []
+                                                }
+                                            ]
                                         }
                                     ]
                                 }
@@ -800,10 +806,28 @@ class WztrPrompt(Cmd):
                     "keyword_type": "object",
                     "syntaxtree": [
                         {
-                            "keyword": "$APPLICATION",
-                            "keyword_type": "object",
-                            "syntaxtree": []
-                        }
+                            "keyword": "apps",
+                            "keyword_type": "predicate",
+                            "syntaxtree": [
+                                {
+                                    "keyword": "$APPLICATION",
+                                    "keyword_type": "object",
+                                    "syntaxtree": [
+                                        {
+                                            "keyword": "smil",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": [
+                                                {
+                                                    "keyword": "$SMILFILES",
+                                                    "keyword_type": "object",
+                                                    "syntaxtree": []
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
                     ]
                 } 
             ]
@@ -1275,6 +1299,7 @@ class WztrPrompt(Cmd):
                     source_vhost = None
                     source_app = None
                     source_transtempl = None
+                    source_smil = None
                     if isinstance(result_arg_1["object"], WztrApplication):
                         source_app = result_arg_1["object"]
                         source_vhost = source_app.vhost
@@ -1286,8 +1311,13 @@ class WztrPrompt(Cmd):
                         source_transtempl = result_arg_1["object"]
                         source_vhost = source_transtempl.vhost
                         source_machine = source_vhost.machine
+                    elif isinstance(result_arg_1["object"], WztrSmilFile):
+                        source_smil = result_arg_1["object"]
+                        source_app = source_smil.application
+                        source_vhost = source_app.vhost
+                        source_machine = source_vhost.machine
                     else:
-                        print("** Error: %s is not an application, transcoder template or vhost object" % result_arg_1["object"])
+                        print("** Error: %s is not an application, transcoder template, SMIL file or vhost object" % result_arg_1["object"])
                     
                     if source_machine is not None:
                         if result_arg_2["error"] is None:
@@ -1297,6 +1327,7 @@ class WztrPrompt(Cmd):
                                 target_vhost = None
                                 target_app = None
                                 target_transtempl = None
+                                target_smil = None
                                 if isinstance(result_arg_2["object"], WztrMachine):
                                     target_machine = result_arg_2["object"]
                                 elif isinstance(result_arg_2["object"], WztrVhost):
@@ -1310,8 +1341,14 @@ class WztrPrompt(Cmd):
                                     target_transtempl = result_arg_2["object"]
                                     target_vhost = target_transtemp.vhost
                                     target_machine = target_vhost.machine
+                                elif isinstance(result_arg_2["object"], WztrSmilFile):
+                                    target_smil = result_arg_2["object"]
+                                    target_app = target_smil.application
+                                    target_vhost = target_app.vhost
+                                    target_machine = target_vhost.machine
+                                
                                 else:
-                                    print("** Error: %s is not a machine, vhost, transcoder template or application" % result_arg_2["object"])
+                                    print("** Error: %s is not a machine, vhost, transcoder template, SMIL file or application" % result_arg_2["object"])
                                 if target_machine is not None:
                                     # create path for target obj
                                     if target_app is None:
@@ -1320,14 +1357,22 @@ class WztrPrompt(Cmd):
                                         target_vhost = source_vhost
                                     if target_transtempl is None:
                                         target_transtempl = source_transtempl
+                                    if target_smil is None:
+                                        target_smil = source_smil
                                         
                                     target_path = ""
                                     source_path = ""
                                     source_obj = None
                                     if source_app is not None:
-                                        target_path = "%s/%s/apps/%s" % (target_machine.name, target_vhost.name, target_app.name)
-                                        source_path = "%s/%s/apps/%s" % (source_machine.name, source_vhost.name, source_app.name)
-                                        source_obj = source_app
+                                        if source_smil is not None:
+                                            target_path = "%s/%s/apps/%s/smil/%s" % (target_machine.name, target_vhost.name, target_app.name, target_smil.name)
+                                            source_path = "%s/%s/apps/%s/smil/%s" % (source_machine.name, source_vhost.name, source_app.name, source_smil.name)
+                                            source_obj = source_smil
+                                        else:
+                                            target_path = "%s/%s/apps/%s" % (target_machine.name, target_vhost.name, target_app.name)
+                                            source_path = "%s/%s/apps/%s" % (source_machine.name, source_vhost.name, source_app.name)
+                                            source_obj = source_app
+                                        
                                         
                                     elif source_transtempl is not None:
                                         target_path = "%s/%s/transcoders/%s" % (target_machine.name, target_vhost.name, target_transtempl.name)
@@ -1345,10 +1390,22 @@ class WztrPrompt(Cmd):
                                         target_obj = target_path_result["object"]
                                         
                                         if target_path_result["error"] is None and target_obj is not None:
-                                            # perform difference
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            # perform difference and put result in the "diffs" list
                                             diffs = None
                                             if isinstance(target_obj, WztrApplication):
-                                                diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
+                                                if result_arg_1["predicate"] is not None:
+                                                    if result_arg_1["predicate"] == "smil":
+                                                        pass
+                                                        # diffs = WztrPrompt.config_diff(templ_source[key_source].configuration(), templ_target[key_source].configuration())
+                                                else:
+                                                    # application objects with no predicate
+                                                    diffs = WztrPrompt.__diff_application_configs(source_obj, target_obj)
+                                                    
                                             elif isinstance(target_obj, WztrTranscodertemplate):
                                                 # for a transcoder template obj with a "configuration" predicate,
                                                 # perform a difference on the template config
@@ -1405,14 +1462,12 @@ class WztrPrompt(Cmd):
                                                     else:
                                                         # for vhost obj without predicate
                                                         pass
-                                                    
-                                            elif isinstance(target_obj, WztrTranscodertemplate):
-                                                if result_arg_1["predicate"] is not None and result_arg_1["predicate"] == "configuration":
-                                                    # for a transcoder template obj with a "configuration" predicate,
-                                                    # perform a difference on the template config
-                                                    diff_result = WztrPrompt.config_diff(source_obj.configuration(), target_obj.configuration())
-                                                    diffs = diff_result["diffs"]
                                             
+                                            elif isinstance(target_obj, WztrSmilFile):
+                                                # for a SMIL file obj with no predicate,
+                                                # perform a difference on the SMIL config
+                                                diff_result = WztrPrompt.config_diff(source_obj.configuration(), target_obj.configuration())
+                                                diffs = diff_result["diffs"]
                                             else:
                                                 print("** Error: object %s on machine %s is not an application" % (result_arg_1["object"].name, target_machine))
 
