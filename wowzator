@@ -259,10 +259,9 @@ class WztrSmilFile():
 
     @staticmethod
     def list_view_header():
-        return "%-22s" % ("SMIL file name")
+        return "%-22s %s" % ("SMIL", "file name")
     def list_view(self):
-        return "%-20s  /%s/%s/apps/%s/smil/%s" % (self.name,
-            self.application.vhost.machine.name, self.application.vhost.name, self.application.name, self.name)
+        return "%-22s %s" % (self.name, self.configuration()['FileLocation'])
     def detail_view(self):
         return {
             "SMIL file name": self.name
