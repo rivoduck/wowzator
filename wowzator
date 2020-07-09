@@ -736,7 +736,7 @@ class WztrPrompt(Cmd):
 
 
     # Syntax tree for the diff commeand (first argument)
-    syntaxtree_diff_source = [
+    syntaxtree_diff = [
         {
             "keyword": "$MACHINE",
             "keyword_type": "object",
@@ -790,44 +790,6 @@ class WztrPrompt(Cmd):
                                 }
                             ]
                         }
-                    ]
-                } 
-            ]
-        },
-    ]
-    # Syntax tree for the diff commeand (second argument)
-    syntaxtree_diff_target = [
-        {
-            "keyword": "$MACHINE",
-            "keyword_type": "object",
-            "syntaxtree": [
-                { 
-                    "keyword": "$VHOST",
-                    "keyword_type": "object",
-                    "syntaxtree": [
-                        {
-                            "keyword": "apps",
-                            "keyword_type": "predicate",
-                            "syntaxtree": [
-                                {
-                                    "keyword": "$APPLICATION",
-                                    "keyword_type": "object",
-                                    "syntaxtree": [
-                                        {
-                                            "keyword": "smil",
-                                            "keyword_type": "predicate",
-                                            "syntaxtree": [
-                                                {
-                                                    "keyword": "$SMILFILES",
-                                                    "keyword_type": "object",
-                                                    "syntaxtree": []
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
                     ]
                 } 
             ]
@@ -1291,8 +1253,8 @@ class WztrPrompt(Cmd):
     def do_diff(self, inp):
         input_arr = inp.split(" ")
         if len(input_arr) == 2:
-            result_arg_2 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_target, input_arr[1])
-            result_arg_1 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, input_arr[0])
+            result_arg_2 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, input_arr[1])
+            result_arg_1 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, input_arr[0])
         
             if result_arg_1["error"] is None:
                 if result_arg_1["object"] is not None:
@@ -1387,7 +1349,7 @@ class WztrPrompt(Cmd):
                                         
                                     if target_path != source_path:
                                         # check target obj exists
-                                        target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, target_path)
+                                        target_path_result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, target_path)
                                         target_obj = target_path_result["object"]
                                         
                                         if target_path_result["error"] is None and target_obj is not None:
@@ -1631,35 +1593,10 @@ class WztrPrompt(Cmd):
         
         
     def complete_diff(self, text, line, begidx, endidx):
-        command_arr=text.split(" ")
-        path_to_match=command_arr[-1]
+        path_to_match=text.split(" ")[-1]
         
-        items=[]
-        if len(command_arr) < 4:
-            if len(command_arr) < 3:
-                # primo argomento o secondo argomento
-                if len(command_arr) < 2:
-                    # primo argomento
-                    result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, path_to_match)
-            else:
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_target, path_to_match)
-            items = [i for i in result["completion"] if i.startswith(text)]
-        else:
-            # comando completo
-            pass
-        
-        '''
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, text)
-        items_arg_source = [i for i in result["completion"] if i.startswith(text)]
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_target, text)
-        items_arg_target = [i for i in result["completion"] if i.startswith(text)]
-        
-        index_dict = {
-                1: items_arg_source,
-                2: items_arg_target
-                }
-        return self.index_based_complete(text, line, begidx, endidx, index_dict=index_dict)
-        '''
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, path_to_match)
+        items = [i for i in result["completion"] if i.startswith(text)]
 
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
