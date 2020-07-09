@@ -1631,6 +1631,24 @@ class WztrPrompt(Cmd):
         
         
     def complete_diff(self, text, line, begidx, endidx):
+        command_arr=text.split(" ")
+        path_to_match=command_arr[-1]
+        
+        items=[]
+        if len(command_arr) < 4:
+            if len(command_arr) < 3:
+                # primo argomento o secondo argomento
+                if len(command_arr) < 2:
+                    # primo argomento
+                    result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, path_to_match)
+            else:
+                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_target, path_to_match)
+            items = [i for i in result["completion"] if i.startswith(text)]
+        else:
+            # comando completo
+            pass
+        
+        '''
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_source, text)
         items_arg_source = [i for i in result["completion"] if i.startswith(text)]
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff_target, text)
@@ -1641,7 +1659,16 @@ class WztrPrompt(Cmd):
                 2: items_arg_target
                 }
         return self.index_based_complete(text, line, begidx, endidx, index_dict=index_dict)
-            
+        '''
+
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
+
+
+
+
+
+
     def help_ls(self):
         print("List items and configurations")
         print("Application list reports four flags (\"X\" means enabled, \"-\" disabled): DVR DRM Transcoders Targets")
