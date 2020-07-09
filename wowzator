@@ -58,12 +58,17 @@ class WztrApplication():
             self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         stream_type="n/a"
+        content_dir="n/a"
         config_dict = self.configuration()
-        if config_dict is not None and 'StreamConfig' in config_dict.keys() and 'StreamType' in config_dict['StreamConfig'].keys():
-            stream_type = config_dict['StreamConfig']['StreamType']
+        if config_dict is not None and 'StreamConfig' in config_dict.keys():
+            if 'StreamType' in config_dict['StreamConfig'].keys():
+                stream_type = config_dict['StreamConfig']['StreamType']
+            if 'StorageDir' in config_dict['StreamConfig'].keys():
+                content_dir = config_dict['StreamConfig']['StorageDir']
         return {
-            "App/Stream type": self.appType + " / " + stream_type,
             "Server": "/%s/%s/apps/%s" % (self.vhost.machine.name, self.vhost.name, self.name),
+            "App/Stream type": self.appType + " / " + stream_type,
+            "Content Dir.": content_dir,
             "DVR": "** ON" if self.dvrEnabled else "OFF",
             "DRM": "** ON" if self.drmEnabled else "OFF",
             "Transcoder": "** ON" if self.transcoderEnabled else "OFF",
@@ -278,6 +283,18 @@ class WztrSmilFile():
                         del entry['Version']
                     
                     self.__configuration = WztrSmilFile.__clean_config_dict(entry)
+                    # aggiungi una proprietà con la directory in cui risiede il file
+                    content_dir = "n/a"
+                    name = "--nofile--"
+                    config_dict = self.application.configuration()
+                    if config_dict is not None:
+                        if 'StreamConfig' in config_dict.keys():
+                            if 'StorageDir' in config_dict['StreamConfig'].keys():
+                                content_dir = config_dict['StreamConfig']['StorageDir']
+                    if 'Name' in self.__configuration.keys():
+                        name = self.__configuration['Name']
+                    
+                    self.__configuration["FileLocation"] = "%s/%s.smil" % (content_dir, name)
 
         return self.__configuration
 
@@ -313,6 +330,7 @@ class WztrVhost():
         self.__configurationAdv = None
         self.__applications = None
         self.__transcoderTemplates = None
+        self.__smilfiles = None
         self.machine=None
     
     def __str__(self):
@@ -422,6 +440,22 @@ class WztrVhost():
                             self.__transcoderTemplates[newtranstempl.name] = newtranstempl
                 
         return self.__transcoderTemplates
+
+    def smilfiles(self):
+        # lazy-fetch smil files for each application so that all content dirs are navigated
+        if self.__smilfiles is None:
+            self.__smilfiles={}
+            
+            # cycle thorugh apps
+            for app_key in self.applications().keys():
+                cur_smil_list = self.applications()[app_key].smilfiles()
+                # cycle through SMIL objects
+                for smil_key in cur_smil_list.keys():
+                    smil_obj = cur_smil_list[smil_key]
+                    # add SMIL objs, unique by FileLocation
+                    self.__smilfiles[smil_obj.configuration()['FileLocation']] = smil_obj
+                
+        return self.__smilfiles
 
 # class used to create a temporary list of licenses and associated servers
 # using a class in order to avail of the code to render lists
@@ -706,7 +740,13 @@ class WztrPrompt(Cmd):
                                     ]
                                 }
                             ]
-                        }
+                        },
+                        {
+                            "keyword": "smil",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        },
+                        
                     ]
                 },
                 {
@@ -789,14 +829,182 @@ class WztrPrompt(Cmd):
                                     ]
                                 }
                             ]
-                        }
+                        },
+                        {
+                            "keyword": "smil",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        },
+                        
                     ]
                 } 
             ]
         },
     ]
     
-    
+    tableformat_application = {
+                            "Module": [
+                                {
+                                    "key": "Order",
+                                    "title": "ord",
+                                    "length": "3"
+                                },
+                                {
+                                    "key": "Name",
+                                    "length": "24"
+                                },
+                                {
+                                    "key": "Description",
+                                    "length": "22"
+                                },
+                                {
+                                    "key": "Class"
+                                }
+                            ]
+                        }
+    tableformat_transcoder = {
+                            "TranscoderEncode": [
+                                {
+                                    "key": "Name",
+                                    "length": "6"
+                                },
+                                {
+                                    "key": "Enable",
+                                    "title": "Enab",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "StreamName",
+                                    "length": "30"
+                                },
+                                {
+                                    "key": "VideoCodec",
+                                    "title": "video",
+                                    "length": "8"
+                                },
+                                {
+                                    "key": "GPUID",
+                                    "title": "GPU",
+                                    "length": "3"
+                                },
+                                {
+                                    "key": "VideoBitrate",
+                                    "title": "vid.br",
+                                    "length": "21"
+                                },
+                                {
+                                    "key": "FollowSource",
+                                    "title": "F.src",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "Interval",
+                                    "title": "int",
+                                    "length": "3"
+                                },
+                                {
+                                    "key": "Width",
+                                    "title": "wid.",
+                                    "length": "4"
+                                },
+                                {
+                                    "key": "Height",
+                                    "title": "hei.",
+                                    "length": "4"
+                                },
+                                {
+                                    "key": "AudioCodec",
+                                    "title": "audio",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "AudioBitrate",
+                                    "title": "aud.br",
+                                    "length": "6"
+                                },
+                                {
+                                    "key": "Overlays",
+                                }
+                            ],
+                            "com.wowza.wms.rest.vhosts.transcoder.TranscoderMemberConfig": [
+                                {
+                                    "key": "MemberName",
+                                    "length": "10"
+                                },
+                                {
+                                    "key": "EncodeName",
+                                    "length": "10"
+                                },
+                                {
+                                    "key": "WowzaVideoOnly",
+                                    "length": "14"
+                                },
+                                {
+                                    "key": "WowzaAudioOnly",
+                                    "length": "14"
+                                }
+                            ]
+                        }
+    tableformat_smil = {
+                            "SMILStream": [
+                                {
+                                    "key": "Index",
+                                    "title": "id",
+                                    "length": "2"
+                                },
+                                {
+                                    "key": "Type",
+                                    "length": "6"
+                                },
+                                {
+                                    "key": "Src",
+                                    "length": "30"
+                                },
+                                {
+                                    "key": "SystemLanguage",
+                                    "title": "Lang",
+                                    "length": "6"
+                                },
+                                {
+                                    "key": "SystemBitrate",
+                                    "title": "Sys br",
+                                    "length": "7"
+                                },
+                                {
+                                    "key": "Width",
+                                    "title": "wdt",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "Height",
+                                    "title": "hght",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "VideoBitrate",
+                                    "title": "V.br",
+                                    "length": "7"
+                                },
+                                {
+                                    "key": "VideoCodecId",
+                                    "title": "V.cod",
+                                    "length": "12"
+                                },
+                                {
+                                    "key": "AudioBitrate",
+                                    "title": "A.br",
+                                    "length": "5"
+                                },
+                                {
+                                    "key": "AudioCodecId",
+                                    "title": "A.cod",
+                                    "length": "12"
+                                }
+                            ]
+                        }
+                        
+                        
+                        
     def __init__(self):
         print("initializing...")
         Cmd.__init__(self)
@@ -1015,6 +1223,9 @@ class WztrPrompt(Cmd):
                 if isinstance(object_instance, WztrApplication):
                     # SMIL files for application
                     self.__ls_objects(object_instance.smilfiles().values())
+                elif isinstance(object_instance, WztrVhost):
+                    # SMIL files for all apps in VHost
+                    self.__ls_objects(object_instance.smilfiles().values())
                 elif isinstance(object_instance, WztrSmilFile):
                     # SMIL file specified withoutany further predicate
                     print("/configuration\n\n")
@@ -1029,168 +1240,11 @@ class WztrPrompt(Cmd):
                     table_attr = None
                     # force modules to be rendered as a table
                     if isinstance(object_instance, WztrApplication):
-                        table_attr = {
-                            "Module": [
-                                {
-                                    "key": "Order",
-                                    "title": "ord",
-                                    "length": "3"
-                                },
-                                {
-                                    "key": "Name",
-                                    "length": "24"
-                                },
-                                {
-                                    "key": "Description",
-                                    "length": "22"
-                                },
-                                {
-                                    "key": "Class"
-                                }
-                            ]
-                        }
+                        table_attr = WztrPrompt.tableformat_application
                     elif isinstance(object_instance, WztrTranscodertemplate):
-                        table_attr = {
-                            "TranscoderEncode": [
-                                {
-                                    "key": "Name",
-                                    "length": "6"
-                                },
-                                {
-                                    "key": "Enable",
-                                    "title": "Enab",
-                                    "length": "5"
-                                },
-                                {
-                                    "key": "StreamName",
-                                    "length": "30"
-                                },
-                                {
-                                    "key": "VideoCodec",
-                                    "title": "video",
-                                    "length": "8"
-                                },
-                                {
-                                    "key": "GPUID",
-                                    "title": "GPU",
-                                    "length": "3"
-                                },
-                                {
-                                    "key": "VideoBitrate",
-                                    "title": "vid.br",
-                                    "length": "21"
-                                },
-                                {
-                                    "key": "FollowSource",
-                                    "title": "F.src",
-                                    "length": "5"
-                                },
-                                {
-                                    "key": "Interval",
-                                    "title": "int",
-                                    "length": "3"
-                                },
-                                {
-                                    "key": "Width",
-                                    "title": "wid.",
-                                    "length": "4"
-                                },
-                                {
-                                    "key": "Height",
-                                    "title": "hei.",
-                                    "length": "4"
-                                },
-                                {
-                                    "key": "AudioCodec",
-                                    "title": "audio",
-                                    "length": "5"
-                                },
-                                {
-                                    "key": "AudioBitrate",
-                                    "title": "aud.br",
-                                    "length": "6"
-                                },
-                                {
-                                    "key": "Overlays",
-                                }
-                            ],
-                            "com.wowza.wms.rest.vhosts.transcoder.TranscoderMemberConfig": [
-                                {
-                                    "key": "MemberName",
-                                    "length": "10"
-                                },
-                                {
-                                    "key": "EncodeName",
-                                    "length": "10"
-                                },
-                                {
-                                    "key": "WowzaVideoOnly",
-                                    "length": "14"
-                                },
-                                {
-                                    "key": "WowzaAudioOnly",
-                                    "length": "14"
-                                }
-                            ]
-                        }
+                        table_attr = WztrPrompt.tableformat_transcoder
                     elif isinstance(object_instance, WztrSmilFile):
-                        table_attr = {
-                            "SMILStream": [
-                                {
-                                    "key": "Index",
-                                    "title": "id",
-                                    "length": "2"
-                                },
-                                {
-                                    "key": "Type",
-                                    "length": "6"
-                                },
-                                {
-                                    "key": "Src",
-                                    "length": "30"
-                                },
-                                {
-                                    "key": "SystemLanguage",
-                                    "title": "Lang",
-                                    "length": "6"
-                                },
-                                {
-                                    "key": "SystemBitrate",
-                                    "title": "Sys br",
-                                    "length": "7"
-                                },
-                                {
-                                    "key": "Width",
-                                    "title": "wdt",
-                                    "length": "5"
-                                },
-                                {
-                                    "key": "Height",
-                                    "title": "hght",
-                                    "length": "5"
-                                },
-                                {
-                                    "key": "VideoBitrate",
-                                    "title": "V.br",
-                                    "length": "7"
-                                },
-                                {
-                                    "key": "VideoCodecId",
-                                    "title": "V.cod",
-                                    "length": "12"
-                                },
-                                {
-                                    "key": "AudioBitrate",
-                                    "title": "A.br",
-                                    "length": "5"
-                                },
-                                {
-                                    "key": "AudioCodecId",
-                                    "title": "A.cod",
-                                    "length": "12"
-                                }
-                            ]
-                        }
+                        table_attr = WztrPrompt.tableformat_smil
                     
                     # show config
                     print(self.dict_formatter(object_instance.configuration(), 0, table_attr))
@@ -1390,6 +1444,9 @@ class WztrPrompt(Cmd):
                                                     elif result_arg_1["predicate"] == "apps":
                                                         # perform a difference on the list of applications
                                                         diffs = self.__diff_application_list(source_obj.applications(), target_obj.applications())
+                                                    elif result_arg_1["predicate"] == "smil":
+                                                        # perform a difference on the aggregated list of SMIL files
+                                                        diffs = self.__diff_smilfile_list(source_obj.smilfiles(), target_obj.smilfiles())
 
                                                 else:
                                                     # for vhost obj without predicate
@@ -1413,6 +1470,17 @@ class WztrPrompt(Cmd):
                                                         diff_state = "*** mismatch"
                                                     diffs.append( {
                                                         "key": "transcoders",
+                                                        "value_1": diff_state,
+                                                        "value_2": diff_state
+                                                    })
+                                                    
+                                                    nodiff = self.__diff_smilfile_list_aggregate(source_obj.smilfiles(), target_obj.smilfiles())
+                                                    if nodiff:
+                                                        diff_state = "no diff"
+                                                    else:
+                                                        diff_state = "*** mismatch"
+                                                    diffs.append( {
+                                                        "key": "SMIL files",
                                                         "value_1": diff_state,
                                                         "value_2": diff_state
                                                     })
@@ -1710,7 +1778,7 @@ class WztrPrompt(Cmd):
         margin = " " * (level*2)
         for cur_key in data_dict.keys():
             if isinstance(data_dict[cur_key], dict):
-                output += "%s  %-14s:\n" % (margin, cur_key)
+                output += "%s  %-16s:\n" % (margin, cur_key)
                 output += WztrPrompt.dict_formatter(data_dict[cur_key], level+1, table_attrs)
             elif type(data_dict[cur_key]) is list:
                 
@@ -1719,15 +1787,15 @@ class WztrPrompt(Cmd):
                     output += WztrPrompt.table_formatter(data_dict[cur_key], table_attrs[cur_key])
                 else:
                     if len(data_dict[cur_key]) == 0:
-                        output += "%s  %-14s: []\n" % (margin, cur_key)
+                        output += "%s  %-16s: []\n" % (margin, cur_key)
                     else:
                         if type(data_dict[cur_key][0]) is dict:
-                            output += "%s  %-14s:\n" % (margin, cur_key)
+                            output += "%s  %-16s:\n" % (margin, cur_key)
                             output += WztrPrompt.list_formatter(data_dict[cur_key], level+1, table_attrs)
                         else:
-                            output += "%s  %-14s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
+                            output += "%s  %-16s: [%s]\n" % (margin, cur_key, ", ".join(data_dict[cur_key]))
             else:
-                output += "%s  %-14s: %s\n" % (margin, cur_key, data_dict[cur_key])
+                output += "%s  %-16s: %s\n" % (margin, cur_key, data_dict[cur_key])
         
         return output
 
