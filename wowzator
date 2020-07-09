@@ -1279,13 +1279,14 @@ class WztrPrompt(Cmd):
                 
             
     def complete_ls(self, text, line, begidx, endidx):
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, text)
-        items = [i for i in result["completion"] if i.startswith(text)]
+        path_to_match=text.split(" ")[-1]
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
+        items = [i for i in result["completion"] if i.startswith(path_to_match)]
         
-        index_dict = {
-                1: items
-                }
-        return self.index_based_complete(text, line, begidx, endidx, index_dict=index_dict)
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
+
+
 
     def do_diff(self, inp):
         input_arr = inp.split(" ")
