@@ -221,6 +221,13 @@ class WztrTranscodertemplate():
                             active_encodes=[]
                             for encode in entry['Encodes']['TranscoderEncode']:
                                 if encode['Enable'] == 'true':
+                                    active_overlays=[]
+                                    # remove non-active overlays
+                                    if encode['Overlays'] is not None and 'TranscoderOverlayEncode' in encode['Overlays'].keys():
+                                        for overlay in encode['Overlays']['TranscoderOverlayEncode']:
+                                            if overlay['Enable'] == "true":
+                                                active_overlays.append(overlay['Name'])
+                                    encode['Overlays']=active_overlays
                                     active_encodes.append(encode)
                             entry['Encodes']['TranscoderEncode'] = active_encodes
                             
@@ -579,7 +586,7 @@ class WztrMachine():
                     response["data"],
                     dict_constructor=dict,
                     xml_attribs=True,
-                    force_list=('VHosts', 'TranscoderEncode')
+                    force_list=('VHosts', 'TranscoderEncode', 'TranscoderOverlayEncode')
                 )
             except:
                 response["status"] = "KO"
