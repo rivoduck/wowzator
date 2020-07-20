@@ -598,6 +598,7 @@ class WztrMachine():
     def reset_cache(self):
         self.__vhosts = None
         self.__version = None
+        self.__licenses = None
     
     def vhosts(self):
         # lazy-fetch vhosts
