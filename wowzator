@@ -270,7 +270,10 @@ class WztrSmilFile():
     def list_view_header():
         return "%-22s %s" % ("SMIL", "file name")
     def list_view(self):
-        return "%-22s %s" % (self.name, self.configuration()['FileLocation'])
+        errormsg = ""
+        if 'badfile' in self.configuration():
+            errormsg = "**check XML file!!"
+        return "%-22s %s %s" % (self.name, self.configuration()['FileLocation'], errormsg)
     def detail_view(self):
         return {
             "SMIL file name": self.name
@@ -291,6 +294,9 @@ class WztrSmilFile():
                         del entry['Version']
                     
                     self.__configuration = WztrSmilFile.__clean_config_dict(entry)
+            else:
+                # aggiungi una proprietà per indicare che il file non può essere letto (bad XML probabilmente)
+                self.__configuration["badfile"] = True
             # aggiungi una proprietà con la directory in cui risiede il file
             content_dir = None
             name = "--nofile--"
