@@ -310,6 +310,9 @@ class WztrSmilFile():
                 content_dir_arr = content_dir.split("/")
                 content_dir_arr.pop(0)
                 content_dir = "/".join(content_dir_arr)
+            if content_dir[-1] == '/':
+                # rimuovi il trailing slash
+                content_dir = content_dir[:-1]
             self.__configuration["FileLocation"] = "%s/%s.smil" % (content_dir, name)
 
         return self.__configuration
