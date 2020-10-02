@@ -271,9 +271,9 @@ class WztrSmilFile():
         return "%-22s %s" % ("SMIL", "file name")
     def list_view(self):
         errormsg = ""
-        if 'badfile' in self.configuration():
-            errormsg = "**check XML file!!"
-        return "%-22s %s %s" % (self.name, self.configuration()['FileLocation'], errormsg)
+        if 'bad-data' in self.configuration():
+            errormsg = "***** check XML file *****"
+        return "%-22s %-55s %s" % (self.name, self.configuration()['FileLocation'], errormsg)
     def detail_view(self):
         return {
             "SMIL file name": self.name
@@ -296,7 +296,7 @@ class WztrSmilFile():
                     self.__configuration = WztrSmilFile.__clean_config_dict(entry)
             else:
                 # aggiungi una proprietà per indicare che il file non può essere letto (bad XML probabilmente)
-                self.__configuration["badfile"] = True
+                self.__configuration["bad-data"] = True
             # aggiungi una proprietà con la directory in cui risiede il file
             content_dir = None
             name = "--nofile--"
@@ -1614,12 +1614,14 @@ class WztrPrompt(Cmd):
         msg_no_match = "*** mismatch"
         msg_missing = "*** missing"
         msg_present = "present"
+        msg_error = "*** error"
         
         if obj_type == "smil":
             msg_match = "no diff"
             msg_no_match = "*** SMIL mismatch"
             msg_missing = "*** no SMIL"
             msg_present = "SMIL present"
+            msg_error = "*** bad XML"
         elif obj_type == "transcoder":
             msg_match = "no diff"
             msg_no_match = "*** templ mismatch"
@@ -1631,35 +1633,61 @@ class WztrPrompt(Cmd):
         templ_source_found_in_templ_target=[]
         templ_source_keys = items_1.keys()
         templ_target_keys = items_2.keys()
+        
+            
         for key_source in templ_source_keys:
             if key_source in templ_target_keys:
                 templ_source_found_in_templ_target.append(key_source)
-                templ_diffs = WztrPrompt.config_diff(items_1[key_source].configuration(), items_2[key_source].configuration())
-                if len(templ_diffs["diffs"]) > 0:
-                    diff_state = msg_no_match
-                    identical_lists = False
-                else:
+                if 'bad-data' not in items_1[key_source].configuration().keys() and 'bad-data' not in items_2[key_source].configuration().keys():
+                    # non ci sono problemi nei dati di configurazione
+                    templ_diffs = WztrPrompt.config_diff(items_1[key_source].configuration(), items_2[key_source].configuration())
+
                     diff_state = msg_match
+                    if len(templ_diffs["diffs"]) > 0:
+                        diff_state = msg_no_match
+                        identical_lists = False
+
+                    diffs.append( {
+                        "key": key_source,
+                        "value_1": diff_state,
+                        "value_2": diff_state
+                    })
+                else:
+                    if 'bad-data' in items_1[key_source].configuration().keys():
+                        diffs.append( {
+                            "key": key_source,
+                            "value_1": msg_error,
+                            "value_2": msg_present
+                        })
+                    else:
+                        diffs.append( {
+                            "key": key_source,
+                            "value_1": msg_present,
+                            "value_2": msg_error
+                        })
+                    
+            else:
+                # il template e' presente in source ma non in target
+                diff_state = msg_present
+                if 'bad-data' in items_1[key_source].configuration().keys():
+                    diff_state = msg_error
                 diffs.append( {
                     "key": key_source,
                     "value_1": diff_state,
-                    "value_2": diff_state
-                })
-            else:
-                # il template e' presente in source ma non in target
-                diffs.append( {
-                    "key": key_source,
-                    "value_1": msg_present,
                     "value_2": msg_missing
                 })
                 identical_lists = False
         # trova i template che sono presenti in target ma non in source
         for key_target in templ_target_keys:
             if key_target not in templ_source_keys:
+                diff_state = msg_present
+                if 'bad-data' in items_2[key_target].configuration().keys():
+                    diff_state = msg_error
+                
                 diffs.append( {
                     "key": key_target,
                     "value_1": msg_missing,
-                    "value_2": msg_present
+                    "value_2": diff_state
                 })
                 identical_lists = False
         return diffs, identical_lists
