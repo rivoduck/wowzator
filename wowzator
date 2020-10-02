@@ -165,6 +165,8 @@ class WztrApplication():
                     entry = result["data"]['SMILFiles']
                     if 'SMILFile' in entry.keys():
                         items = entry['SMILFile']
+                        if type(items) is not list:
+                            items = [ items ];
                         for item in items:
                             newobj = WztrSmilFile(item['@id'], item['@href'])
                             newobj.application = self
