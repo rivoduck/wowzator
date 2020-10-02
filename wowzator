@@ -291,26 +291,26 @@ class WztrSmilFile():
                         del entry['Version']
                     
                     self.__configuration = WztrSmilFile.__clean_config_dict(entry)
-                    # aggiungi una proprietà con la directory in cui risiede il file
-                    content_dir = None
-                    name = "--nofile--"
-                    config_dict = self.application.configuration()
-                    if config_dict is not None:
-                        if 'StreamConfig' in config_dict.keys():
-                            if 'StorageDir' in config_dict['StreamConfig'].keys():
-                                content_dir = config_dict['StreamConfig']['StorageDir']
-                    if 'Name' in self.__configuration.keys():
-                        name = self.__configuration['Name']
-                    
-                    if content_dir is None or content_dir == '':
-                        content_dir = "--no-dir-for-app-%s--" % self.application.name
-                    
-                    if content_dir[0] == '$':
-                        # rimuovi la variabile di configurazione con la root di Wowza
-                        content_dir_arr = content_dir.split("/")
-                        content_dir_arr.pop(0)
-                        content_dir = "/".join(content_dir_arr)
-                    self.__configuration["FileLocation"] = "%s/%s.smil" % (content_dir, name)
+            # aggiungi una proprietà con la directory in cui risiede il file
+            content_dir = None
+            name = "--nofile--"
+            app_config_dict = self.application.configuration()
+            if app_config_dict is not None:
+                if 'StreamConfig' in app_config_dict.keys():
+                    if 'StorageDir' in app_config_dict['StreamConfig'].keys():
+                        content_dir = app_config_dict['StreamConfig']['StorageDir']
+            if hasattr(self, 'name') and self.name != "":
+                name = self.name
+            
+            if content_dir is None or content_dir == '':
+                content_dir = "--no-dir-for-app-%s--" % self.application.name
+            
+            if content_dir[0] == '$':
+                # rimuovi la variabile di configurazione con la root di Wowza
+                content_dir_arr = content_dir.split("/")
+                content_dir_arr.pop(0)
+                content_dir = "/".join(content_dir_arr)
+            self.__configuration["FileLocation"] = "%s/%s.smil" % (content_dir, name)
 
         return self.__configuration
 
