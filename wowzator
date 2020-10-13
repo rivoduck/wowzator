@@ -1753,7 +1753,21 @@ class WztrPrompt(Cmd):
                 for key_1 in obj_1_keys:
                     if key_1 in obj_2_keys:
                         keys_obj1_found_in_obj2.append(key_1)
-                        result = WztrPrompt.config_diff(config_obj_1[key_1], config_obj_2[key_1])
+                        next_obj_1=config_obj_1[key_1]
+                        next_obj_2=config_obj_2[key_1]
+                        if key_1 == "Modules":
+                        # nel confrontare i moduli
+                        # sostituisci la lista di moduli con un dict di moduli con il nome come chiave
+                        next_obj_1={}
+                        next_obj_2={}
+                        for module_cur in config_obj_1[key_1]["Module"]:
+                            next_obj_1[module_cur["Name"]]=module_cur
+                        for module_cur in config_obj_2[key_1]["Module"]:
+                            next_obj_2[module_cur["Name"]]=module_cur
+                        
+                        #result = WztrPrompt.config_diff(config_obj_1[key_1], config_obj_2[key_1])
+                        result = WztrPrompt.config_diff(next_obj_1, next_obj_2)
+                        
                         for diff in result["diffs"]:
                             diff["key"] = "%s/%s" % (key_1, diff["key"])
                             diffs.append(diff)
@@ -1794,7 +1808,7 @@ class WztrPrompt(Cmd):
                         })
                     index += 1
                     
-                # cntrolla se la lista config_obj_2 contiene piu' elementio di config_obj_1
+                # cntrolla se la lista config_obj_2 contiene piu' elementi di config_obj_1
                 while index < len(config_obj_2):
                     item2 = config_obj_2[index]
                     diffs.append( {
