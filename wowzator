@@ -1770,20 +1770,20 @@ class WztrPrompt(Cmd):
                         next_obj_1=config_obj_1[key_1]
                         next_obj_2=config_obj_2[key_1]
                         if key_1 == "Modules":
-                        # nel confrontare i moduli
-                        # sostituisci la lista di moduli con un dict di moduli con il nome come chiave
-                        next_obj_1={}
-                        next_obj_2={}
-                        for module_cur in config_obj_1[key_1]["Module"]:
-                            if module_cur["Name"] not in next_obj_1.keys():
-                                next_obj_1[module_cur["Name"]]=module_cur
-                            else:
-                                next_obj_1["%s-%s" % module_cur["Name"], module_cur["Order"]]=module_cur
-                        for module_cur in config_obj_2[key_1]["Module"]:
-                            if module_cur["Name"] not in next_obj_2.keys():
-                                next_obj_2[module_cur["Name"]]=module_cur
-                            else:
-                                next_obj_2["%s-%s" % module_cur["Name"], module_cur["Order"]]=module_cur
+                            # nel confrontare i moduli
+                            # converti la lista di moduli in un dict di moduli con il nome come chiave
+                            next_obj_1={}
+                            next_obj_2={}
+                            for module_cur in config_obj_1[key_1]["Module"]:
+                                if module_cur["Name"] not in next_obj_1.keys():
+                                    next_obj_1[module_cur["Name"]]=module_cur
+                                else:
+                                    next_obj_1["%s-%s" % module_cur["Name"], module_cur["Order"]]=module_cur
+                            for module_cur in config_obj_2[key_1]["Module"]:
+                                if module_cur["Name"] not in next_obj_2.keys():
+                                    next_obj_2[module_cur["Name"]]=module_cur
+                                else:
+                                    next_obj_2["%s-%s" % module_cur["Name"], module_cur["Order"]]=module_cur
                         
                         #result = WztrPrompt.config_diff(config_obj_1[key_1], config_obj_2[key_1])
                         result = WztrPrompt.config_diff(next_obj_1, next_obj_2)
