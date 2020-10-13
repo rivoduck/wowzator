@@ -1547,12 +1547,12 @@ class WztrPrompt(Cmd):
         prop_dict_1={}
         prop_dict_2={}
         for prop_cur in app1.configurationAdvanced():
-            key_cur="/Properties/%s/%s" % (prop_cur["SectionName"], prop_cur["Name"])
+            key_cur="/%s/%s" % (prop_cur["SectionName"], prop_cur["Name"])
             if key_cur in prop_dict_1.keys():
                 key_cur = "%s(dupl)" % key_cur
             prop_dict_1[key_cur]=prop_cur
         for prop_cur in app2.configurationAdvanced():
-            key_cur="/Properties/%s/%s" % (prop_cur["SectionName"], prop_cur["Name"])
+            key_cur="/%s/%s" % (prop_cur["SectionName"], prop_cur["Name"])
             if key_cur in prop_dict_2.keys():
                 key_cur = "%s(dupl)" % key_cur
             prop_dict_2[key_cur]=prop_cur
