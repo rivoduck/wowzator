@@ -1547,7 +1547,7 @@ class WztrPrompt(Cmd):
         prop_dict_1={}
         prop_dict_2={}
         for prop_cur in app1.configurationAdvanced():
-            key_cur="/Properties/%s/%s" % prop_cur["SectionName"], prop_cur["Name"]
+            key_cur="/Properties/%s/%s" % (prop_cur["SectionName"], prop_cur["Name"])
             if key_cur in prop_dict_1.keys():
                 key_cur = "%s(dupl)" % key_cur
             prop_dict_1[key_cur]=prop_cur
@@ -1778,12 +1778,12 @@ class WztrPrompt(Cmd):
                                 if module_cur["Name"] not in next_obj_1.keys():
                                     next_obj_1[module_cur["Name"]]=module_cur
                                 else:
-                                    next_obj_1["%s-%s" % module_cur["Name"], module_cur["Order"]]=module_cur
+                                    next_obj_1["%s-%s" % (module_cur["Name"], module_cur["Order"])]=module_cur
                             for module_cur in config_obj_2[key_1]["Module"]:
                                 if module_cur["Name"] not in next_obj_2.keys():
                                     next_obj_2[module_cur["Name"]]=module_cur
                                 else:
-                                    next_obj_2["%s-%s" % module_cur["Name"], module_cur["Order"]]=module_cur
+                                    next_obj_2["%s-%s" % (module_cur["Name"], module_cur["Order"])]=module_cur
                         
                         #result = WztrPrompt.config_diff(config_obj_1[key_1], config_obj_2[key_1])
                         result = WztrPrompt.config_diff(next_obj_1, next_obj_2)
