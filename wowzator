@@ -1779,9 +1779,9 @@ class WztrPrompt(Cmd):
                                     next_obj_1[module_cur["Name"]]=module_cur
                                 else:
                                     next_obj_1["%s-%s" % (module_cur["Name"], module_cur["Order"])]=module_cur
+                            if type(config_obj_2[key_1]["Module"]) is not list:
+                                config_obj_2[key_1]["Module"] = [ config_obj_2[key_1]["Module"] ]
                             for module_cur in config_obj_2[key_1]["Module"]:
-                                if type(module_cur) is not list:
-                                    module_cur = [ module_cur ]
                                 if module_cur["Name"] not in next_obj_2.keys():
                                     next_obj_2[module_cur["Name"]]=module_cur
                                 else:
