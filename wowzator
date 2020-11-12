@@ -1774,6 +1774,8 @@ class WztrPrompt(Cmd):
                             # converti la lista di moduli in un dict di moduli con il nome come chiave
                             next_obj_1={}
                             next_obj_2={}
+                            if type(config_obj_1[key_1]["Module"]) is not list:
+                                config_obj_1[key_1]["Module"] = [ config_obj_1[key_1]["Module"] ]
                             for module_cur in config_obj_1[key_1]["Module"]:
                                 if module_cur["Name"] not in next_obj_1.keys():
                                     next_obj_1[module_cur["Name"]]=module_cur
