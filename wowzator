@@ -132,14 +132,17 @@ class WztrApplication():
                             properties=[]
                             for prop in advSettings['AdvancedSetting']:
                                 if prop['@enabled'] == 'true':
+                                    
                                     shortprop = {
                                         'Name': prop['Name'],
                                         'Type': prop['Type'],
-                                        'Value': prop['Value'],
+                                        'Value': "",
                                         'SectionName': "",
                                         'Section': ""
                                     
                                     }
+                                    if 'Value' in prop.keys():
+                                        shortprop['Value'] = prop['Value']
                                     if 'Section' in prop.keys():
                                         shortprop['Section'] = prop['Section']
                                     if 'SectionName' in prop.keys():
