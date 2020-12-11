@@ -1795,8 +1795,10 @@ class WztrPrompt(Cmd):
                             # nel confrontare la configurazione dei moduli
                             # rimuovi l'attributo LicensesInUse che non e'
                             # significativo nel confrontare le configurazioni
-                            del config_obj_1[key_1]["LicensesInUse"]
-                            del config_obj_2[key_1]["LicensesInUse"]
+                            if "LicensesInUse" in config_obj_1[key_1].keys():
+                                del config_obj_1[key_1]["LicensesInUse"]
+                            if "LicensesInUse" in config_obj_2[key_1].keys():
+                                del config_obj_2[key_1]["LicensesInUse"]
                             
                         #result = WztrPrompt.config_diff(config_obj_1[key_1], config_obj_2[key_1])
                         result = WztrPrompt.config_diff(next_obj_1, next_obj_2)
