@@ -1,0 +1,23 @@
+{"Name": "prova", "AppType": "Live", "ApplicationTimeout": "0", 
+"PingTimeout": "0", "RepeaterOriginURL": "wowz://or02.top-ix.org:1935/beelab|wowz://or01.top-ix.org:1935/beelab", 
+"ClientStreamReadAccess": "*", "ClientStreamWriteAccess": "*", "AVSyncMethod": "senderreport", 
+"MaxRTCPWaitTime": "12000", "HTTPCORSHeadersEnabled": "true", "MediaReaderRandomAccessReaderClass": null, 
+"HTTPOptimizeFileReads": "false", "MediaReaderBufferSeekIO": "false", "CaptionLiveIngestType": null, 
+"StreamConfig": {"StreamType": "live", "StorageDir": "${com.wowza.wms.context.VHostConfigHome}/content", 
+"CreateStorageDir": "false", "StorageDirExists": "true", "KeyDir": "${com.wowza.wms.context.VHostConfigHome}/keys", 
+"LiveStreamPacketizers": {"string": ["cupertinostreamingrepeater", "mpegdashstreamingrepeater"]}, 
+"HTTPRandomizeMediaName": "false", 
+"restURI": "http://ed05.mgdp:8087/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/prova"}, 
+"restURI": "http://ed05.mgdp:8087/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/prova"}
+
+{'Name': 'prova', 'AppType': 'LiveEdge', 'ApplicationTimeout': '0', 
+'PingTimeout': '0', 'RepeaterOriginURL': 'wowz://or02.top-ix.org:1935/beelab|wowz://or01.top-ix.org:1935/beelab', 
+'ClientStreamReadAccess': '*', 'ClientStreamWriteAccess': '*', 'AVSyncMethod': 'senderreport', 
+'MaxRTCPWaitTime': '12000', 'HTTPCORSHeadersEnabled': 'true', 'MediaReaderRandomAccessReaderClass': None, 
+'HTTPOptimizeFileReads': 'false', 'MediaReaderBufferSeekIO': 'false', 'CaptionLiveIngestType': None, 
+'StreamConfig': {'StreamType': 'liverepeater-edge', 'StorageDir': '${com.wowza.wms.context.VHostConfigHome}/content', 
+'CreateStorageDir': 'false', 'StorageDirExists': 'true', 'KeyDir': '${com.wowza.wms.context.VHostConfigHome}/keys', 
+'LiveStreamPacketizers': {'string': ['cupertinostreamingrepeater', 'mpegdashstreamingrepeater']}, 
+'HTTPRandomizeMediaName': 'false', 
+'restURI': 'http://ed05.mgdp:8087/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/prova'}, 
+'restURI': 'http://ed05.mgdp:8087/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/prova'}
