@@ -3,7 +3,7 @@
 import httpx
 from httpx._exceptions import NetworkError
 import xmltodict
-import json
+import json as jj
 
 
 
@@ -590,7 +590,8 @@ class WztrMachine():
             status="KO"
         
         return {"data": data, "status": status}
-        
+
+
     def fetchDict(self, url):
         response = self.fetch(url)
         
@@ -607,7 +608,89 @@ class WztrMachine():
                 response["data"] = "invalid XML reply"
                 
         return response
-    
+    # cp ed05/_defaultVHost_/apps/beelab prova
+    def push(self, datas, url):
+        data=""
+        status="OK"
+        try:
+            base_url="http://"
+            if self.use_https:
+                base_url="https://"
+            base_url += self.address
+            url = "%s:%s%s" % (base_url, self.port, url) 
+            datas['restURI']=url
+            datas['HTTPStreamers']['restURI']=url
+            datas['SecurityConfig']['restURI']=url
+            datas['StreamConfig']['restURI']=url
+            datas['WebRTCConfig']['restURI']=url
+            datas['Modules']['restURI']=url
+            for index in ['HTTPStreamers','SecurityConfig','WebRTCConfig','Modules']:
+                del datas[index]
+
+            print(datas)
+            # juj = {
+            #         "restURI": url,
+            #         "Name": "testlive",
+            #         "AppType": "Live",
+            #         "clientStreamReadAccess": "*",
+            #         "clientStreamWriteAccess": "*",
+            #         "description": "A basic live application",
+            #         "streamConfig": {
+            #             "restURI": url,
+            #             "streamType": "live"
+            #         }
+            # }
+            juj={
+                "Name": "prova", "AppType": "Live", "ApplicationTimeout": "0", 
+                "PingTimeout": "0", "RepeaterOriginURL": "wowz://or02.top-ix.org:1935/beelab|wowz://or01.top-ix.org:1935/beelab", 
+                "ClientStreamReadAccess": "*", "ClientStreamWriteAccess": "*", "AVSyncMethod": "senderreport", 
+                "MaxRTCPWaitTime": "12000", "HTTPCORSHeadersEnabled": "true", "MediaReaderRandomAccessReaderClass": None, 
+                "HTTPOptimizeFileReads": "false", "MediaReaderBufferSeekIO": "false", "CaptionLiveIngestType": None, 
+                "StreamConfig": {"StreamType": "live", "StorageDir": "${com.wowza.wms.context.VHostConfigHome}/content", 
+                "CreateStorageDir": "false", "StorageDirExists": "true", "KeyDir": "${com.wowza.wms.context.VHostConfigHome}/keys", 
+                "LiveStreamPacketizers": {"string": ["cupertinostreamingrepeater", "mpegdashstreamingrepeater"]}, 
+                "HTTPRandomizeMediaName": "false", 
+                "restURI": "http://ed05.mgdp:8087/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/prova"}, 
+                "restURI": "http://ed05.mgdp:8087/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/prova"
+            }
+            #print(juj)
+            #juj = json.dumps(datas)
+            response = httpx.post(
+                url,
+                auth=httpx.DigestAuth(
+                    self.user, self.pw
+                ),
+                #json=jj.dumps(datas),
+                json=juj,
+                timeout=httpx.Timeout(timeout=3)
+            )
+            if int(response.status_code) >= 200 and int(response.status_code) <= 299:
+                data = response.text
+            else:
+                data = 'HTTP error %s' % response.status_code
+                status="KO"
+                
+        except NetworkError:
+            data='timeout getting %s on machine %s' % (url, self)
+            status="KO"
+        except Exception as e:
+            data='error getting %s on machine %s' % (url, self)
+            status="KO"
+
+        return {"data": data, "status": status}
+        
+    def pushDict(self, datas, new_name, url):
+        # change corresponding data
+        datas['Name']=new_name
+        url = url.rsplit('/', 1)[0]+"/"+new_name
+        response = self.push(datas, url)
+        if response["status"] == "OK":
+            print("new live created") 
+        else:
+            print("live creation ecountered a problem")      
+        return response
+
+        
     
     def reset_cache(self):
         self.__vhosts = None
@@ -1190,6 +1273,8 @@ class WztrPrompt(Cmd):
 
         return expanded_dict
 
+    def do_bla(self):
+        print()
 
     def do_ls(self, inp):
         print()
@@ -1739,11 +1824,31 @@ class WztrPrompt(Cmd):
 
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
+    # command to copy a configuration into another machine, or with a different name
+    def do_cp(self, inp):
+        print()
+        input_arr = inp.split(" ")
+        # this piece of code is used to check wheter the input is something of a machine, apps, smil files inside each node
+        if len(input_arr) == 2:
+            result_arg_1 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, input_arr[0])
+            new_name = input_arr[1] #new name
+            app = result_arg_1['object']
+            conf=app.configuration()
+            
+            app.vhost.machine.pushDict(conf, new_name, app.href)
+            
+        else:
+            print("** Error: usage: cp <application> <new application>")    
 
+                    
 
+    def complete_cp(self, text, line, begidx, endidx):
+        path_to_match=text.split(" ")[-1]
+        
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
+        items = [i for i in result["completion"] if i.startswith(text)]
 
-
-
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
     def help_ls(self):
         print("List items and configurations")
