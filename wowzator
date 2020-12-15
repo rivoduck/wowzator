@@ -5,6 +5,20 @@ from httpx._exceptions import NetworkError
 import xmltodict
 import json as jj
 
+def filter_dict(datas, new_name, old_name):   
+    filtered=dict()
+    for k, v in datas.items():
+        if v is not None:
+            key = str(k)
+            key = key[0].lower() + key[1:]
+            if isinstance(v,dict):
+                filtered[key] = filter_dict(v, new_name, old_name)
+            elif isinstance(v,str):
+                new_val = v
+                filtered[key] = new_val.replace(old_name,new_name)
+            else:
+                filtered[key] = v
+    return filtered
 
 
 class WztrApplication():
@@ -608,8 +622,9 @@ class WztrMachine():
                 response["data"] = "invalid XML reply"
                 
         return response
+    
     # cp ed05/_defaultVHost_/apps/beelab prova
-    def push(self, datas, url):
+    def push(self, datas, url, new_name):
         data=""
         status="OK"
         try:
@@ -617,51 +632,27 @@ class WztrMachine():
             if self.use_https:
                 base_url="https://"
             base_url += self.address
-            url = "%s:%s%s" % (base_url, self.port, url) 
+            url = url.rsplit("/",1)[0]+"/"+new_name
+            #print(url)
+            url = "%s:%s%s" % (base_url, self.port, url)
+            old_name=datas['Name']
+            datas['Name']=new_name
+            datas= filter_dict(datas, new_name, old_name)
             datas['restURI']=url
-            datas['HTTPStreamers']['restURI']=url
-            datas['SecurityConfig']['restURI']=url
-            datas['StreamConfig']['restURI']=url
-            datas['WebRTCConfig']['restURI']=url
-            datas['Modules']['restURI']=url
-            for index in ['HTTPStreamers','SecurityConfig','WebRTCConfig','Modules']:
-                del datas[index]
-
-            print(datas)
-            # juj = {
-            #         "restURI": url,
-            #         "Name": "testlive",
-            #         "AppType": "Live",
-            #         "clientStreamReadAccess": "*",
-            #         "clientStreamWriteAccess": "*",
-            #         "description": "A basic live application",
-            #         "streamConfig": {
-            #             "restURI": url,
-            #             "streamType": "live"
-            #         }
-            # }
-            juj={
-                "Name": "prova", "AppType": "Live", "ApplicationTimeout": "0", 
-                "PingTimeout": "0", "RepeaterOriginURL": "wowz://or02.top-ix.org:1935/beelab|wowz://or01.top-ix.org:1935/beelab", 
-                "ClientStreamReadAccess": "*", "ClientStreamWriteAccess": "*", "AVSyncMethod": "senderreport", 
-                "MaxRTCPWaitTime": "12000", "HTTPCORSHeadersEnabled": "true", "MediaReaderRandomAccessReaderClass": None, 
-                "HTTPOptimizeFileReads": "false", "MediaReaderBufferSeekIO": "false", "CaptionLiveIngestType": None, 
-                "StreamConfig": {"StreamType": "live", "StorageDir": "${com.wowza.wms.context.VHostConfigHome}/content", 
-                "CreateStorageDir": "false", "StorageDirExists": "true", "KeyDir": "${com.wowza.wms.context.VHostConfigHome}/keys", 
-                "LiveStreamPacketizers": {"string": ["cupertinostreamingrepeater", "mpegdashstreamingrepeater"]}, 
-                "HTTPRandomizeMediaName": "false", 
-                "restURI": "http://ed05.mgdp:8087/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/prova"}, 
-                "restURI": "http://ed05.mgdp:8087/v2/servers/_defaultServer_/vhosts/_defaultVHost_/applications/prova"
-            }
-            #print(juj)
-            #juj = json.dumps(datas)
+            datas['hTTPStreamers']['restURI']=url
+            datas['securityConfig']['restURI']=url
+            datas['streamConfig']['restURI']=url
+            datas['webRTCConfig']['restURI']=url
+            datas['modules']['restURI']=url
+            # for k in ['securityConfig','webRTCConfig','modules']:
+            #     del datas[k]
+            #print(datas)
             response = httpx.post(
                 url,
                 auth=httpx.DigestAuth(
                     self.user, self.pw
                 ),
-                #json=jj.dumps(datas),
-                json=juj,
+                json=datas,
                 timeout=httpx.Timeout(timeout=3)
             )
             if int(response.status_code) >= 200 and int(response.status_code) <= 299:
@@ -681,9 +672,7 @@ class WztrMachine():
         
     def pushDict(self, datas, new_name, url):
         # change corresponding data
-        datas['Name']=new_name
-        url = url.rsplit('/', 1)[0]+"/"+new_name
-        response = self.push(datas, url)
+        response = self.push(datas, url, new_name)
         if response["status"] == "OK":
             print("new live created") 
         else:
@@ -1834,7 +1823,6 @@ class WztrPrompt(Cmd):
             new_name = input_arr[1] #new name
             app = result_arg_1['object']
             conf=app.configuration()
-            
             app.vhost.machine.pushDict(conf, new_name, app.href)
             
         else:
@@ -2087,11 +2075,8 @@ class WztrPrompt(Cmd):
                     row.append("-")
             
             output += format_string % tuple(row)
-        
         output += "-" * headerlength + "\n"
-        
         return output
-
 
 p=WztrPrompt()
 p.cmdloop()
