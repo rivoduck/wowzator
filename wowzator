@@ -12,7 +12,10 @@ def filter_dict(datas, new_name, old_name):
             key = str(k)
             key = key[0].lower() + key[1:]
             if isinstance(v,dict):
-                filtered[key] = filter_dict(v, new_name, old_name)
+                if len(v)==1:
+                    filtered[key] = list(v.values())
+                else:
+                    filtered[key] = filter_dict(v, new_name, old_name)
             elif isinstance(v,str):
                 new_val = v
                 filtered[key] = new_val.replace(old_name,new_name)
@@ -633,26 +636,28 @@ class WztrMachine():
                 base_url="https://"
             base_url += self.address
             url = url.rsplit("/",1)[0]+"/"+new_name
-            #print(url)
+            print(url)
             url = "%s:%s%s" % (base_url, self.port, url)
             old_name=datas['Name']
             datas['Name']=new_name
-            datas= filter_dict(datas, new_name, old_name)
+            # remove useless configuration
+            for ind in ['HTTPStreamers','WebRTCConfig', 'Modules']:
+                del datas[ind]
+            datas= filter_dict(datas, new_name, old_name) # this fucntion lowercase the letter
             datas['restURI']=url
-            datas['hTTPStreamers']['restURI']=url
             datas['securityConfig']['restURI']=url
             datas['streamConfig']['restURI']=url
-            datas['webRTCConfig']['restURI']=url
-            datas['modules']['restURI']=url
-            # for k in ['securityConfig','webRTCConfig','modules']:
-            #     del datas[k]
-            #print(datas)
+            #datas['modules']['restURI']=url
+            #la configurazione dei moduli non è formattata come si deve
+            print(datas)
+
             response = httpx.post(
                 url,
                 auth=httpx.DigestAuth(
                     self.user, self.pw
                 ),
                 json=datas,
+                #json=juj,
                 timeout=httpx.Timeout(timeout=3)
             )
             if int(response.status_code) >= 200 and int(response.status_code) <= 299:
