@@ -1846,6 +1846,7 @@ class WztrPrompt(Cmd):
     def help_cp(self):
         print("Copy application configuration with another name on the same machine")
     
+    # command to duplicate on same type machine the application
     def do_dup(self, inp):
         print()
         input_arr = inp.split(" ")
@@ -1858,19 +1859,33 @@ class WztrPrompt(Cmd):
                 for k, mach in self.machines.items():
                     if k.startswith(app.vhost.machine.name[:2],0,2) and k != app.vhost.machine.name:
                         conf=app.configuration()
+                        print("Node:", k)
                         mach.pushDict(dict(conf), new_name, app.href)
             else:
                 print("The application is not found")
         else:
             print("** Error: usage: dup <application>")   
             
-
-
     def complete_dup(self, text, line, begidx, endidx):
         path_to_match=text.split(" ")[-1]
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
         items = [i for i in result["completion"] if i.startswith(text)]
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+    def help_dup(self):
+        print("Command to duplicate the same application in the other nodes")
+        print("Origin Live will be replicated on other origin, Edge application will be duplicated on the other nodes")
+    
+    # this command receives the name of the application and create one origin node and one edge node 
+    def do_mkapp(self, inp):
+        input_arr = inp.split(" ")
+        # this piece of code is used to check wheter the input is something of a machine, apps, smil files inside each node
+        if len(input_arr) == 1:
+            self.do_cp("or01/_defaultVHost_/apps/nuovocliente "+input_arr[0])
+            self.do_cp("ed04/_defaultVHost_/apps/nuovocliente "+input_arr[0])
+        else:
+            print("** Error: usage: mkapp <new_name>")   
+
+
 
     def help_ls(self):
         print("List items and configurations")
