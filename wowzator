@@ -636,7 +636,7 @@ class WztrMachine():
                 base_url="https://"
             base_url += self.address
             url = url.rsplit("/",1)[0]+"/"+new_name
-            print(url)
+            #print(url)
             url = "%s:%s%s" % (base_url, self.port, url)
             old_name=datas['Name']
             datas['Name']=new_name
@@ -649,8 +649,7 @@ class WztrMachine():
             datas['streamConfig']['restURI']=url
             #datas['modules']['restURI']=url
             #la configurazione dei moduli non è formattata come si deve
-            print(datas)
-
+            #print(datas)
             response = httpx.post(
                 url,
                 auth=httpx.DigestAuth(
@@ -684,8 +683,6 @@ class WztrMachine():
             print("live creation ecountered a problem")      
         return response
 
-        
-    
     def reset_cache(self):
         self.__vhosts = None
         self.__version = None
@@ -1825,10 +1822,13 @@ class WztrPrompt(Cmd):
         # this piece of code is used to check wheter the input is something of a machine, apps, smil files inside each node
         if len(input_arr) == 2:
             result_arg_1 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, input_arr[0])
-            new_name = input_arr[1] #new name
-            app = result_arg_1['object']
-            conf=app.configuration()
-            app.vhost.machine.pushDict(conf, new_name, app.href)
+            if result_arg_1["error"] is None:
+                new_name = input_arr[1] #new name
+                app = result_arg_1['object']
+                conf=app.configuration()
+                app.vhost.machine.pushDict(dict(conf), new_name, app.href)
+            else:
+                print("The application is not found")
             
         else:
             print("** Error: usage: cp <application> <new application>")    
@@ -1841,6 +1841,35 @@ class WztrPrompt(Cmd):
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
         items = [i for i in result["completion"] if i.startswith(text)]
 
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
+    def help_cp(self):
+        print("Copy application configuration with another name on the same machine")
+    
+    def do_dup(self, inp):
+        print()
+        input_arr = inp.split(" ")
+        # this piece of code is used to check wheter the input is something of a machine, apps, smil files inside each node
+        if len(input_arr) == 1:
+            result_arg_1 = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, input_arr[0])
+            if result_arg_1["error"] is None:
+                new_name = input_arr[0].rsplit("/",1)[1] #new name
+                app = result_arg_1['object']
+                for k, mach in self.machines.items():
+                    if k.startswith(app.vhost.machine.name[:2],0,2) and k != app.vhost.machine.name:
+                        conf=app.configuration()
+                        mach.pushDict(dict(conf), new_name, app.href)
+            else:
+                print("The application is not found")
+        else:
+            print("** Error: usage: dup <application>")   
+            
+
+
+    def complete_dup(self, text, line, begidx, endidx):
+        path_to_match=text.split(" ")[-1]
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
+        items = [i for i in result["completion"] if i.startswith(text)]
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
     def help_ls(self):
