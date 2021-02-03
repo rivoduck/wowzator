@@ -526,6 +526,7 @@ class WztrMachine():
         self.user=user
         self.pw=pw
         self.use_https=False
+        self.auth = "basic"
         self.__vhosts = None
         self.__version = None
         self.__licenses = None
@@ -568,11 +569,19 @@ class WztrMachine():
             base_url += self.address
             url = "%s:%s%s" % (base_url, self.port, url) 
             
-            response = httpx.get(
-                url,
+            if self.auth == "basic":
+                auth=httpx.BasicAuth(
+                    self.user, self.pw
+                )
+            else:
+                # prima della version 4.8.8.01
                 auth=httpx.DigestAuth(
                     self.user, self.pw
-                ),
+                )
+            
+            response = httpx.get(
+                url,
+                auth=auth,
                 timeout=httpx.Timeout(timeout=3)
             )
             
@@ -1047,6 +1056,9 @@ class WztrPrompt(Cmd):
         
                 for machine_config in machines_config:
                     machine=WztrMachine(name=machine_config["name"], address=machine_config["address"], user=machine_config["user"], pw=machine_config["pw"])
+                    if "auth" in machine_config.keys():
+                        machine["auth"] = machine_config["auth"]
+                        
                     self.machines[machine.name]=machine
             
 
