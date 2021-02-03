@@ -1057,7 +1057,7 @@ class WztrPrompt(Cmd):
                 for machine_config in machines_config:
                     machine=WztrMachine(name=machine_config["name"], address=machine_config["address"], user=machine_config["user"], pw=machine_config["pw"])
                     if "auth" in machine_config.keys():
-                        machine["auth"] = machine_config["auth"]
+                        machine.auth = machine_config["auth"]
                         
                     self.machines[machine.name]=machine
             
