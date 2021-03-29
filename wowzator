@@ -415,10 +415,11 @@ class WztrVhost():
             result = self.machine.fetchDict("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores" % self.name)
 
             if result["status"] == "OK":
-                if 'mediacacheitemlist' in result["data"].keys():
-                    items = result["data"]['mediacacheitemlist']
+                if 'MediaCacheStoreList' in result["data"].keys():
+                    if 'MediaCacheItemList' in result["data"]["MediaCacheStoreList"].keys():
+                    items = result["data"]["MediaCacheStoreList"]["MediaCacheItemList"]
                     for item in items:
-                        newmediacacheitem = WztrMediacacheItem(item['itemname'])
+                        newmediacacheitem = WztrMediacacheItem(item['ItemName'])
                         newmediacacheitem.vhost = self
         
                         self.__mediacachecontent[newmediacacheitem.name] = newmediacacheitem
