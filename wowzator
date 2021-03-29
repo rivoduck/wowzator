@@ -179,6 +179,29 @@ class WztrApplication():
         return self.__smilfiles
                 
 
+    # ricarica la playlist del modulo StreamPublisher
+    def playlist_reload(self):
+        result = self.vhost.machine.fetchDict("/schedules?appName=cnhi&action=loadSchedule" % (self.name), "8086")
+        
+        print(result)
+        action_success="na"
+        action_message="no message..."
+                
+        if 'wmsResponse' in result["data"]:
+            wms_response = result["data"]["wmsResponse"]
+        
+            if 'message' in wms_response:
+                action_message = wms_response["message"]
+            
+            if 'success' in wms_response:
+                if wms_response["success"] == "true":
+                    action_success="OK"
+                else:
+                    action_success="!!!KO!!!"
+        
+        print(action_message)
+        print("result: %s" % (action_success))
+        
 
 
 class WztrTranscodertemplate():
@@ -641,11 +664,11 @@ class WztrMachine():
         }
     
     # esegui una HTTP GET
-    def fetch(self, url):
-        return self.__do_api_call(url, "GET")
+    def fetch(self, url, tcp_port=None):
+        return self.__do_api_call(url, "GET", tcp_port)
 
-    def fetchDict(self, url):
-        return self.__do_api_call_dict(url, "GET")
+    def fetchDict(self, url, tcp_port=None):
+        return self.__do_api_call_dict(url, "GET", tcp_port)
         
         #response = self.fetch(url)
         
@@ -664,14 +687,14 @@ class WztrMachine():
         #return response
 
     # esegui una HTTP PUT
-    def put(self, url):
-        return self.__do_api_call(url, "PUT")
-    def putDict(self, url):
-        return self.__do_api_call_dict(url, "PUT")
+    def put(self, url, tcp_port=None):
+        return self.__do_api_call(url, "PUT", tcp_port)
+    def putDict(self, url, tcp_port=None):
+        return self.__do_api_call_dict(url, "PUT", tcp_port)
 
 
-    def __do_api_call_dict(self, url, method):
-        response = self.__do_api_call(url, method)
+    def __do_api_call_dict(self, url, method, tcp_port=None):
+        response = self.__do_api_call(url, method, tcp_port)
         
         if response["status"] == "OK":
             try:
@@ -687,7 +710,7 @@ class WztrMachine():
                 
         return response
 
-    def __do_api_call(self, url, method):
+    def __do_api_call(self, url, method, tcp_port=None):
         data=""
         status="OK"
         try:
@@ -696,7 +719,11 @@ class WztrMachine():
                 base_url="https://"
             
             base_url += self.address
-            url = "%s:%s%s" % (base_url, self.port, url) 
+            
+            if tcp_port is None:
+                tcp_port=self.port
+            
+            url = "%s:%s%s" % (base_url, tcp_port, url) 
             
             if self.auth == "basic":
                 auth=httpx.BasicAuth(
@@ -1038,6 +1065,38 @@ class WztrPrompt(Cmd):
         },
     ]
 
+    # comando per gestire le playlist del modulo StreamPublisher
+    syntaxtree_playlist = [
+        {
+            "keyword": "$MACHINE",
+            "keyword_type": "object",
+            "syntaxtree": [ 
+                { 
+                    "keyword": "$VHOST",
+                    "keyword_type": "object",
+                    "syntaxtree": [
+                        {
+                            "keyword": "mediacache",
+                            "keyword_type": "predicate",
+                            "syntaxtree": [
+                                {
+                                    "keyword": "$APPLICATION",
+                                    "keyword_type": "object",
+                                    "syntaxtree": [
+                                        {
+                                            "keyword": "reload",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": []
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                } 
+            ]
+        },
+    ]
 
     
     tableformat_application = {
@@ -1550,6 +1609,31 @@ class WztrPrompt(Cmd):
     def complete_flush(self, text, line, begidx, endidx):
         path_to_match=text.split(" ")[-1]
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
+        items = [i for i in result["completion"] if i.startswith(path_to_match)]
+        
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
+
+
+
+
+    def do_playlist(self, inp):
+        print()
+        
+        self.__get_obj_by_path(WztrPrompt.syntaxtree_playlist, inp)
+        
+        if self.command_error is None:
+            if self.command_object is None or not isinstance(self.command_object, WztrApplication):
+                print("** Error: invalid application specified")
+            else:
+                # reload playlist
+                self.command_object.playlist_reload()
+        else:
+            print("** Error: %s" % self.command_error)
+
+    def complete_playlist(self, text, line, begidx, endidx):
+        path_to_match=text.split(" ")[-1]
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_playlist, path_to_match)
         items = [i for i in result["completion"] if i.startswith(path_to_match)]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
