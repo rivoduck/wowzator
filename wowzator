@@ -195,6 +195,7 @@ class WztrApplication():
             
         print(action_message)
         print("result: %s" % (action_status))
+        print(' --- check access log for messages from \"StreamPublisher\"')
         
 
 
