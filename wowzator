@@ -187,8 +187,8 @@ class WztrApplication():
         conf_StorageDir="(not defined)/"
         # cerca la definizione di StorageDir
         if 'StreamConfig' in self.configuration().keys():
-            if 'StorageDir' in self.configuration().keys()['StreamConfig']:
-                conf_StorageDir=self.configuration().keys()['StreamConfig']['StorageDir']
+            if 'StorageDir' in self.configuration()['StreamConfig'].keys():
+                conf_StorageDir=self.configuration()['StreamConfig']['StorageDir']
                 if conf_StorageDir[-1] != '/':
                     conf_StorageDir += '/'
             
@@ -215,7 +215,7 @@ class WztrApplication():
             if 'body' in result["data"]['html']:
                 action_message = result["data"]['html']['body']
         
-        print("reloading schedule from file %s%s" %(conf_StorageDir, conf_streamPublisherSmilFile))
+        print("reloading schedule from file %s%s...\n" %(conf_StorageDir, conf_streamPublisherSmilFile))
         print(action_message)
         print("result: %s" % (action_status))
         print(' --- check access log for messages from \"StreamPublisher\"')
