@@ -365,7 +365,7 @@ class WztrMediacacheItem():
         action_status="na"
         action_message="no message..."
         
-        if 'wmsResponse' in result["data"]
+        if 'wmsResponse' in result["data"]:
             wms_response = result["data"]["wmsResponse"]
         
             if 'message' in wms_response:
