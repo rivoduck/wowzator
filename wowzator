@@ -59,13 +59,20 @@ class WztrApplication():
     def detail_view(self):
         stream_type="n/a"
         content_dir="n/a"
+        origin_url=None
         config_dict = self.configuration()
-        if config_dict is not None and 'StreamConfig' in config_dict.keys():
-            if 'StreamType' in config_dict['StreamConfig'].keys():
-                stream_type = config_dict['StreamConfig']['StreamType']
-            if 'StorageDir' in config_dict['StreamConfig'].keys():
-                content_dir = config_dict['StreamConfig']['StorageDir']
-        return {
+
+        if config_dict is not None:
+            if 'StreamConfig' in config_dict.keys():
+                if 'StreamType' in config_dict['StreamConfig'].keys():
+                    stream_type = config_dict['StreamConfig']['StreamType']
+                if 'StorageDir' in config_dict['StreamConfig'].keys():
+                    content_dir = config_dict['StreamConfig']['StorageDir']
+            if 'RepeaterOriginURL' in config_dict.keys():
+                origin_url = config_dict['RepeaterOriginURL']
+                
+    
+        result = {
             "Server": "/%s/%s/apps/%s" % (self.vhost.machine.name, self.vhost.name, self.name),
             "App/Stream type": self.appType + " / " + stream_type,
             "Content Dir.": content_dir,
@@ -74,6 +81,11 @@ class WztrApplication():
             "Transcoder": "** ON" if self.transcoderEnabled else "OFF",
             "Targets": "** ON" if self.streamtargetsEnabled else "OFF"
         }
+        
+        if origin_url is not None:
+            result["Origin URL"] = origin_url
+        
+        return result
 
 
     def configuration(self):
