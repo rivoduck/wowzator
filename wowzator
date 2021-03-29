@@ -1312,6 +1312,8 @@ class WztrPrompt(Cmd):
             expanded_dict = self.command_object.transcodertemplates()
         elif keyword == "$SMILFILES":
             expanded_dict = self.command_object.smilfiles()
+        elif keyword == "$MEDIACACHEITEM":
+            expanded_dict = self.command_object.mediacachecontent()
 
         return expanded_dict
 
