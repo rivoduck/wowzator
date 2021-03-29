@@ -1076,7 +1076,7 @@ class WztrPrompt(Cmd):
                     "keyword_type": "object",
                     "syntaxtree": [
                         {
-                            "keyword": "mediacache",
+                            "keyword": "apps",
                             "keyword_type": "predicate",
                             "syntaxtree": [
                                 {
@@ -1626,8 +1626,9 @@ class WztrPrompt(Cmd):
             if self.command_object is None or not isinstance(self.command_object, WztrApplication):
                 print("** Error: invalid application specified")
             else:
-                # reload playlist
-                self.command_object.playlist_reload()
+                if self.command_predicate == "reload":
+                    # reload playlist
+                    self.command_object.playlist_reload()
         else:
             print("** Error: %s" % self.command_error)
 
