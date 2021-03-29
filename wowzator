@@ -360,7 +360,7 @@ class WztrMediacacheItem():
         result = self.vhost.machine.put("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores/actions/flushAndForceItemFromCache?filename=%s" % (self.vhost.name, self.name))
         
         # refresh della lista di items nella mediacache di wowzator
-        self.vhost.__mediacachecontent = None
+        self.vhost.reset_mediacache()
         print(result)
             
     
@@ -435,7 +435,9 @@ class WztrVhost():
                             self.__mediacachecontent[newmediacacheitem.name] = newmediacacheitem
 
         return self.__mediacachecontent
-            
+    
+    def reset_mediacache(self):
+        self.__mediacachecontent = None
 
 
 
