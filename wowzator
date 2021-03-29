@@ -365,6 +365,12 @@ class WztrMediacacheItem():
         action_status="na"
         action_message="no message..."
         
+        if 'status' in result["data"]:
+            if result["data"]["status"] == "OK":
+                action_status="OK"
+            else:
+                action_status=result["data"]["status"]
+        
         if 'wmsResponse' in result["data"]:
             wms_response = result["data"]["wmsResponse"]
         
@@ -377,11 +383,6 @@ class WztrMediacacheItem():
                 else:
                     action_success="KO"
         
-            if 'status' in wms_response:
-                if wms_response["status"] == "OK":
-                    action_status="OK"
-                else:
-                    action_status=wms_response["status"]
         print(action_message)
         print("status: %s - result: %s" % (action_status, action_success))
         
