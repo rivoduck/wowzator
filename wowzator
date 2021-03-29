@@ -354,6 +354,14 @@ class WztrMediacacheItem():
     def __repr__(self):
         return "WztrMediacacheItem: %s" % self.name
     
+    def flush(self):
+        result = self.vhost.machine.put("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores/actions/flushAndForceItemFromCache?filename=%s" % (self.vhost.name, self.name))
+        
+        # refresh della lista di items nella mediacache di wowzator
+        self.vhost.__mediacachecontent = None
+        print(result)
+            
+    
     @staticmethod
     def list_view_header():
         return "mediacache item"
@@ -607,8 +615,16 @@ class WztrMachine():
             },
             "Licenses": self.licenses()
         }
-        
+    
+    # esegui una HTTP GET
     def fetch(self, url):
+        return self.__do_api_call(self, url, "GET")
+
+    # esegui una HTTP PUT
+    def put(self, url):
+        return self.__do_api_call(self, url, "PUT")
+
+    def __do_api_call(self, url, method):
         data=""
         status="OK"
         try:
@@ -629,11 +645,19 @@ class WztrMachine():
                     self.user, self.pw
                 )
             
-            response = httpx.get(
-                url,
-                auth=auth,
-                timeout=httpx.Timeout(timeout=3)
-            )
+            response = None
+            if method == "GET":
+                response = httpx.get(
+                    url,
+                    auth=auth,
+                    timeout=httpx.Timeout(timeout=3)
+                )
+            elif method == "PUT":
+                response = httpx.put(
+                    url,
+                    auth=auth,
+                    timeout=httpx.Timeout(timeout=3)
+                )
             
             if int(response.status_code) >= 200 and int(response.status_code) <= 299:
                 data = response.text
@@ -939,6 +963,35 @@ class WztrPrompt(Cmd):
             ]
         },
     ]
+
+    # Syntax tree for the flush command
+    syntaxtree_flush = [
+        {
+            "keyword": "$MACHINE",
+            "keyword_type": "object",
+            "syntaxtree": [ 
+                { 
+                    "keyword": "$VHOST",
+                    "keyword_type": "object",
+                    "syntaxtree": [
+                        {
+                            "keyword": "mediacache",
+                            "keyword_type": "predicate",
+                            "syntaxtree": [
+                                {
+                                    "keyword": "$MEDIACACHEITEM",
+                                    "keyword_type": "object",
+                                    "syntaxtree": []
+                                }
+                            ]
+                        }
+                    ]
+                } 
+            ]
+        },
+    ]
+
+
     
     tableformat_application = {
                             "Module": [
@@ -1416,6 +1469,21 @@ class WztrPrompt(Cmd):
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
+
+
+    def do_flush(self, inp):
+        print()
+        
+        self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, inp)
+        
+        if self.command_error is None:
+            if self.command_object is None:
+                print("** Error: no object specified")
+            else:
+                # rimuovi dalla mediacache del server wowza
+                self.command_object.flush()
+        else:
+            print("** Error: %s" % self.command_error)
 
 
 
