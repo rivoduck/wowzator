@@ -181,26 +181,20 @@ class WztrApplication():
 
     # ricarica la playlist del modulo StreamPublisher
     def playlist_reload(self):
-        result = self.vhost.machine.fetchDict("/schedules?appName=cnhi&action=loadSchedule" % (self.name), "8086")
+        result = self.vhost.machine.fetchDict("/schedules?appName=%s&action=loadSchedule" % (self.name), "8086")
         
-        print(result)
-        action_success="na"
+        action_status="na"
         action_message="no message..."
                 
-        if 'wmsResponse' in result["data"]:
-            wms_response = result["data"]["wmsResponse"]
+        if 'status' in result["data"]:
+            action_status = result["data"]["status"]
         
-            if 'message' in wms_response:
-                action_message = wms_response["message"]
+        if 'html' in result["data"]:
+            if 'body' in result["data"]['html']:
+                action_message = result["data"]['html']['body']
             
-            if 'success' in wms_response:
-                if wms_response["success"] == "true":
-                    action_success="OK"
-                else:
-                    action_success="!!!KO!!!"
-        
         print(action_message)
-        print("result: %s" % (action_success))
+        print("result: %s" % (action_status))
         
 
 
