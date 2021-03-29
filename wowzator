@@ -1473,10 +1473,12 @@ class WztrPrompt(Cmd):
 
 
 
+
+
     def do_flush(self, inp):
         print()
         
-        self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, inp)
+        self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, inp)
         
         if self.command_error is None:
             if self.command_object is None:
@@ -1493,6 +1495,9 @@ class WztrPrompt(Cmd):
         items = [i for i in result["completion"] if i.startswith(path_to_match)]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
+
+
 
 
 
