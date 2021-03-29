@@ -181,6 +181,28 @@ class WztrApplication():
 
     # ricarica la playlist del modulo StreamPublisher
     def playlist_reload(self):
+        # ricarica la configurazione e le proprietà dell'applicazione
+        self.reset_config_properties()
+        
+        conf_StorageDir="(not defined)/"
+        # cerca la definizione di StorageDir
+        if 'StreamConfig' in self.configuration().keys():
+            if 'StorageDir' in self.configuration().keys()['StreamConfig']:
+                conf_StorageDir=self.configuration().keys()['StreamConfig']['StorageDir']
+                if conf_StorageDir[-1] != '/':
+                    conf_StorageDir += '/'
+            
+        
+        conf_streamPublisherSmilFile="streamschedule.smil"
+        # cerca la proprietà streamPublisherSmilFile
+        for prop in self.configurationAdvanced():
+            if prop['Name'] == 'streamPublisherSmilFile':
+                if prop['Type'] == 'String':
+                    conf_streamPublisherSmilFile=prop['Value']
+                else:
+                    print("*** Warning: property %s should be type String but is type streamPublisherSmilFile instead!!!")
+                
+        
         result = self.vhost.machine.fetchDict("/schedules?appName=%s&action=loadSchedule" % (self.name), "8086")
         
         action_status="na"
@@ -192,10 +214,15 @@ class WztrApplication():
         if 'html' in result["data"]:
             if 'body' in result["data"]['html']:
                 action_message = result["data"]['html']['body']
-            
+        
+        print("reloading schedule from file %s%s" %(conf_StorageDir, conf_streamPublisherSmilFile))
         print(action_message)
         print("result: %s" % (action_status))
         print(' --- check access log for messages from \"StreamPublisher\"')
+        
+    def reset_config_properties(self):
+        self.__configuration = None
+        self.__configurationAdv = None
         
 
 
@@ -2061,6 +2088,12 @@ class WztrPrompt(Cmd):
                      
     def help_refresh(self):
         print("refresh info from servers")
+
+    def help_playlist(self):
+        print("manage playlists from StreamPublisher")
+
+    def help_flush(self):
+        print("remove cached files from Mediacache")
 
 
     @staticmethod
