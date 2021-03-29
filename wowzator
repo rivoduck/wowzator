@@ -366,9 +366,9 @@ class WztrMediacacheItem():
     
     @staticmethod
     def list_view_header():
-        return "size MB item name"
+        return "%7s item name" % "size(MB)"
     def list_view(self):
-        return "%-7s  /%s/%s/mediacache/%s" % (self.length_mb, self.vhost.machine.name, self.vhost.name, self.name)
+        return "%7s /%s/%s/mediacache/%s" % (self.length_mb, self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         return {
             "Name": unquote(self.name),
