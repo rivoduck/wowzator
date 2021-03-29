@@ -362,15 +362,8 @@ class WztrMediacacheItem():
         # refresh della lista di items nella mediacache di wowzator
         self.vhost.reset_mediacache()
         action_success="na"
-        action_status="na"
         action_message="no message..."
-        
-        if 'status' in result["data"]:
-            if result["data"]["status"] == "OK":
-                action_status="OK"
-            else:
-                action_status=result["data"]["status"]
-        
+                
         if 'wmsResponse' in result["data"]:
             wms_response = result["data"]["wmsResponse"]
         
@@ -381,10 +374,10 @@ class WztrMediacacheItem():
                 if wms_response["success"] == "true":
                     action_success="OK"
                 else:
-                    action_success="KO"
+                    action_success="!!!KO!!!"
         
         print(action_message)
-        print("status: %s - result: %s" % (action_status, action_success))
+        print("result: %s" % (action_success))
         
     
     @staticmethod
