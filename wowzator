@@ -1602,8 +1602,10 @@ class WztrPrompt(Cmd):
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "apps":
                 if isinstance(object_instance, WztrApplication):
-                    # application specified, return possible predicates
-                    print("/configuration\n/details\n/smil\n\n")
+                    # application specified, return detailed view
+                    print("%s: %s" % (object_instance.header_singular, object_instance))
+                    print( self.dict_formatter( object_instance.detail_view() ) )
+                    
                 elif isinstance(object_instance, WztrVhost):
                     # vhost specified, list applications
                     self.__ls_objects(object_instance.applications().values())
