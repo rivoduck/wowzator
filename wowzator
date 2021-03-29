@@ -73,17 +73,20 @@ class WztrApplication():
                 
     
         result = {
-            "Server": "/%s/%s/apps/%s" % (self.vhost.machine.name, self.vhost.name, self.name),
+            "Server": "/%s/%s" % (self.vhost.machine.name, self.vhost.name),
             "App/Stream type": self.appType + " / " + stream_type,
+        }
+        
+        if origin_url is not None:
+            result["Origin URL"] = origin_url
+            
+        result = {
             "Content Dir.": content_dir,
             "DVR": "** ON" if self.dvrEnabled else "OFF",
             "DRM": "** ON" if self.drmEnabled else "OFF",
             "Transcoder": "** ON" if self.transcoderEnabled else "OFF",
             "Targets": "** ON" if self.streamtargetsEnabled else "OFF"
         }
-        
-        if origin_url is not None:
-            result["Origin URL"] = origin_url
         
         return result
 
