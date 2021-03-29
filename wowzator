@@ -629,7 +629,7 @@ class WztrMachine():
         return self.__do_api_call(url, "GET")
 
     def fetchDict(self, url):
-        return self.__do_api_call_dict(self, url, "GET"):
+        return self.__do_api_call_dict(url, "GET")
         
         #response = self.fetch(url)
         
@@ -655,7 +655,7 @@ class WztrMachine():
 
 
     def __do_api_call_dict(self, url, method):
-        response = self.__do_api_call(url, "GET")
+        response = self.__do_api_call(url, method)
         
         if response["status"] == "OK":
             try:
