@@ -356,10 +356,9 @@ class WztrMediacacheItem():
     
     @staticmethod
     def list_view_header():
-        return "%-22s" % ("mediacache name")
+        return "mediacache item"
     def list_view(self):
-        return "%-22s  /%s/%s/mediacache/%s" % (self.name,
-            self.vhost.machine.name, self.vhost.name, self.name)
+        return "/%s/%s/mediacache/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         return {
             "Name": self.name,
