@@ -1485,6 +1485,13 @@ class WztrPrompt(Cmd):
         else:
             print("** Error: %s" % self.command_error)
 
+    def complete_flush(self, text, line, begidx, endidx):
+        path_to_match=text.split(" ")[-1]
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
+        items = [i for i in result["completion"] if i.startswith(path_to_match)]
+        
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
 
 
     def do_diff(self, inp):
