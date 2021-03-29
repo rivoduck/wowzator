@@ -371,7 +371,7 @@ class WztrMediacacheItem():
             if 'message' in wms_response:
                 action_message = wms_response["message"]
             
-            if 'success' in rwms_response:
+            if 'success' in wms_response:
                 if wms_response["success"] == "true":
                     action_success="OK"
                 else:
