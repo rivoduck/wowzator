@@ -357,7 +357,7 @@ class WztrMediacacheItem():
         return "WztrMediacacheItem: %s" % unquote(self.name)
     
     def flush(self):
-        result = self.vhost.machine.put("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores/actions/flushAndForceItemFromCache?filename=%s" % (self.vhost.name, self.name))
+        result = self.vhost.machine.putDict("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores/actions/flushAndForceItemFromCache?filename=%s" % (self.vhost.name, self.name))
         
         # refresh della lista di items nella mediacache di wowzator
         self.vhost.reset_mediacache()
@@ -628,9 +628,48 @@ class WztrMachine():
     def fetch(self, url):
         return self.__do_api_call(url, "GET")
 
+    def fetchDict(self, url):
+        return self.__do_api_call_dict(self, url, "GET"):
+        
+        #response = self.fetch(url)
+        
+        #if response["status"] == "OK":
+        #    try:
+        #        response["data"] = xmltodict.parse(
+        #            response["data"],
+        #            dict_constructor=dict,
+        #            xml_attribs=True,
+        #            force_list=('VHosts', 'TranscoderEncode', 'TranscoderOverlayEncode')
+        #        )
+        #    except:
+        #        response["status"] = "KO"
+        #        response["data"] = "invalid XML reply"
+        #        
+        #return response
+
     # esegui una HTTP PUT
     def put(self, url):
         return self.__do_api_call(url, "PUT")
+    def putDict(self, url):
+        return self.__do_api_call_dict(url, "PUT")
+
+
+    def __do_api_call_dict(self, url, method):
+        response = self.__do_api_call(url, "GET")
+        
+        if response["status"] == "OK":
+            try:
+                response["data"] = xmltodict.parse(
+                    response["data"],
+                    dict_constructor=dict,
+                    xml_attribs=True,
+                    force_list=('VHosts', 'TranscoderEncode', 'TranscoderOverlayEncode')
+                )
+            except:
+                response["status"] = "KO"
+                response["data"] = "invalid XML reply"
+                
+        return response
 
     def __do_api_call(self, url, method):
         data=""
@@ -682,22 +721,6 @@ class WztrMachine():
         
         return {"data": data, "status": status}
         
-    def fetchDict(self, url):
-        response = self.fetch(url)
-        
-        if response["status"] == "OK":
-            try:
-                response["data"] = xmltodict.parse(
-                    response["data"],
-                    dict_constructor=dict,
-                    xml_attribs=True,
-                    force_list=('VHosts', 'TranscoderEncode', 'TranscoderOverlayEncode')
-                )
-            except:
-                response["status"] = "KO"
-                response["data"] = "invalid XML reply"
-                
-        return response
     
     
     def reset_cache(self):
