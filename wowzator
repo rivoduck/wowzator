@@ -1313,7 +1313,14 @@ class WztrPrompt(Cmd):
         elif keyword == "$SMILFILES":
             expanded_dict = self.command_object.smilfiles()
         elif keyword == "$MEDIACACHEITEM":
+            # in questo caso il nome del mediacache item contiene slashes
+            # lo espando con tutti i nomi "intemedi"
             expanded_dict = self.command_object.mediacachecontent()
+            for item_path in self.command_object.mediacachecontent().keys():
+                item_path_ar = item_path.split("/")
+                for i in range(1, len(item_path_ar) - 1):
+                    partial_key = "/".join(item_path_ar[0:1])
+                    expanded_dict[partial_key] = None
 
         return expanded_dict
 
@@ -1481,8 +1488,8 @@ class WztrPrompt(Cmd):
         self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, inp)
         
         if self.command_error is None:
-            if self.command_object is None:
-                print("** Error: no object specified")
+            if self.command_object is None or !isinstance(self.command_object, WztrMediaCacheItem):
+                print("** Error: invalid mediacache item specified")
             else:
                 # rimuovi dalla mediacache del server wowza
                 self.command_object.flush()
