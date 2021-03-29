@@ -186,8 +186,8 @@ class WztrApplication():
         action_status="na"
         action_message="no message..."
                 
-        if 'status' in result["data"]:
-            action_status = result["data"]["status"]
+        if 'status' in result:
+            action_status = result["status"]
         
         if 'html' in result["data"]:
             if 'body' in result["data"]['html']:
