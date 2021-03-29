@@ -618,11 +618,11 @@ class WztrMachine():
     
     # esegui una HTTP GET
     def fetch(self, url):
-        return self.__do_api_call(self, url, "GET")
+        return self.__do_api_call(url, "GET")
 
     # esegui una HTTP PUT
     def put(self, url):
-        return self.__do_api_call(self, url, "PUT")
+        return self.__do_api_call(url, "PUT")
 
     def __do_api_call(self, url, method):
         data=""
