@@ -429,7 +429,7 @@ class WztrVhost():
                     if 'MediaCacheItemList' in result["data"]["MediaCacheStoreList"].keys():
                         items = result["data"]["MediaCacheStoreList"]["MediaCacheItemList"]
                         for item in items:
-                            newmediacacheitem = WztrMediacacheItem(item['ItemName'], item['itemLength'])
+                            newmediacacheitem = WztrMediacacheItem(item['ItemName'], item['ItemLength'])
                             newmediacacheitem.vhost = self
         
                             self.__mediacachecontent[newmediacacheitem.name] = newmediacacheitem
