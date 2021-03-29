@@ -339,6 +339,34 @@ class WztrSmilFile():
 
 
 
+# class used to create a temporary list of mediacache entries
+# using a class in order to avail of the code to render lists
+class WztrMediacacheItem():
+    header_singular="Mediacache item"
+    header_plural="Mediacache items"
+    
+    def __init__(self, name):
+        self.name=name
+        self.vhost=None
+
+    def __str__(self):
+        return "/%s/%s/mediacache/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
+    def __repr__(self):
+        return "WztrMediacacheItem: %s" % self.name
+    
+    @staticmethod
+    def list_view_header():
+        return "%-22s" % ("mediacache name")
+    def list_view(self):
+        return "%-22s  /%s/%s/mediacache/%s" % (self.name,
+            self.vhost.machine.name, self.vhost.name, self.name)
+    def detail_view(self):
+        return {
+            "Name": self.name,
+            "Cache position": "/%s/%s" % (self.vhost.machine.name, self.vhost.name)
+        }
+
+
 
 class WztrVhost():
     header_singular="VHost"
@@ -355,6 +383,7 @@ class WztrVhost():
             self.connectingSSLEnable = False
         
         self.__configuration = None
+        self.__mediacachecontent = None
         self.__configurationAdv = None
         self.__applications = None
         self.__transcoderTemplates = None
@@ -378,6 +407,27 @@ class WztrVhost():
             "SSL": "YES" if self.connectingSSLEnable else "NO",
         }
     
+    def mediacachecontent(self):
+        # lazy-fetch mediacache content for vhost
+        if self.__mediacachecontent is None:
+            self.__mediacachecontent={}
+
+            result = self.machine.fetchDict("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores" % self.name)
+
+            if result["status"] == "OK":
+                if 'mediacacheitemlist' in result["data"].keys():
+                    items = result["data"]['mediacacheitemlist']
+                    for item in items:
+                        newmediacacheitem = WztrMediacacheItem(item['itemname'])
+                        newmediacacheitem.vhost = self
+        
+                        self.__mediacachecontent[newmediacacheitem.name] = newmediacacheitem
+
+        return self.__mediacachecontent
+            
+
+
+
     def configuration(self):
         # lazy-fetch vhost config
         if self.__configuration is None:
@@ -508,7 +558,7 @@ class WztrLicense():
     def detail_view(self):
         return {
             "License key": self.key,
-            "Servers": self.serers(),
+            "Servers": self.servers(),
         }
     
     def add_server(self, machine):
@@ -702,6 +752,11 @@ class WztrPrompt(Cmd):
                     "keyword_type": "object",
                     "syntaxtree": [
                         {
+                            "keyword": "mediacache",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        },
+                        {
                             "keyword": "apps",
                             "keyword_type": "predicate",
                             "syntaxtree": [
@@ -800,6 +855,11 @@ class WztrPrompt(Cmd):
             "syntaxtree": [
                 {
                     "keyword": "apps",
+                    "keyword_type": "predicate",
+                    "syntaxtree": []
+                },
+                {
+                    "keyword": "mediacache",
                     "keyword_type": "predicate",
                     "syntaxtree": []
                 },
@@ -1246,6 +1306,14 @@ class WztrPrompt(Cmd):
                                     item_dict[licensekey] = WztrLicense(licensekey)
                                 item_dict[licensekey].add_server(machine)
                     self.__ls_objects(item_dict.values())
+                elif predicate == 'mediacache':
+                    # list content of mediacache sources
+                    item_list = []
+                    for machine in object_list:
+                        if isinstance(machine, WztrMachine):
+                            for vhost in machine.vhosts().values():
+                                item_list += vhost.mediacachecontent().values()
+                    self.__ls_objects(item_list)
                     
         else:
             print("empty list...")
@@ -1333,6 +1401,12 @@ class WztrPrompt(Cmd):
                 elif isinstance(object_instance, WztrVhost):
                     # vhost specified, list applications
                     self.__ls_objects(object_instance.applications().values())
+            elif predicate == "mediacache":
+                if isinstance(object_instance, WztrVhost):
+                    # vhost specified, list mediacache content
+                    self.__ls_objects(object_instance.mediacachecontent().values())
+                else:
+                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
                 
             
     def complete_ls(self, text, line, begidx, endidx):
