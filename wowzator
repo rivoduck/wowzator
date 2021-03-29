@@ -214,7 +214,7 @@ class WztrApplication():
         if 'html' in result["data"]:
             if 'body' in result["data"]['html']:
                 action_message = result["data"]['html']['body']
-        
+        print("server %s" % self.vhost.machine.name)
         print("reloading schedule from file %s%s...\n" %(conf_StorageDir, conf_streamPublisherSmilFile))
         print(action_message)
         print("result: %s" % (action_status))
