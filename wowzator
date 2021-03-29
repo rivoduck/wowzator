@@ -4,7 +4,7 @@ import httpx
 from httpx._exceptions import NetworkError
 import xmltodict
 import json
-
+from urllib.parse import quote_plus, unquote
 
 
 class WztrApplication():
@@ -346,13 +346,14 @@ class WztrMediacacheItem():
     header_plural="Mediacache items"
     
     def __init__(self, name):
-        self.name=name
+        # il nome dell'emento cachato viene memorizzato in forma URL encoded
+        self.name=quote_plus(name)
         self.vhost=None
 
     def __str__(self):
         return "/%s/%s/mediacache/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
     def __repr__(self):
-        return "WztrMediacacheItem: %s" % self.name
+        return "WztrMediacacheItem: %s" % unquote(self.name)
     
     def flush(self):
         result = self.vhost.machine.put("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores/actions/flushAndForceItemFromCache?filename=%s" % (self.vhost.name, self.name))
@@ -364,12 +365,12 @@ class WztrMediacacheItem():
     
     @staticmethod
     def list_view_header():
-        return "mediacache item"
+        return "item name"
     def list_view(self):
         return "/%s/%s/mediacache/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         return {
-            "Name": self.name,
+            "Name": unquote(self.name),
             "Cache position": "/%s/%s" % (self.vhost.machine.name, self.vhost.name)
         }
 
@@ -1313,15 +1314,18 @@ class WztrPrompt(Cmd):
         elif keyword == "$SMILFILES":
             expanded_dict = self.command_object.smilfiles()
         elif keyword == "$MEDIACACHEITEM":
+            expanded_dict = self.command_object.mediacachecontent()
+            
             # in questo caso il nome del mediacache item contiene slashes
             # lo espando con tutti i nomi "intemedi"
-            expanded_dict = self.command_object.mediacachecontent()
-            mediacacheitems_keys = self.command_object.mediacachecontent().keys()
-            for item_path in mediacacheitems_keys:
-                item_path_ar = item_path.split("/")
-                for i in range(1, len(item_path_ar) - 1):
-                    partial_key = "/".join(item_path_ar[0:1])
-                    expanded_dict[partial_key] = None
+            #expanded_dict={}
+            #mediacontent_dict = self.command_object.mediacachecontent()
+            #for item_path in mediacontent_dict.keys():
+            #    item_path_ar = item_path.split("/")
+            #    for i in range(1, len(item_path_ar) + 1):
+            #        partial_key = item_path_ar[i]
+            #        expanded_dict[partial_key]={}
+            #        expanded_dict[partial_key] = None
 
         return expanded_dict
 
