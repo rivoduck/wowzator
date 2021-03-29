@@ -345,9 +345,10 @@ class WztrMediacacheItem():
     header_singular="Mediacache item"
     header_plural="Mediacache items"
     
-    def __init__(self, name):
+    def __init__(self, name, length):
         # il nome dell'emento cachato viene memorizzato in forma URL encoded
         self.name=quote_plus(name)
+        self.length_mb = round(int(length)/1048576)
         self.vhost=None
 
     def __str__(self):
@@ -365,13 +366,14 @@ class WztrMediacacheItem():
     
     @staticmethod
     def list_view_header():
-        return "item name"
+        return "size MB item name"
     def list_view(self):
-        return "/%s/%s/mediacache/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
+        return "%-7s  /%s/%s/mediacache/%s" % (self.length_mb, self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         return {
             "Name": unquote(self.name),
-            "Cache position": "/%s/%s" % (self.vhost.machine.name, self.vhost.name)
+            "Cache position": "/%s/%s" % (self.vhost.machine.name, self.vhost.name),
+            "Size (MB)": self.length_mb
         }
 
 
@@ -427,7 +429,7 @@ class WztrVhost():
                     if 'MediaCacheItemList' in result["data"]["MediaCacheStoreList"].keys():
                         items = result["data"]["MediaCacheStoreList"]["MediaCacheItemList"]
                         for item in items:
-                            newmediacacheitem = WztrMediacacheItem(item['ItemName'])
+                            newmediacacheitem = WztrMediacacheItem(item['ItemName'], item['itemLength'])
                             newmediacacheitem.vhost = self
         
                             self.__mediacachecontent[newmediacacheitem.name] = newmediacacheitem
@@ -1493,7 +1495,7 @@ class WztrPrompt(Cmd):
         self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, inp)
         
         if self.command_error is None:
-            if self.command_object is None or not isinstance(self.command_object, WztrMediaCacheItem):
+            if self.command_object is None or not isinstance(self.command_object, WztrMediacacheItem):
                 print("** Error: invalid mediacache item specified")
             else:
                 # rimuovi dalla mediacache del server wowza
