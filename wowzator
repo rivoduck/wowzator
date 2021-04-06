@@ -254,7 +254,7 @@ class WztrApplication():
         #    if 'body' in result["data"]['html']:
         #        action_message = result["data"]['html']['body']
         print("server: %s" % self.vhost.machine.name)
-        print("   app: %s/%s\n" % ((self.vhost.name, self.name))
+        print("   app: %s/%s\n" % (self.vhost.name, self.name))
         print(action_message)
         print("result: %s" % (action_status))
 
