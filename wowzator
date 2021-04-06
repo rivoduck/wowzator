@@ -816,6 +816,12 @@ class WztrMachine():
                     auth=auth,
                     timeout=httpx.Timeout(timeout=3)
                 )
+            elif method == "DELETE":
+                response = httpx.delete(
+                    url,
+                    auth=auth,
+                    timeout=httpx.Timeout(timeout=3)
+                )
             
             if int(response.status_code) >= 200 and int(response.status_code) <= 299:
                 data = response.text
@@ -824,10 +830,10 @@ class WztrMachine():
                 status="KO"
                 
         except NetworkError:
-            data='timeout getting %s on machine %s' % (url, self)
+            data='timeout %s %s on machine %s' % (method, url, self)
             status="KO"
         except Exception as e:
-            data='error getting %s on machine %s' % (url, self)
+            data='error %s %s on machine %s' % (method, url, self)
             status="KO"
         
         return {"data": data, "status": status}
