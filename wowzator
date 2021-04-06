@@ -241,18 +241,20 @@ class WztrApplication():
         result = self.vhost.machine.deleteDict("/v2/servers/_defaultServer_/vhosts/%s/applications/%s" % (self.vhost.name, self.name))
         
         action_status="na"
+        action_success="na"
         action_message="no message..."
                 
         if 'status' in result:
             action_status = result["status"]
         
-        print()
-        print(result["data"])
-        print()
-        
-        #if 'html' in result["data"]:
-        #    if 'body' in result["data"]['html']:
-        #        action_message = result["data"]['html']['body']
+        if 'wmsResponse' in result["data"]:
+            if 'success' in result["data"]['wmsResponse']:
+                if result["data"]['wmsResponse']['success'] == "true":
+                    action_success="OK"
+                else:
+                    action_success="KO"
+            if 'message' in result["data"]['wmsResponse']:
+                action_message=result["data"]['wmsResponse']["message"]
         print("server: %s" % self.vhost.machine.name)
         print("   app: %s/%s\n" % (self.vhost.name, self.name))
         print(action_message)
