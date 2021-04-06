@@ -233,6 +233,32 @@ class WztrApplication():
         print(action_message)
         print("result: %s" % (action_status))
         print(' --- check access log for messages from \"StreamPublisher\"')
+
+
+    # rimuovi applicazione
+    def remove(self):
+        
+        result = self.vhost.machine.deleteDict("/v2/servers/_defaultServer_/vhosts/%s/applications/%s" % (self.vhost.name, self.name))
+        
+        action_status="na"
+        action_message="no message..."
+                
+        if 'status' in result:
+            action_status = result["status"]
+        
+        print()
+        print(result["data"])
+        print()
+        
+        #if 'html' in result["data"]:
+        #    if 'body' in result["data"]['html']:
+        #        action_message = result["data"]['html']['body']
+        print("server: %s" % self.vhost.machine.name)
+        print("   app: %s/%s\n" % ((self.vhost.name, self.name))
+        print(action_message)
+        print("result: %s" % (action_status))
+
+
         
     def reset_config_properties(self):
         self.__configuration = None
@@ -728,6 +754,12 @@ class WztrMachine():
     def putDict(self, url, tcp_port=None):
         return self.__do_api_call_dict(url, "PUT", tcp_port)
 
+    # esegui una HTTP DELETE
+    def delete(self, url, tcp_port=None):
+        return self.__do_api_call(url, "DELETE", tcp_port)
+    def deleteDict(self, url, tcp_port=None):
+        return self.__do_api_call_dict(url, "DELETE", tcp_port)
+
 
     def __do_api_call_dict(self, url, method, tcp_port=None):
         response = self.__do_api_call(url, method, tcp_port)
@@ -1125,6 +1157,33 @@ class WztrPrompt(Cmd):
                                             "syntaxtree": []
                                         }
                                     ]
+                                }
+                            ]
+                        }
+                    ]
+                } 
+            ]
+        },
+    ]
+
+    # comando remove
+    syntaxtree_remove = [
+        {
+            "keyword": "$MACHINE",
+            "keyword_type": "object",
+            "syntaxtree": [ 
+                { 
+                    "keyword": "$VHOST",
+                    "keyword_type": "object",
+                    "syntaxtree": [
+                        {
+                            "keyword": "apps",
+                            "keyword_type": "predicate",
+                            "syntaxtree": [
+                                {
+                                    "keyword": "$APPLICATION",
+                                    "keyword_type": "object",
+                                    "syntaxtree": []
                                 }
                             ]
                         }
@@ -1647,6 +1706,29 @@ class WztrPrompt(Cmd):
     def complete_flush(self, text, line, begidx, endidx):
         path_to_match=text.split(" ")[-1]
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
+        items = [i for i in result["completion"] if i.startswith(path_to_match)]
+        
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
+
+
+
+    def do_rm(self, inp):
+        print()
+        
+        self.__get_obj_by_path(WztrPrompt.syntaxtree_remove, inp)
+        
+        if self.command_error is None:
+            if isinstance(self.command_object, WztrApplication):
+                self.command_object.remove()
+            else:
+                print("** Error: cannot remove object of type %s" % type(self.command_object))
+        else:
+            print("** Error: %s" % self.command_error)
+
+    def complete_rm(self, text, line, begidx, endidx):
+        path_to_match=text.split(" ")[-1]
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_remove, path_to_match)
         items = [i for i in result["completion"] if i.startswith(path_to_match)]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
