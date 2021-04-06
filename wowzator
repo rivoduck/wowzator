@@ -258,7 +258,7 @@ class WztrApplication():
         print("server: %s" % self.vhost.machine.name)
         print("   app: %s/%s\n" % (self.vhost.name, self.name))
         print(action_message)
-        print("result: %s" % (action_status))
+        print("result: %s/%s" % (action_status, action_success))
 
 
         
