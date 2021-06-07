@@ -229,7 +229,7 @@ class WztrApplication():
             result = self.vhost.machine.fetchDict("/schedules?appName=%s&action=loadSchedule" % (self.name), "8086")
         elif action == "unload":
             result = self.vhost.machine.fetchDict("/schedules?appName=%s&action=unloadSchedule" % (self.name), "8086")
-        else
+        else:
             print("!!internal error: action [%s] is not recognized!!")
             return
         
