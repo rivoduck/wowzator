@@ -192,8 +192,17 @@ class WztrApplication():
         return self.__smilfiles
                 
 
+
     # ricarica la playlist del modulo StreamPublisher
     def playlist_reload(self):
+        self.playlist_manage("load")
+
+    # fa unload della playlist del modulo StreamPublisher
+    def playlist_unload(self):
+        self.playlist_manage("unload")
+
+    # ricarica o fa unload della playlist del modulo StreamPublisher
+    def playlist_manage(self, action="load"):
         # ricarica la configurazione e le proprietà dell'applicazione
         self.reset_config_properties()
         
@@ -215,8 +224,12 @@ class WztrApplication():
                 else:
                     print("*** Warning: property %s should be type String but is type streamPublisherSmilFile instead!!!")
                 
+        result=None
+        if action == "load":
+            result = self.vhost.machine.fetchDict("/schedules?appName=%s&action=loadSchedule" % (self.name), "8086")
+        elif action == "unload":
+            result = self.vhost.machine.fetchDict("/schedules?appName=%s&action=unloadSchedule" % (self.name), "8086")
         
-        result = self.vhost.machine.fetchDict("/schedules?appName=%s&action=loadSchedule" % (self.name), "8086")
         
         action_status="na"
         action_message="no message..."
@@ -1163,6 +1176,11 @@ class WztrPrompt(Cmd):
                                             "keyword": "reload",
                                             "keyword_type": "predicate",
                                             "syntaxtree": []
+                                        },
+                                        {
+                                            "keyword": "unload",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": []
                                         }
                                     ]
                                 }
@@ -1757,6 +1775,9 @@ class WztrPrompt(Cmd):
                 if self.command_predicate == "reload":
                     # reload playlist
                     self.command_object.playlist_reload()
+                elif self.command_predicate == "unload":
+                    # unload playlist
+                    self.command_object.playlist_unload()
         else:
             print("** Error: %s" % self.command_error)
 
