@@ -7,6 +7,7 @@ pip install -r requirements.txt
 Create config.json file in the same dir of wowzator executable
 
 Example:
+
 `[
 	{
 		"name": "or01",
@@ -18,5 +19,6 @@ Example:
   {
   ...
   }
-]`
+]
+`
   
