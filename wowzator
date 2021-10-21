@@ -926,7 +926,6 @@ _CONFIGFILE="config.json"
 
 
 class WztrPrompt(Cmd):
-    delattr(Cmd, 'do_alias')
     delattr(Cmd, 'do_macro')
     delattr(Cmd, 'do_run_pyscript')
     delattr(Cmd, 'do_run_script')
