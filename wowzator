@@ -933,7 +933,6 @@ class WztrPrompt(Cmd):
     delattr(Cmd, 'do_edit')
     delattr(Cmd, 'do_set')
     delattr(Cmd, 'do_shortcuts')
-    delattr(Cmd, 'do_rm')
     
     prompt = 'wowzator> '
     intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands, TAB to autocomplete\n"
@@ -2219,7 +2218,10 @@ class WztrPrompt(Cmd):
     def help_ls(self):
         print("List items and configurations")
         print("Application list reports four flags (\"X\" means enabled, \"-\" disabled): DVR DRM Transcoders Targets")
-        
+
+    def help_rm(self):
+        print("Remove application on Wowza server")
+
     def do_refresh(self, inp):
         for machinename in self.machines.keys():
             self.machines[machinename].reset_cache()
