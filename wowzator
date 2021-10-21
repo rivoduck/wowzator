@@ -926,6 +926,15 @@ _CONFIGFILE="config.json"
 
 
 class WztrPrompt(Cmd):
+    delattr(cmd2.Cmd, 'do_alias')
+    delattr(cmd2.Cmd, 'do_macro')
+    delattr(cmd2.Cmd, 'do_run_pyscript')
+    delattr(cmd2.Cmd, 'do_run_script')
+    delattr(cmd2.Cmd, 'do_edit')
+    delattr(cmd2.Cmd, 'do_set')
+    delattr(cmd2.Cmd, 'do_shortcuts')
+    delattr(cmd2.Cmd, 'do_rm')
+    
     prompt = 'wowzator> '
     intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands, TAB to autocomplete\n"
     
