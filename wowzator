@@ -461,8 +461,6 @@ class WztrMediacacheItem():
     def flush(self):
         result = self.vhost.machine.putDict("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores/actions/flushAndForceItemFromCache?filename=%s" % (self.vhost.name, self.name))
         
-        # refresh della lista di items nella mediacache di wowzator
-        self.vhost.reset_mediacache()
         action_success="na"
         action_message="no message..."
                 
@@ -536,31 +534,28 @@ class WztrVhost():
         }
     
     def mediacachecontent(self):
-        # lazy-fetch mediacache content for vhost
-        if self.__mediacachecontent is None:
-            self.__mediacachecontent={}
+        # no lazy-fetch for mediacache
+        # always return fresh data
+        # content is cached in self.__mediacachecontent anyway, just in case
+        self.__mediacachecontent={}
 
-            result = self.machine.fetchDict("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores" % self.name)
+        result = self.machine.fetchDict("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores" % self.name)
 
-            if result["status"] == "OK":
-                if 'MediaCacheStoreList' in result["data"].keys():
-                    if 'MediaCacheItemList' in result["data"]["MediaCacheStoreList"].keys():
-                        items = result["data"]["MediaCacheStoreList"]["MediaCacheItemList"]
-                        if not isinstance(items, list):
-                            items = [ items ]
-                        for item in items:
-                            newmediacacheitem = WztrMediacacheItem(item['ItemName'], item['ItemLength'])
-                            newmediacacheitem.vhost = self
-    
-                            self.__mediacachecontent[newmediacacheitem.name] = newmediacacheitem
+        if result["status"] == "OK":
+            if 'MediaCacheStoreList' in result["data"].keys():
+                if 'MediaCacheItemList' in result["data"]["MediaCacheStoreList"].keys():
+                    items = result["data"]["MediaCacheStoreList"]["MediaCacheItemList"]
+                    if not isinstance(items, list):
+                        items = [ items ]
+                    for item in items:
+                        newmediacacheitem = WztrMediacacheItem(item['ItemName'], item['ItemLength'])
+                        newmediacacheitem.vhost = self
+
+                        self.__mediacachecontent[newmediacacheitem.name] = newmediacacheitem
                                 
 
         return self.__mediacachecontent
     
-    def reset_mediacache(self):
-        self.__mediacachecontent = None
-
-
 
     def configuration(self):
         # lazy-fetch vhost config
