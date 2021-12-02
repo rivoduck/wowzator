@@ -1387,6 +1387,9 @@ class WztrPrompt(Cmd):
                         
                         
     def __init__(self):
+        # set terminal title
+        print('\33]0;Wowzator\a', end='', flush=True)
+        
         print("initializing...")
         Cmd.__init__(self)
         
