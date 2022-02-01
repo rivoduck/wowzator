@@ -1841,10 +1841,10 @@ class WztrPrompt(Cmd):
 
     def complete_mediacache(self, text, line, begidx, endidx):
         line_args = len(text.split(" "))
+        path_to_match=text.split(" ")[-1]
         
         items=[]
         if line_args == 2:
-            path_to_match=text.split(" ")[-1]
             result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
         if line_args < 2:
