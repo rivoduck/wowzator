@@ -1157,6 +1157,60 @@ class WztrPrompt(Cmd):
         },
     ]
 
+    # Syntax tree for the mediacache flush command
+    syntaxtree_mediacache_flush = [
+        {
+            "keyword": "$MACHINE",
+            "keyword_type": "object",
+            "syntaxtree": [ 
+                { 
+                    "keyword": "$VHOST",
+                    "keyword_type": "object",
+                    "syntaxtree": [
+                        {
+                            "keyword": "all",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        },
+                        {
+                            "keyword": "mediacache",
+                            "keyword_type": "predicate",
+                            "syntaxtree": [
+                                {
+                                    "keyword": "$MEDIACACHEITEM",
+                                    "keyword_type": "object",
+                                    "syntaxtree": []
+                                }
+                            ]
+                        }
+                    ]
+                } 
+            ]
+        },
+    ]
+
+    # Syntax tree for the mediacache list command
+    syntaxtree_mediacache_ls = [
+        {
+            "keyword": "$MACHINE",
+            "keyword_type": "object",
+            "syntaxtree": [ 
+                { 
+                    "keyword": "$VHOST",
+                    "keyword_type": "object",
+                    "syntaxtree": []
+                } 
+            ]
+        },
+        {
+            "keyword": "$ALL_MACHINES",
+            "keyword_type": "multi_object",
+            "syntaxtree": []
+        }
+        
+    ]
+
+
     # comando per gestire le playlist del modulo StreamPublisher
     syntaxtree_playlist = [
         {
@@ -1741,6 +1795,65 @@ class WztrPrompt(Cmd):
         items = [i for i in result["completion"] if i.startswith(path_to_match)]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
+    def do_mediacache(self, inp):
+        print()
+        
+        inputline = inp.split(" ",1)
+        arg1=None
+        arg2=None
+        arg3=None
+        if len(inputline) > 0:
+            arg1=inputline[0]
+            if len(inputline) > 1:
+                arg2=inputline[1]
+                if len(inputline) > 2:
+                    arg3=inputline[2]
+        
+        if arg1 == "flush":
+            self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_flush, arg2)
+
+            if self.command_error is None:
+                if self.command_object is None or not isinstance(self.command_object, WztrMediacacheItem):
+                    print("** Error: invalid mediacache item specified")
+                else:
+                    # rimuovi dalla mediacache del server wowza
+                    self.command_object.flush()
+            else:
+                print("** Error: %s" % self.command_error)
+        elif arg1 == "ls":
+            self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_ls, arg2)
+            if self.command_error is None:
+                if self.command_object is None:
+                    if self.command_objects is None:
+                        self.__ls_objects(self.machines.values(), "mediacache")
+                    else:
+                        self.__ls_objects(self.command_objects, "mediacache")
+                else:
+                    self.__ls_object(self.command_object, "mediacache")
+            else:
+                print("** Error: %s" % self.command_error)
+            
+        elif arg1 == None:
+            print("** Error: missing arguments")
+        else:
+            print("** Error: %s unrecognized" % arg1)
+
+    def complete_mediacache(self, text, line, begidx, endidx):
+        line_args = len(text.split(" "))
+        
+        items=[]
+        if line_args == 2:
+            path_to_match=text.split(" ")[-1]
+            result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
+            items = [i for i in result["completion"] if i.startswith(path_to_match)]
+        if line_args < 2:
+            items=["ls", "flush"]
+        
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
+
+
 
 
 
@@ -2461,6 +2574,8 @@ class WztrPrompt(Cmd):
         output += "-" * headerlength + "\n"
         
         return output
+
+
 
 
 p=WztrPrompt()
