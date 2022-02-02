@@ -454,7 +454,7 @@ class WztrMediacacheItem():
         self.vhost=None
 
     def __str__(self):
-        return "/%s/%s/mediacache/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
+        return "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
     def __repr__(self):
         return "WztrMediacacheItem: %s" % unquote(self.name)
     
@@ -482,9 +482,9 @@ class WztrMediacacheItem():
     
     @staticmethod
     def list_view_header():
-        return "%7s item name" % "size(MB)"
+        return "%7s  Mediacache Item name" % "Size(MB)"
     def list_view(self):
-        return "%7s /%s/%s/mediacache/%s" % (self.length_mb, self.vhost.machine.name, self.vhost.name, self.name)
+        return "%7s /%s/%s/%s" % (self.length_mb, self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         return {
             "Name": unquote(self.name),
@@ -941,11 +941,11 @@ class WztrPrompt(Cmd):
                     "keyword": "$VHOST",
                     "keyword_type": "object",
                     "syntaxtree": [
-                        {
-                            "keyword": "mediacache",
-                            "keyword_type": "predicate",
-                            "syntaxtree": []
-                        },
+                        #{
+                        #    "keyword": "mediacache",
+                        #    "keyword_type": "predicate",
+                        #    "syntaxtree": []
+                        #},
                         {
                             "keyword": "apps",
                             "keyword_type": "predicate",
@@ -1130,6 +1130,7 @@ class WztrPrompt(Cmd):
         },
     ]
 
+'''
     # Syntax tree for the flush command
     syntaxtree_flush = [
         {
@@ -1156,7 +1157,8 @@ class WztrPrompt(Cmd):
             ]
         },
     ]
-
+'''
+    
     # Syntax tree for the mediacache flush command
     syntaxtree_mediacache_flush = [
         {
@@ -1173,15 +1175,9 @@ class WztrPrompt(Cmd):
                             "syntaxtree": []
                         },
                         {
-                            "keyword": "mediacache",
-                            "keyword_type": "predicate",
-                            "syntaxtree": [
-                                {
-                                    "keyword": "$MEDIACACHEITEM",
-                                    "keyword_type": "object",
-                                    "syntaxtree": []
-                                }
-                            ]
+                            "keyword": "$MEDIACACHEITEM",
+                            "keyword_type": "object",
+                            "syntaxtree": []
                         }
                     ]
                 } 
@@ -1774,7 +1770,7 @@ class WztrPrompt(Cmd):
 
 
 
-
+'''
     def do_flush(self, inp):
         print()
         
@@ -1795,7 +1791,8 @@ class WztrPrompt(Cmd):
         items = [i for i in result["completion"] if i.startswith(path_to_match)]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
-
+'''
+        
     def do_mediacache(self, inp):
         print()
         
