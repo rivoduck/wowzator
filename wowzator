@@ -923,7 +923,7 @@ _CONFIGFILE="config.json"
 class WztrPrompt(Cmd):
     
     prompt = 'wowzator> '
-    intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\n\t- \"help\" for info about commands\n\t- \"?\" to list commands\n\t- TAB to autocomplete\n"
+    intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\n\t- \"help\" or \"?\" for info about commands\n\t- TAB to autocomplete\n"
     
     
     # Syntax tree for the list commeand
