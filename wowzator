@@ -2295,8 +2295,9 @@ class WztrPrompt(Cmd):
         print("Application list reports four flags (\"X\" means enabled, \"-\" disabled): DVR DRM Transcoders Targets")
         print("    - (DVR) -> DVR feature to pause a live stream")
         print("    - (DRM) -> DRM protection")
-        print("    - (TRC) -> Transcoders active")
-        print("    - (STG) -> Stream Targets active")
+        print("    - (TRC) -> Transcoders")
+        print("    - (STG) -> Stream Targets")
+        print()
 
     def help_rm(self):
         print("Remove application on Wowza server")
