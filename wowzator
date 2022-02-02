@@ -1823,19 +1823,22 @@ class WztrPrompt(Cmd):
                 else:
                     print("** Error: %s" % self.command_error)
             else:
-                print("** Error: no mediacache iteme specified")
+                print("** Error: no mediacache item specified")
         elif arg1 == "ls":
-            self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_ls, arg2)
-            if self.command_error is None:
-                if self.command_object is None:
-                    if self.command_objects is None:
-                        self.__ls_objects(self.machines.values(), "mediacache")
+            if arg2 and arg2 != "":
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_ls, arg2)
+                if self.command_error is None:
+                    if self.command_object is None:
+                        if self.command_objects is None:
+                            self.__ls_objects(self.machines.values(), "mediacache")
+                        else:
+                            self.__ls_objects(self.command_objects, "mediacache")
                     else:
-                        self.__ls_objects(self.command_objects, "mediacache")
+                        self.__ls_object(self.command_object, "mediacache")
                 else:
-                    self.__ls_object(self.command_object, "mediacache")
+                    print("** Error: %s" % self.command_error)
             else:
-                print("** Error: %s" % self.command_error)
+                print("** Error: no item specified")
             
         elif arg1 == None:
             print("** Error: missing arguments")
