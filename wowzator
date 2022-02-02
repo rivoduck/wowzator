@@ -1811,16 +1811,19 @@ class WztrPrompt(Cmd):
                     arg3=inputline[2]
         
         if arg1 == "flush":
-            self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_flush, arg2)
+            if arg2 and arg2 != "":
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_flush, arg2)
 
-            if self.command_error is None:
-                if self.command_object is None or not isinstance(self.command_object, WztrMediacacheItem):
-                    print("** Error: invalid mediacache item specified")
+                if self.command_error is None:
+                    if self.command_object is None or not isinstance(self.command_object, WztrMediacacheItem):
+                        print("** Error: invalid mediacache item specified")
+                    else:
+                        # rimuovi dalla mediacache del server wowza
+                        self.command_object.flush()
                 else:
-                    # rimuovi dalla mediacache del server wowza
-                    self.command_object.flush()
+                    print("** Error: %s" % self.command_error)
             else:
-                print("** Error: %s" % self.command_error)
+                print("** Error: no mediacache iteme specified")
         elif arg1 == "ls":
             self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_ls, arg2)
             if self.command_error is None:
