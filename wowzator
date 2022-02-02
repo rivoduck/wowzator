@@ -2292,7 +2292,7 @@ class WztrPrompt(Cmd):
 
     def help_ls(self):
         print("List items and configurations")
-        print("Application list reports four flags (\"X\" means enabled, \"-\" disabled): DVR DRM Transcoders Targets")
+        print("Application list reports four flags (\"X\" means enabled, \"-\" disabled):")
         print("    - (DVR) -> DVR feature to pause a live stream")
         print("    - (DRM) -> DRM protection")
         print("    - (TRC) -> Transcoders")
