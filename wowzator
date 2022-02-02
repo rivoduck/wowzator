@@ -1850,16 +1850,18 @@ class WztrPrompt(Cmd):
         line_args_count = len(line_args)
         path_to_match=text.split(" ")[-1]
         
-        last_arg=None
-        while last_arg == None or last_arg == '':
-            last_arg=line_args.pop()
-        
+        subcom = ""
+        try:
+            subcomm = line_args[1]
+        except:
+            pass
+            
         items=[]
         if line_args_count == 3:
             result={"completion": []}
-            if last_arg == "ls":
+            if subcomm == "ls":
                 result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
-            if last_arg == "flush":
+            if subcomm == "flush":
                 result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
