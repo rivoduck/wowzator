@@ -1130,34 +1130,6 @@ class WztrPrompt(Cmd):
         },
     ]
 
-'''
-    # Syntax tree for the flush command
-    syntaxtree_flush = [
-        {
-            "keyword": "$MACHINE",
-            "keyword_type": "object",
-            "syntaxtree": [ 
-                { 
-                    "keyword": "$VHOST",
-                    "keyword_type": "object",
-                    "syntaxtree": [
-                        {
-                            "keyword": "mediacache",
-                            "keyword_type": "predicate",
-                            "syntaxtree": [
-                                {
-                                    "keyword": "$MEDIACACHEITEM",
-                                    "keyword_type": "object",
-                                    "syntaxtree": []
-                                }
-                            ]
-                        }
-                    ]
-                } 
-            ]
-        },
-    ]
-'''
     
     # Syntax tree for the mediacache flush command
     syntaxtree_mediacache_flush = [
@@ -1768,30 +1740,6 @@ class WztrPrompt(Cmd):
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
 
-
-
-'''
-    def do_flush(self, inp):
-        print()
-        
-        self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, inp)
-        
-        if self.command_error is None:
-            if self.command_object is None or not isinstance(self.command_object, WztrMediacacheItem):
-                print("** Error: invalid mediacache item specified")
-            else:
-                # rimuovi dalla mediacache del server wowza
-                self.command_object.flush()
-        else:
-            print("** Error: %s" % self.command_error)
-
-    def complete_flush(self, text, line, begidx, endidx):
-        path_to_match=text.split(" ")[-1]
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
-        items = [i for i in result["completion"] if i.startswith(path_to_match)]
-        
-        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
-'''
         
     def do_mediacache(self, inp):
         print()
@@ -2345,6 +2293,10 @@ class WztrPrompt(Cmd):
     def help_ls(self):
         print("List items and configurations")
         print("Application list reports four flags (\"X\" means enabled, \"-\" disabled): DVR DRM Transcoders Targets")
+        print("    - (DVR) -> DVR feature to pause a live stream")
+        print("    - (DRM) -> DRM protection")
+        print("    - (TRC) -> Transcoders active")
+        print("    - (STG) -> Stream Targets active")
 
     def help_rm(self):
         print("Remove application on Wowza server")
