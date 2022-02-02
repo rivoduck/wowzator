@@ -926,6 +926,11 @@ class WztrPrompt(Cmd):
     delattr(Cmd, 'do_edit')
     delattr(Cmd, 'do_set')
     delattr(Cmd, 'do_shortcuts')
+    delattr(Cmd, 'do_shell')
+    delattr(Cmd, 'do_exit')
+    delattr(Cmd, 'do_q')
+    delattr(Cmd, 'do_alias')
+    delattr(Cmd, 'do_macro')
     
     prompt = 'wowzator> '
     intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands, TAB to autocomplete\n"
