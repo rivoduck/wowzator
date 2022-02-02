@@ -1831,6 +1831,7 @@ class WztrPrompt(Cmd):
 
     def help_mediacache(self):
         print("List and flush items in Wowza Mediacache")
+        print()
 
 
 
@@ -2311,6 +2312,7 @@ class WztrPrompt(Cmd):
 
     def help_rm(self):
         print("Remove application on Wowza server")
+        print()
 
     def do_refresh(self, inp):
         for machinename in self.machines.keys():
@@ -2318,9 +2320,11 @@ class WztrPrompt(Cmd):
                      
     def help_refresh(self):
         print("refresh info from servers")
+        print()
 
     def help_playlist(self):
         print("manage playlists from StreamPublisher")
+        print()
 
 
     @staticmethod
