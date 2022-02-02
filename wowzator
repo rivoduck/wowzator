@@ -1797,7 +1797,7 @@ class WztrPrompt(Cmd):
                 else:
                     print("** Error: %s" % self.command_error)
             else:
-                print("** Error: no item specified")
+                self.__ls_objects(self.machines.values(), "mediacache")
             
         elif arg1 == None:
             print("** Error: missing arguments")
