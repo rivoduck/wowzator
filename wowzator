@@ -2296,8 +2296,9 @@ class WztrPrompt(Cmd):
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
 
-
-
+    def help_diff(self):
+        print("Compare VHosts, Applications, Transcoder templates and SMIL files on Wowza Servers")
+        print()
 
 
 
