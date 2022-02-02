@@ -1799,7 +1799,7 @@ class WztrPrompt(Cmd):
             else:
                 self.__ls_objects(self.machines.values(), "mediacache")
             
-        elif arg1 == None:
+        elif arg1 == None or arg1 == '':
             print("** Error: missing arguments")
         else:
             print("** Error: %s unrecognized" % arg1)
