@@ -921,16 +921,21 @@ _CONFIGFILE="config.json"
 
 
 class WztrPrompt(Cmd):
-    delattr(Cmd, 'do_run_pyscript')
-    delattr(Cmd, 'do_run_script')
-    delattr(Cmd, 'do_edit')
-    delattr(Cmd, 'do_set')
-    delattr(Cmd, 'do_shortcuts')
-    delattr(Cmd, 'do_shell')
-    delattr(Cmd, 'do_exit')
-    delattr(Cmd, 'do_q')
-    delattr(Cmd, 'do_alias')
-    delattr(Cmd, 'do_macro')
+    def __init__(self):
+        super().__init__()
+        # To remove built-in commands entirely, delete
+        # the "do_*" function from the cmd2.Cmd class
+        del cmd2.Cmd.do_run_pyscript
+        del cmd2.Cmd.do_run_script
+        del cmd2.Cmd.do_edit
+        del cmd2.Cmd.do_set
+        del cmd2.Cmd.do_shortcuts
+        del cmd2.Cmd.do_shell
+        self.hidden_commands.append('exit')
+        self.hidden_commands.append('q')
+        self.hidden_commands.append('alias')
+        self.hidden_commands.append('macro')
+    
     
     prompt = 'wowzator> '
     intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands, TAB to autocomplete\n"
