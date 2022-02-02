@@ -1846,14 +1846,24 @@ class WztrPrompt(Cmd):
             print("** Error: %s unrecognized" % arg1)
 
     def complete_mediacache(self, text, line, begidx, endidx):
-        line_args = len(text.split(" "))
+        line_args = line.split(" ")
+        line_args_count = len(line_args)
         path_to_match=text.split(" ")[-1]
         
+        last_arg=None
+        while last_arg == None or last_arg == '':
+            last_arg=line_args.pop()
+        
         items=[]
-        if line_args == 2:
-            result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
+        if line_args_count == 3:
+            result={"completion": []}
+            if last_arg == "ls":
+                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
+            if last_arg == "flush":
+                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
+                
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
-        if line_args < 2:
+        if line_args_count < 3:
             items=["ls", "flush"]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
