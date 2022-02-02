@@ -1424,6 +1424,7 @@ class WztrPrompt(Cmd):
         self.hidden_commands.append('q')
         self.hidden_commands.append('alias')
         self.hidden_commands.append('macro')
+        self.hidden_commands.append('EOF')
         
         self.machines = {}
         self.relationsLicenseServer = []
