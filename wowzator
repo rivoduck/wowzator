@@ -1834,7 +1834,10 @@ class WztrPrompt(Cmd):
                         else:
                             self.__ls_objects(self.command_objects, "mediacache")
                     else:
-                        self.__ls_object(self.command_object, "mediacache")
+                        if self.command_object is None or not isinstance(self.command_object, WztrVhost):
+                            print("** Error: invalid VHost specified")
+                        else:
+                            self.__ls_object(self.command_object, "mediacache")
                 else:
                     print("** Error: %s" % self.command_error)
             else:
@@ -1860,9 +1863,9 @@ class WztrPrompt(Cmd):
         if line_args_count == 3:
             result={"completion": []}
             if subcomm == "ls":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
+                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_ls, path_to_match)
             if subcomm == "flush":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_flush, path_to_match)
+                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_flush, path_to_match)
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
         if line_args_count < 3:
