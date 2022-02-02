@@ -921,21 +921,6 @@ _CONFIGFILE="config.json"
 
 
 class WztrPrompt(Cmd):
-    def __init__(self):
-        super().__init__()
-        # To remove built-in commands entirely, delete
-        # the "do_*" function from the cmd2.Cmd class
-        del cmd2.Cmd.do_run_pyscript
-        del cmd2.Cmd.do_run_script
-        del cmd2.Cmd.do_edit
-        del cmd2.Cmd.do_set
-        del cmd2.Cmd.do_shortcuts
-        del cmd2.Cmd.do_shell
-        self.hidden_commands.append('exit')
-        self.hidden_commands.append('q')
-        self.hidden_commands.append('alias')
-        self.hidden_commands.append('macro')
-    
     
     prompt = 'wowzator> '
     intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\nType ? to list commands, TAB to autocomplete\n"
@@ -1423,7 +1408,22 @@ class WztrPrompt(Cmd):
         print('\33]0;Wowzator\a', end='', flush=True)
         
         print("initializing...")
-        Cmd.__init__(self)
+        
+        #Cmd.__init__(self)
+        super().__init__()
+        
+        # To remove built-in commands entirely, delete
+        # the "do_*" function from the cmd2.Cmd class
+        del Cmd.do_run_pyscript
+        del Cmd.do_run_script
+        del Cmd.do_edit
+        del Cmd.do_set
+        del Cmd.do_shortcuts
+        del Cmd.do_shell
+        self.hidden_commands.append('exit')
+        self.hidden_commands.append('q')
+        self.hidden_commands.append('alias')
+        self.hidden_commands.append('macro')
         
         self.machines = {}
         self.relationsLicenseServer = []
@@ -1828,9 +1828,8 @@ class WztrPrompt(Cmd):
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
-
-
-
+    def help_mediacache(self):
+        print("List and flush items in Wowza Mediacache")
 
 
 
@@ -2321,9 +2320,6 @@ class WztrPrompt(Cmd):
 
     def help_playlist(self):
         print("manage playlists from StreamPublisher")
-
-    def help_flush(self):
-        print("remove cached files from Mediacache")
 
 
     @staticmethod
