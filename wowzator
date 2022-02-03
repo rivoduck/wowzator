@@ -937,10 +937,6 @@ _CONFIGFILE="config.json"
 
 class WztrPrompt(Cmd):
     
-    prompt = 'wowzator> '
-    intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\n\t- \"help\" or \"?\" for info about commands\n\t- TAB to autocomplete\n\t- you can use \"|\" to shell commands, eg. \"ls all/apps | grep myapp\"\n"
-    
-    
     # Syntax tree for the list commeand
     syntaxtree_ls = [
         {
@@ -1424,6 +1420,9 @@ class WztrPrompt(Cmd):
         self.hidden_commands.append('alias')
         self.hidden_commands.append('macro')
         self.hidden_commands.append('EOF')
+        
+        self.prompt = 'wowzator> '
+        self.intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\n\t- \"help\" or \"?\" for info about commands\n\t- TAB to autocomplete\n\t- you can use \"|\" to shell commands, eg. \"ls all/apps | grep myapp\"\n"
         
         # secure mode, disable piping and redirection of commands ("|" and ">")
         #self.allow_redirection = False
