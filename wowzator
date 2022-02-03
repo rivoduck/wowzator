@@ -329,7 +329,7 @@ class WztrTranscodertemplate():
                             for encode in entry['Encodes']['TranscoderEncode']:
                                 if encode['Enable'] == 'true':
                                     active_overlays=[]
-                                    # remove non-active overlays
+                                    # remove non-active overlays for each individual rendition
                                     if encode['Overlays'] is not None and 'TranscoderOverlayEncode' in encode['Overlays'].keys():
                                         for overlay in encode['Overlays']['TranscoderOverlayEncode']:
                                             if overlay['Enable'] == "true":
@@ -337,6 +337,17 @@ class WztrTranscodertemplate():
                                     encode['Overlays']=active_overlays
                                     active_encodes.append(encode)
                             entry['Encodes']['TranscoderEncode'] = active_encodes
+                    # remove non-active overlays for all renditions ("Decoding Preset" tab)
+                    if 'Overlays' in entry.keys():
+                        if isinstance(entry['Overlays'], dict) and 'TranscoderOverlayDecode' in entry['Overlays'].keys():
+                            active_overlays=[]
+                            configured_overlays=entry['Overlays']['TranscoderOverlayDecode']
+                            if not isinstance(configured_overlays, list):
+                                configured_overlays = [ configured_overlays ]
+                            for overlay in configured_overlays:
+                                if overlay['Enable'] == "true":
+                                    active_overlays.append(overlay)
+                            entry['Overlays']['TranscoderOverlayDecode']=active_overlays
                             
                     self.__configuration = WztrTranscodertemplate.__clean_config_dict(entry)
 
