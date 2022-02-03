@@ -5,6 +5,7 @@ This tool is a commandline interactive Configuration Manager, it has been create
 
 This tool is a configuration manager that lists and compares configuration information about vhosts, applications, smil files, transcoding templates, mediacache items and other configuration info.
 
+![Wowzator Screenshot](wowzator-screenshot.png)
 
 ### Installation
 pip install -r requirements.txt
