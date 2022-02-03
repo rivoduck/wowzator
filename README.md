@@ -1,6 +1,9 @@
 # wowzator
 A Configuration Manager for Wowza Streaming Engine
 
+This tool is a configuration manager that lists and compares configuration information about vhosts, applications, smil files, transcoding templates, mediacache items and other configuration info.
+
+
 ## Installation
 pip install -r requirements.txt
 
