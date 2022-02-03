@@ -1773,13 +1773,10 @@ class WztrPrompt(Cmd):
         inputline = inp.split(" ",1)
         arg1=None
         arg2=None
-        arg3=None
         if len(inputline) > 0:
             arg1=inputline[0]
             if len(inputline) > 1:
                 arg2=inputline[1]
-                if len(inputline) > 2:
-                    arg3=inputline[2]
         
         if arg1 == "flush":
             if arg2 and arg2 != "":
