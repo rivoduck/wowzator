@@ -570,6 +570,10 @@ class WztrVhost():
                 
                     if 'Version' in entry.keys():
                         del entry['Version']
+                    if 'HostPorts' in entry.keys() and 'HostPort' in entry['HostPorts'].keys():
+                        for en in entry['HostPorts']['HostPort']:
+                            if 'SSLKeyStorePassword' in en.keys():
+                                en['SSLKeyStorePassword'] = "******"
                 
                     self.__configuration = entry
         return self.__configuration
