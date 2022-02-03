@@ -1839,7 +1839,7 @@ class WztrPrompt(Cmd):
             if isinstance(self.command_object, WztrApplication):
                 self.command_object.remove()
             else:
-                print("** Error: cannot remove object of type %s" % type(self.command_object))
+                print("** Error: invalid application specified")
         else:
             print("** Error: %s" % self.command_error)
 
