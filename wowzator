@@ -739,7 +739,7 @@ class WztrMachine():
     def list_view_header():
         return " %-10s %-17s  %s" % ("Name", " address", "Wowza version")
     def list_view(self):
-        return " %-10s %-17s [%s]" % (self.name, "(" + self.address + ")", self.version())
+        return " %-10s %-17s %s" % (self.name, "(" + self.address + ")", self.version())
     def detail_view(self):
         return {
             "API Address/port": "%s/%s" % (self.address, self.port),
