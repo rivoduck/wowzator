@@ -1425,6 +1425,9 @@ class WztrPrompt(Cmd):
         self.hidden_commands.append('macro')
         self.hidden_commands.append('EOF')
         
+        # secure mode, disable piping and redirection of commands ("|" and ">")
+        #self.allow_redirection = False
+        
         self.machines = {}
         self.relationsLicenseServer = []
         
