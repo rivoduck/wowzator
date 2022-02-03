@@ -737,7 +737,7 @@ class WztrMachine():
 
     @staticmethod
     def list_view_header():
-        return " %-10s %-17s  %s" % ("Name", " address", "Wowza version")
+        return " %-10s %-17s  %s" % ("Name", " address", "Version")
     def list_view(self):
         return " %-10s %-17s %s" % (self.name, "(" + self.address + ")", self.version())
     def detail_view(self):
