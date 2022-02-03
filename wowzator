@@ -324,7 +324,7 @@ class WztrTranscodertemplate():
                     
                     # remove non active encodings
                     if 'Encodes' in entry.keys():
-                        if 'TranscoderEncode' in entry['Encodes'].keys():
+                        if isinstance(entry['Encodes'], dict) and 'TranscoderEncode' in entry['Encodes'].keys():
                             active_encodes=[]
                             for encode in entry['Encodes']['TranscoderEncode']:
                                 if encode['Enable'] == 'true':
