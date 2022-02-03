@@ -999,11 +999,6 @@ class WztrPrompt(Cmd):
                     "keyword": "$VHOST",
                     "keyword_type": "object",
                     "syntaxtree": [
-                        #{
-                        #    "keyword": "mediacache",
-                        #    "keyword_type": "predicate",
-                        #    "syntaxtree": []
-                        #},
                         {
                             "keyword": "apps",
                             "keyword_type": "predicate",
@@ -1889,27 +1884,6 @@ class WztrPrompt(Cmd):
             print("** Error: %s unrecognized" % arg1)
 
 
-    '''
-    def do_playlist(self, inp):
-        print()
-        
-        self.__get_obj_by_path(WztrPrompt.syntaxtree_playlist, inp)
-        
-        if self.command_error is None:
-            if self.command_object is None or not isinstance(self.command_object, WztrApplication):
-                print("** Error: invalid application specified")
-            else:
-                if self.command_predicate == "reload":
-                    # reload playlist
-                    self.command_object.playlist_reload()
-                elif self.command_predicate == "unload":
-                    # unload playlist
-                    self.command_object.playlist_unload()
-        else:
-            print("** Error: %s" % self.command_error)
-    '''
-
-
     def complete_playlist(self, text, line, begidx, endidx):
         line_args = line.split(" ")
         line_args_count = len(line_args)
@@ -1932,18 +1906,6 @@ class WztrPrompt(Cmd):
             items=["reload", "unload"]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
-
-
-
-    '''
-    def complete_playlist(self, text, line, begidx, endidx):
-        path_to_match=text.split(" ")[-1]
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_playlist, path_to_match)
-        items = [i for i in result["completion"] if i.startswith(path_to_match)]
-        
-        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
-    '''
-
 
 
 
