@@ -1059,11 +1059,6 @@ class WztrPrompt(Cmd):
                     "syntaxtree": []
                 },
                 {
-                    "keyword": "mediacache",
-                    "keyword_type": "predicate",
-                    "syntaxtree": []
-                },
-                {
                     "keyword": "licenses",
                     "keyword_type": "predicate",
                     "syntaxtree": []
