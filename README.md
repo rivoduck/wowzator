@@ -1,9 +1,11 @@
 # wowzator
 ### Configuration Manager for Wowza Streaming Engine
 
-This tool is a commandline interactive Configuration Manager, it has been created to help keep the configuration aligned across multiple Wowza servers.
+This tool is an interactive commandline Configuration Manager, it has been created to help keeping the configuration aligned across multiple Wowza servers.
 
 This tool is a configuration manager that lists and compares configuration information about vhosts, applications, smil files, transcoding templates, mediacache items and other parameters.
+
+It has no database, it just lazy-fetches configuration information through the Wowza REST APIs to show and compare configuration info.
 
 ![Wowzator Screenshot](wowzator-screenshot.png)
 
