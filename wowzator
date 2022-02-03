@@ -1930,7 +1930,7 @@ class WztrPrompt(Cmd):
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
         if line_args_count < 3:
-            items=["ls", "flush"]
+            items=["reload", "unload"]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
