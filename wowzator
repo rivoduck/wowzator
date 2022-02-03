@@ -1206,18 +1206,7 @@ class WztrPrompt(Cmd):
                                 {
                                     "keyword": "$APPLICATION",
                                     "keyword_type": "object",
-                                    "syntaxtree": [
-                                        {
-                                            "keyword": "reload",
-                                            "keyword_type": "predicate",
-                                            "syntaxtree": []
-                                        },
-                                        {
-                                            "keyword": "unload",
-                                            "keyword_type": "predicate",
-                                            "syntaxtree": []
-                                        }
-                                    ]
+                                    "syntaxtree": []
                                 }
                             ]
                         }
@@ -1766,7 +1755,6 @@ class WztrPrompt(Cmd):
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
 
-        
     def do_mediacache(self, inp):
         print()
         
@@ -1868,9 +1856,41 @@ class WztrPrompt(Cmd):
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
 
+    def do_playlist(self, inp):
+        print()
+        
+        inputline = inp.split(" ",1)
+        arg1=None
+        arg2=None
+        if len(inputline) > 0:
+            arg1=inputline[0]
+            if len(inputline) > 1:
+                arg2=inputline[1]
+        
+        if arg1 == "reload" or arg1 == "unload":
+            if arg2 and arg2 != "":
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_playlist, arg2)
+
+                if self.command_error is None:
+                    if self.command_object is None or not isinstance(self.command_object, WztrApplication):
+                        print("** Error: invalid application specified")
+                    else:
+                        if arg1 == "reload":
+                            # reload playlist
+                            self.command_object.playlist_reload()
+                        elif arg1 == "unload":
+                            # unload playlist
+                            self.command_object.playlist_unload()
+            else:
+                print("** Error: no mediacache item specified")
+            
+        elif arg1 == None or arg1 == '':
+            print("** Error: missing arguments")
+        else:
+            print("** Error: %s unrecognized" % arg1)
 
 
-
+    '''
     def do_playlist(self, inp):
         print()
         
@@ -1888,14 +1908,42 @@ class WztrPrompt(Cmd):
                     self.command_object.playlist_unload()
         else:
             print("** Error: %s" % self.command_error)
+    '''
 
+
+    def complete_playlist(self, text, line, begidx, endidx):
+        line_args = line.split(" ")
+        line_args_count = len(line_args)
+        path_to_match=text.split(" ")[-1]
+        
+        subcom = ""
+        try:
+            subcomm = line_args[1]
+        except:
+            pass
+            
+        items=[]
+        if line_args_count == 3:
+            result={"completion": []}
+            if subcomm == "reload" or subcomm == "unload":
+                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_playlist, path_to_match)
+                
+            items = [i for i in result["completion"] if i.startswith(path_to_match)]
+        if line_args_count < 3:
+            items=["ls", "flush"]
+        
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+
+
+
+    '''
     def complete_playlist(self, text, line, begidx, endidx):
         path_to_match=text.split(" ")[-1]
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_playlist, path_to_match)
         items = [i for i in result["completion"] if i.startswith(path_to_match)]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
-
+    '''
 
 
 
