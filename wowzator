@@ -961,26 +961,55 @@ class WztrPrompt(Cmd):
         self.hidden_commands.append('EOF')
         
         self.prompt = 'wowzator> '
-        self.intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\n\t- \"help\" or \"?\" for info about commands\n\t- TAB to autocomplete\n\t- you can use \"|\" to shell commands, eg. \"ls all/apps | grep myapp\"\n"
+        self.intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\n\t- \"help\" or \"?\" for info about commands\n\t- TAB to autocomplete\n"
         
         # secure mode, disable piping and redirection of commands ("|" and ">")
         #self.allow_redirection = False
         
         self.machines = {}
         self.relationsLicenseServer = []
+        secure_mode=True
         
         try:
             with open(_CONFIGFILE) as json_file:
-                machines_config = json.load(json_file)
+                try:
+                    json_object = json.load(json_file)
+                    try:
+                        machines_config = json_object["servers"]
         
-                for machine_config in machines_config:
-                    machine=WztrMachine(name=machine_config["name"], address=machine_config["address"], user=machine_config["user"], pw=machine_config["pw"])
-                    if "auth" in machine_config.keys():
-                        machine.auth = machine_config["auth"]
+                        for machine_config in machines_config:
+                            machine=WztrMachine(name=machine_config["name"], address=machine_config["address"], user=machine_config["user"], pw=machine_config["pw"])
+                            if "auth" in machine_config.keys():
+                                machine.auth = machine_config["auth"]
                         
-                    self.machines[machine.name]=machine
+                            self.machines[machine.name]=machine
+                    except Exception as e:
+                        print(e)
+                        print("Cannot find attribute \"servers\" in JSON %s" % _CONFIGFILE)
+                        sys.exit(-1)
+                    try:
+                        secure_mode = json_object["secure_mode"]
+                        if secure_mode == "true":
+                            secure_mode=True
+                        else:
+                            secure_mode=False
+                    except Exception as e:
+                        print(e)
+                        print("Cannot find attribute \"secure_mode\" in JSON %s" % _CONFIGFILE)
+                        sys.exit(-1)
+                except Exception as e:
+                    print(e)
+                    print("Bad JSON in %s" % _CONFIGFILE)
+                    sys.exit(-1)
+        
+        if secure_mode:
+            self.allow_redirection = False
+        else:
+            self.allow_redirection = True
+            self.intro = self.intro + "\t- you can use \"|\" to shell commands, eg. \"ls all/apps | grep myapp\" (see \"secure_mode\" in config)\n"
+            self.intro = self.intro + "\t- you can use \">\" to redirect output to file, eg. \"ls all/apps > applist.txt\" (see \"secure_mode\" in config)\n"
             
-
+        
         except Exception as e:
             print(e)
             print("Cannot open %s" % _CONFIGFILE)
