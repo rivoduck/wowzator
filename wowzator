@@ -984,7 +984,6 @@ class WztrPrompt(Cmd):
                         
                             self.machines[machine.name]=machine
                     except Exception as e:
-                        print(e)
                         print("Cannot find attribute \"servers\" in JSON %s" % _CONFIGFILE)
                         sys.exit(-1)
                     try:
@@ -994,7 +993,6 @@ class WztrPrompt(Cmd):
                         else:
                             secure_mode=False
                     except Exception as e:
-                        print(e)
                         print("Cannot find attribute \"secure_mode\" in JSON %s" % _CONFIGFILE)
                         sys.exit(-1)
                 except Exception as e:
