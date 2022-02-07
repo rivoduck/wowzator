@@ -1009,6 +1009,7 @@ class WztrPrompt(Cmd):
 
         if secure_mode:
             self.allow_redirection = False
+            self.intro = self.intro + "Secure mode ON, disable for redirection functionalities (see \"secure_mode\" in config)\n"
         else:
             self.allow_redirection = True
             self.intro = self.intro + "\t- use \"|\" to pipe output to shell commands, eg. \"ls all/apps | grep myapp\" (see \"secure_mode\" in config)\n"
