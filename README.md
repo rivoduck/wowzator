@@ -16,19 +16,19 @@ Create config.json file in the same dir of wowzator executable
 
 Example:
 
-`[
-	{
-		"name": "or01",
-		"address": "10.0.0.99",
-		"user": "admin",
-		"pw": "mysecret",
-		"auth": "digest"
-	},
-  {
-  ...
-  }
-]
-`
+	[
+		{
+			"name": "or01",
+			"address": "10.0.0.99",
+			"user": "admin",
+			"pw": "mysecret",
+			"auth": "digest"
+		},
+		{
+			...
+		}
+	]
+
 
 
 Note about the "auth" configuration parameter: Wowza after 4.8.5 uses basic authentication while Wowza 4.8.5 and earlier uses digest!!
