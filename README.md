@@ -29,6 +29,8 @@ Example:
   }
 ]
 `
+
+
 Note about the "auth" configuration parameter: Wowza after 4.8.5 uses basic authentication while Wowza 4.8.5 and earlier uses digest!!
 
 
