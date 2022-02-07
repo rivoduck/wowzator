@@ -1011,7 +1011,7 @@ class WztrPrompt(Cmd):
             self.allow_redirection = False
         else:
             self.allow_redirection = True
-            self.intro = self.intro + "\t- use \"|\" to shell commands, eg. \"ls all/apps | grep myapp\" (see \"secure_mode\" in config)\n"
+            self.intro = self.intro + "\t- use \"|\" to pipe output to shell commands, eg. \"ls all/apps | grep myapp\" (see \"secure_mode\" in config)\n"
             self.intro = self.intro + "\t- use \">\" to redirect output to file, eg. \"ls all/apps > applist.txt\" (see \"secure_mode\" in config)\n"
             
         
