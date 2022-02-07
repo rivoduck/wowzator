@@ -1002,6 +1002,13 @@ class WztrPrompt(Cmd):
                     print("Bad JSON in %s" % _CONFIGFILE)
                     sys.exit(-1)
         
+        except Exception as e:
+            print(e)
+            print("Cannot open %s" % _CONFIGFILE)
+            sys.exit(-1)
+
+
+
         if secure_mode:
             self.allow_redirection = False
         else:
@@ -1010,10 +1017,6 @@ class WztrPrompt(Cmd):
             self.intro = self.intro + "\t- you can use \">\" to redirect output to file, eg. \"ls all/apps > applist.txt\" (see \"secure_mode\" in config)\n"
             
         
-        except Exception as e:
-            print(e)
-            print("Cannot open %s" % _CONFIGFILE)
-            sys.exit(-1)
     
     
     
