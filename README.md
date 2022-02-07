@@ -25,7 +25,7 @@ Example:
 			"auth": "digest"
 		},
 		{
-			...
+			[details of other server...]
 		}
 	]
 
