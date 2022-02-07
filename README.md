@@ -16,20 +16,25 @@ Create config.json file in the same dir of wowzator executable
 
 Example:
 
-	[
-		{
-			"name": "or01",
-			"address": "10.0.0.99",
-			"user": "admin",
-			"pw": "mysecret",
-			"auth": "digest"
-		},
-		{
-			[details of other server...]
-		}
-	]
+	{
+        	"secure_mode": "true",
+        	"servers": [
+			{
+				"name": "or01",
+				"address": "10.0.0.99",
+				"user": "admin",
+				"pw": "mysecret",
+				"auth": "digest"
+			},
+			{
+				[details of other server...]
+			}
+		]
+	}
 
 
+
+Setting "secure_mode" to "false" enables redirection to file and piping of output (eg. ls all/apps | grep myapp).
 
 Note about the "auth" configuration parameter: Wowza after 4.8.5 uses basic authentication while Wowza 4.8.5 and earlier uses digest!!
 
