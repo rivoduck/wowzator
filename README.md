@@ -34,7 +34,7 @@ Example:
 
 
 
-Setting "secure_mode" to "false" enables redirection to file and piping of output (eg. "`ls all/apps | grep myapp`" or "`ls all/apps > application_list.txt`").
+Setting "secure_mode" to "false" enables redirection to file and piping of output (eg. "`ls all/apps > application_list.txt`" or "`ls all/apps | grep myapp`").
 
 Note about the "auth" configuration parameter: Wowza after 4.8.5 uses basic authentication while Wowza 4.8.5 and earlier uses digest!!
 
