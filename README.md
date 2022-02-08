@@ -10,7 +10,7 @@ It has no database, it just lazy-fetches configuration information through the W
 ![Wowzator Screenshot](wowzator-screenshot.png)
 
 ### Installation
-pip install -r requirements.txt
+`pip install -r requirements.txt`
 
 Create config.json file in the same dir of wowzator executable
 
@@ -34,7 +34,7 @@ Example:
 
 
 
-Setting "secure_mode" to "false" enables redirection to file and piping of output (eg. "ls all/apps | grep myapp" or "ls all/apps > application_list.txt").
+Setting "secure_mode" to "false" enables redirection to file and piping of output (eg. "`ls all/apps | grep myapp`" or "`ls all/apps > application_list.txt`").
 
 Note about the "auth" configuration parameter: Wowza after 4.8.5 uses basic authentication while Wowza 4.8.5 and earlier uses digest!!
 
