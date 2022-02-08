@@ -10,7 +10,7 @@ It has no database, it just lazy-fetches configuration information through the W
 ![Wowzator Screenshot](wowzator-screenshot.png)
 
 ### Installation
-`pip install -r requirements.txt`
+	pip install -r requirements.txt
 
 Create config.json file in the same dir of wowzator executable
 
