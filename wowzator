@@ -191,6 +191,43 @@ class WztrApplication():
                 
         return self.__smilfiles
                 
+    def getInstanceList(self):
+        # always return fresh data
+        instances=[]
+
+        result = self.vhost.machine.fetchDict(self.href + "/instances")
+
+        if result["status"] == "OK":
+            if 'Instances' in result["data"].keys():
+                if 'InstanceList' in result["data"]["Instances"].keys():
+                    instances = result["data"]["Instances"]["InstanceList"]
+                    if not isinstance(instances, list):
+                        instances = [ instances ]
+        return instances
+
+    def incomingstreams(self):
+        # no lazy-fetch for incomingstreams
+        # always return fresh data
+        incomingstream_dict={}
+
+        for instance in self.getInstanceList():
+            if 'IncomingStreams' in instance.keys():
+                if instance['IncomingStreams'] is not None:
+                    if 'IncomingStream' in instance['IncomingStreams'].keys():
+                        incomingstreams = instance['IncomingStreams']['IncomingStream']
+                        if not isinstance(incomingstreams, list):
+                            incomingstreams = [ incomingstreams ]
+                        for incomingstream in incomingstreams:
+                            newincoming = WztrIncomingStream(
+                                incomingstream['Name'], instance['Name'], 
+                                incomingstream['SourceIp'],incomingstream['IsRecordingSet'], 
+                                incomingstream['IsStreamManagerStream'], incomingstream['IsPublishedToVOD'], 
+                                incomingstream['IsConnected'])
+                            newincoming.application = self
+                            incomingstream_dict[str(newincoming)] = newincoming
+                                
+
+        return incomingstream_dict
 
 
     # ricarica la playlist del modulo StreamPublisher
@@ -490,17 +527,43 @@ class WztrMediacacheItem():
         print(action_message)
         print("result: %s" % (action_success))
         
+
+
+# class used to create a temporary list of incomingstream entries
+# using a class in order to avail of the code to render lists
+class WztrIncomingStream():
+    header_singular="Incoming stream"
+    header_plural="Incoming streams"
+    
+    def __init__(self, name, instance, source, recording, manager, publishedtovod, connected):
+        self.name=name
+        self.instancename=instance
+        self.source = source
+        self.recording = recording
+        self.manager = manager
+        self.publishedtovod = publishedtovod
+        self.connected = connected
+        self.application=None
+
+    def __str__(self):
+        return "/%s/%s/%s" % (str(self.application), self.instancename, self.name)
+    def __repr__(self):
+        return "WztrIncomingStream: %s" % self.name
     
     @staticmethod
     def list_view_header():
-        return "%7s  Mediacache Item name" % "Size(MB)"
+        return "%-40s %-11s %-11s %s" % ("Application", "Instance", "Name", "Source")
     def list_view(self):
-        return "%7s /%s/%s/%s" % (self.length_mb, self.vhost.machine.name, self.vhost.name, self.name)
+        return "%-40s %-11s %-11s %s" % (str(self.application), self.instancename, self.name, self.source)
     def detail_view(self):
         return {
-            "Name": unquote(self.name),
-            "Cache position": "/%s/%s" % (self.vhost.machine.name, self.vhost.name),
-            "Size (MB)": self.length_mb
+            "Name": self.name,
+            "Application": str(self.application),
+            "Source": self.source,
+            "Is recording": self.recording,
+            "Is Stream Manager": self.manager,
+            "Published to VOD": self.publishedtovod,
+            "Is connected": self.connected
         }
 
 
@@ -566,6 +629,15 @@ class WztrVhost():
                                 
 
         return self.__mediacachecontent
+
+    def incomingstreams(self):
+        # always return fresh data
+        item_list=[]
+        for app in self.applications().values():
+            item_list += app.incomingstreams().values()
+        
+        return item_list
+
     
 
     def configuration(self):
@@ -1256,7 +1328,14 @@ class WztrPrompt(Cmd):
         }
         
     ]
-
+    
+    syntaxtree_status_incomingstreams = [
+        {
+            "keyword": "$MACHINE",
+            "keyword_type": "object",
+            "syntaxtree": []
+        },
+    ]
 
     # comando per gestire le playlist del modulo StreamPublisher
     syntaxtree_playlist = [
@@ -1675,6 +1754,14 @@ class WztrPrompt(Cmd):
                             for vhost in machine.vhosts().values():
                                 item_list += vhost.mediacachecontent().values()
                     self.__ls_objects(item_list)
+                elif predicate == 'incomingstreams':
+                    # list incoming streams
+                    item_list = []
+                    for machine in object_list:
+                        if isinstance(machine, WztrMachine):
+                            for vhost in machine.vhosts().values():
+                                item_list += vhost.incomingstreams()
+                    self.__ls_objects(item_list)
                     
         else:
             print("empty list...")
@@ -1770,6 +1857,16 @@ class WztrPrompt(Cmd):
                     self.__ls_objects(object_instance.mediacachecontent().values())
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
+            elif predicate == "incomingstreams":
+                if isinstance(object_instance, WztrMachine):
+                    # machine specified, list incoming streams
+                    item_list=[]
+                    for vhost in object_instance.vhosts().values():
+                        item_list += vhost.incomingstreams()
+                    
+                    self.__ls_objects(item_list)
+                else:
+                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
                 
             
     def complete_ls(self, text, line, begidx, endidx):
@@ -1815,7 +1912,7 @@ class WztrPrompt(Cmd):
                         else:
                             self.__ls_objects(self.command_objects, "mediacache")
                     else:
-                        if self.command_object is None or not isinstance(self.command_object, WztrVhost):
+                        if not isinstance(self.command_object, WztrVhost):
                             print("** Error: invalid VHost specified")
                         else:
                             self.__ls_object(self.command_object, "mediacache")
@@ -1857,6 +1954,36 @@ class WztrPrompt(Cmd):
     def help_mediacache(self):
         print("List and flush items in Wowza Mediacache")
         print()
+
+
+    def do_status(self, inp):
+        print()
+        
+        inputline = inp.split(" ",1)
+        arg1=None
+        arg2=None
+        if len(inputline) > 0:
+            arg1=inputline[0]
+            if len(inputline) > 1:
+                arg2=inputline[1]
+        
+        if arg1 == "incomingstreams":
+            if arg2 and arg2 != "":
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_status_incomingstreams, arg2)
+                if self.command_error is None:
+                    if self.command_object is not None and isinstance(self.command_object, WztrMachine):
+                        self.__ls_object(self.command_object, "incomingstreams")
+                    else:
+                        print("** Error: invalid server specified")
+                else:
+                    print("** Error: %s" % self.command_error)
+            else:
+                self.__ls_objects(self.machines.values(), "incomingstreams")
+            
+        elif arg1 == None or arg1 == '':
+            print("** Error: missing arguments")
+        else:
+            print("** Error: %s unrecognized" % arg1)
 
 
 
