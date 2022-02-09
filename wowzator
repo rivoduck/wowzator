@@ -1978,7 +1978,7 @@ class WztrPrompt(Cmd):
                 else:
                     print("** Error: %s" % self.command_error)
             else:
-                self.__ls_objects(self.machines.values(), "incomingstreams")
+                print("** Error: no server specified")
             
         elif arg1 == None or arg1 == '':
             print("** Error: missing arguments")
