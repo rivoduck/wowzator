@@ -9,7 +9,7 @@ It has no database, it just lazy-fetches configuration information through the W
 
 ![Wowzator Screenshot](wowzator-screenshot.png)
 
-### Cheat sheet
+### Cheat sheet (TAB is your friend)
 Show all Wowza applications across all servers
 
 	ls all/apps
