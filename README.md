@@ -11,15 +11,24 @@ It has no database, it just lazy-fetches configuration information through the W
 
 ### Cheat sheet
 Show all Wowza applications across all servers
+
 	ls all/apps
+	
 Show all Wowza licenses
+
 	ls all/licenses
+	
 Difference in application configuration between two servers
-	diff srv_1/_defaultVHost_/apps srv_2
+
+	diff srv_1/\_defaultVHost\_/apps srv_2
+	
 Wowza mediacache status on all servers
+
 	mediacache ls
+	
 Flush a single mediacache file on a specific server
-	mediacache flush srv_1/_defaultVHost_/<mediacache_item>
+
+	mediacache flush srv_1/\_defaultVHost\_/<mediacache_item>
 
 ### Installation
 	pip install -r requirements.txt
