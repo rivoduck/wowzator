@@ -961,7 +961,7 @@ class WztrPrompt(Cmd):
         self.hidden_commands.append('EOF')
         
         self.prompt = 'wowzator> '
-        self.intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX\n\t- \"help\" or \"?\" for info about commands\n\t- TAB to autocomplete\n"
+        self.intro = "\nWowzator: a simple Wowza Configuration Manager by Top-IX (streaming.top-ix.org)\n\t- \"help\" or \"?\" for info about commands\n\t- TAB to autocomplete\n"
         
         # secure mode, disable piping and redirection of commands ("|" and ">")
         #self.allow_redirection = False
