@@ -20,15 +20,15 @@ Show all Wowza licenses
 	
 Difference in application configuration between two servers
 
-	diff srv_1/\_defaultVHost\_/apps srv_2
+	diff srv_1/_defaultVHost_/apps srv_2
 
 Difference in SMIL files between two servers
 
-	diff srv_1/\_defaultVHost\_/smil srv_2
+	diff srv_1/_defaultVHost_/smil srv_2
 
 Differences between properties on two servers
 
-	diff srv_1/\_defaultVHost\_/configuration srv_2
+	diff srv_1/_defaultVHost_/configuration srv_2
 	
 Wowza mediacache status on all servers
 
@@ -36,7 +36,7 @@ Wowza mediacache status on all servers
 	
 Flush a single mediacache file on a specific server
 
-	mediacache flush srv_1/\_defaultVHost\_/<mediacache_item>
+	mediacache flush srv_1/_defaultVHost_/<mediacache_item>
 
 ### Installation
 	pip install -r requirements.txt
