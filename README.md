@@ -21,6 +21,14 @@ Show all Wowza licenses
 Difference in application configuration between two servers
 
 	diff srv_1/\_defaultVHost\_/apps srv_2
+
+Difference in SMIL files between two servers
+
+	diff srv_1/\_defaultVHost\_/smil srv_2
+
+Differences between properties on two servers
+
+	diff srv_1/\_defaultVHost\_/configuration srv_2
 	
 Wowza mediacache status on all servers
 
