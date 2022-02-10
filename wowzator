@@ -633,8 +633,10 @@ class WztrVhost():
     def incomingstreams(self):
         # always return fresh data
         item_list=[]
-        for app in self.applications().values():
-            item_list += app.incomingstreams().values()
+        #for app in self.applications().values():
+        for app in self.machine.activeapps():
+            if app.vhost == self:
+                item_list += app.incomingstreams().values()
         
         return item_list
 
@@ -995,7 +997,90 @@ class WztrMachine():
         return self.__licenses
 
 
+    def connectioncounts(self, appsonly=False):
+        # no cache
+        connectioncounts={}
+        result = self.fetchDict("/connectioncounts", "8086")
+        if result["status"] == "OK":
+            if 'WowzaStreamingEngine' in result["data"].keys():
+                connectioncounts = {
+                    'ConnectionsCurrent': result["data"]['WowzaStreamingEngine']['ConnectionsCurrent'],
+                    'MessagesInBytesRate': result["data"]['WowzaStreamingEngine']['MessagesInBytesRate'],
+                    'MessagesOutBytesRate': result["data"]['WowzaStreamingEngine']['MessagesOutBytesRate'],
+                    'vhosts': []
+                }
+                if 'VHost' in result["data"]['WowzaStreamingEngine'].keys():
+                    vhost_list=result["data"]['WowzaStreamingEngine']['VHost']
+                    if not isinstance(vhost_list, list):
+                        vhost_list=[vhost_list]
+                    for vhost_entry in vhost_list:
+                        vhost = {
+                            "Name": vhost_entry['Name'],
+                            "applications": []
+                        }
+                        if 'Application' in vhost_entry.keys():
+                            app_list=vhost_entry['Application']
+                            if not isinstance(app_list, list):
+                                app_list=[app_list]
+                            for app_entry in app_list:
+                                application = {
+                                    "Name": app_entry['Name'],
+                                    "ConnectionsCurrent": app_entry['ConnectionsCurrent'],
+                                    "MessagesInBytesRate": app_entry['MessagesInBytesRate'],
+                                    "MessagesOutBytesRate": app_entry['MessagesOutBytesRate'],
+                                    "instances": []
+                                }
+                                if not appsonly:
+                                    if 'ApplicationInstance' in app_entry.keys():
+                                        inst_list=app_entry['ApplicationInstance']
+                                        if not isinstance(inst_list, list):
+                                            inst_list=[inst_list]
+                                        for inst_entry in inst_list:
+                                            instance = {
+                                                "Name": inst_entry['Name'],
+                                                "ConnectionsCurrent": inst_entry['ConnectionsCurrent'],
+                                                "MessagesInBytesRate": inst_entry['MessagesInBytesRate'],
+                                                "MessagesOutBytesRate": inst_entry['MessagesOutBytesRate'],
+                                                "streams": []
+                                            }
+                                            if 'Stream' in inst_entry.keys():
+                                                stream_list=inst_entry['Stream']
+                                                if not isinstance(stream_list, list):
+                                                    stream_list=[stream_list]
+                                                for stream_entry in stream_list:
+                                                    stream = {
+                                                        'Name': stream_entry['Name'],
+                                                        'SessionsTotal': stream_entry['SessionsTotal']
+                                                    }
+                                                    instance['streams'].append(stream)
+                                            application['instances'].append(instance)
+                                vhost['applications'].append(application)
+                        connectioncounts['vhosts'].append(vhost)
+        return connectioncounts
 
+    def activeapps(self):
+        activeapps=[]
+        vhost_objs=self.vhosts()
+        for vhost in self.connectioncounts(True)['vhosts']:
+            if vhost['Name'] in vhost_objs.keys():
+                app_objs=vhost_objs[vhost['Name']].applications()
+                for app in vhost['applications']:
+                    if app['Name'] in app_objs.keys():
+                        activeapps.append(app_objs[app['Name']])
+                    else:
+                        print("**Warning: no Application %s, refresh needed" % app['Name'])
+            else:
+                print("**Warning: no VHost %s, refresh needed" % vhost['Name'])
+        
+        return activeapps
+
+    def incomingstreams(self):
+        # always return fresh data
+        item_list=[]
+        for app in self.activeapps():
+            item_list += app.incomingstreams().values()
+        
+        return item_list
 
 
 from cmd2 import Cmd
@@ -1759,8 +1844,7 @@ class WztrPrompt(Cmd):
                     item_list = []
                     for machine in object_list:
                         if isinstance(machine, WztrMachine):
-                            for vhost in machine.vhosts().values():
-                                item_list += vhost.incomingstreams()
+                            item_list += machine.incomingstreams()
                     self.__ls_objects(item_list)
                     
         else:
@@ -1860,9 +1944,7 @@ class WztrPrompt(Cmd):
             elif predicate == "incomingstreams":
                 if isinstance(object_instance, WztrMachine):
                     # machine specified, list incoming streams
-                    item_list=[]
-                    for vhost in object_instance.vhosts().values():
-                        item_list += vhost.incomingstreams()
+                    item_list += object_instance.incomingstreams()
                     
                     self.__ls_objects(item_list)
                 else:
