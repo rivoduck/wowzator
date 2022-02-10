@@ -1061,16 +1061,18 @@ class WztrMachine():
     def activeapps(self):
         activeapps=[]
         vhost_objs=self.vhosts()
-        for vhost in self.connectioncounts(True)['vhosts']:
-            if vhost['Name'] in vhost_objs.keys():
-                app_objs=vhost_objs[vhost['Name']].applications()
-                for app in vhost['applications']:
-                    if app['Name'] in app_objs.keys():
-                        activeapps.append(app_objs[app['Name']])
-                    else:
-                        print("**Warning: no Application %s, refresh needed" % app['Name'])
-            else:
-                print("**Warning: no VHost %s, refresh needed" % vhost['Name'])
+        counters=self.connectioncounts(True)
+        if 'vhosts' in counters:
+            for vhost in counters['vhosts']:
+                if vhost['Name'] in vhost_objs.keys():
+                    app_objs=vhost_objs[vhost['Name']].applications()
+                    for app in vhost['applications']:
+                        if app['Name'] in app_objs.keys():
+                            activeapps.append(app_objs[app['Name']])
+                        else:
+                            print("**Warning: no Application %s, refresh needed" % app['Name'])
+                else:
+                    print("**Warning: no VHost %s, refresh needed" % vhost['Name'])
         
         return activeapps
 
