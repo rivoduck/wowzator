@@ -1944,9 +1944,7 @@ class WztrPrompt(Cmd):
             elif predicate == "incomingstreams":
                 if isinstance(object_instance, WztrMachine):
                     # machine specified, list incoming streams
-                    item_list += object_instance.incomingstreams()
-                    
-                    self.__ls_objects(item_list)
+                    self.__ls_objects(object_instance.incomingstreams())
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
                 
