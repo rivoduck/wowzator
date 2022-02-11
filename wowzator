@@ -256,7 +256,7 @@ class WztrApplication():
                             appinstance=t['AppInstance']
                         if 'StreamName' in t.keys():
                             streamname=t['StreamName']
-                        newtarget=WztrStreamTarget(t['EntryName'], t['SessionStatus'], t['Enabled'], t['AutoStartTranscoder'], t['SourceStreamName'], t['Profile'], host, t['Port'], application, appinstance, streamname)
+                        newtarget=WztrStreamTarget(t['EntryName'], t['SessionStatus'], t['Enabled'], t['AutoStartTranscoder'], t['SendSSL'], t['SourceStreamName'], t['Profile'], host, t['Port'], application, appinstance, streamname)
                         newtarget.application = self
                         targets[str(newtarget)] = newtarget
         return targets
@@ -620,11 +620,12 @@ class WztrStreamTarget():
     header_singular="Stream target"
     header_plural="Stream targets"
     
-    def __init__(self, name, sessionstatus, enabled, autostarttranscoder, sourcestream, profile, targethost, targetport, targetapp, targetinstance, targetstream):
+    def __init__(self, name, sessionstatus, enabled, autostarttranscoder, sendssl, sourcestream, profile, targethost, targetport, targetapp, targetinstance, targetstream):
         self.name=name
         self.sessionstatus=sessionstatus
         self.enabled = enabled
         self.autostarttranscoder = autostarttranscoder
+        self.sendssl = sendssl
         self.sourcestream = sourcestream
         self.profile = profile
         self.targethost = targethost
@@ -634,15 +635,6 @@ class WztrStreamTarget():
         self.targetstream = targetstream
         self.application=None
 
-    def currentstatus(self):
-        status="--"
-        if self.enabled == "true":
-            if self.sessionstatus == "NotFound":
-                status="wait"
-            else:
-                status="oth"
-        else:
-            status="OFF"
         
     def __str__(self):
         return "/%s/%s" % (str(self.application), self.name)
@@ -651,7 +643,7 @@ class WztrStreamTarget():
     
     @staticmethod
     def list_view_header():
-        return "%-8s %-36s %-24s %-10s %-22s %-30s %-20s" % ("Status", "Application", "Name", "Type", "Source stream", "TG host", "TG URI")
+        return "%-8s %-10s %-36s %-16s %-22s %2s %-28s %-16s %s" % ("Status", "Type", "Application", "Name", "Source stream", "SSL", "Target host", "Target URI", "Key")
     def list_view(self):
         status="--"
         if self.enabled == "true":
@@ -662,7 +654,7 @@ class WztrStreamTarget():
             elif self.sessionstatus == "Error":
                 status="**error"
             else:
-                status="other"
+                status="**other (sessionstatus=%s)" % (self.sessionstatus)
         else:
             status="stopped"
             
@@ -672,9 +664,9 @@ class WztrStreamTarget():
                 host_port=self.targethost+":"+self.targetport
             else:
                 host_port=self.targethost
-        if len(host_port) > 30:
-            # shorten to 30 char
-            host_port=host_port[:8]+"..."+host_port[len(host_port)-19:]
+        if len(host_port) > 28:
+            # shorten to 28 char
+            host_port=host_port[:8]+"..."+host_port[len(host_port)-17:]
         
         tg_uri="--"
         if self.targethost is None:
@@ -687,14 +679,28 @@ class WztrStreamTarget():
         else:
             if self.targetinstance is not None:
                 tg_uri="/"+self.targetinstance
-        if len(tg_uri) > 20:
-            # shorten to 20 char
-            tg_uri=tg_uri[:8]+"..."+tg_uri[len(tg_uri)-9:]
+        if len(tg_uri) > 16:
+            # shorten to 16 char
+            tg_uri=tg_uri[:8]+"..."+tg_uri[len(tg_uri)-5:]
                 
         if self.targetstream is None:
             self.targetstream="--"
         
-        return "%-8s %-36s %-24s %-10s %-22s %-30s %-20s" % (status, str(self.application), self.name, self.profile, self.sourcestream, host_port, tg_uri)
+        name=self.name
+        if len(name) > 16:
+            # shorten to 16 char
+            name=name[:7]+"..."+name[len(name)-6:]
+        
+        targetstream=self.targetstream
+        if len(targetstream) > 15:
+            # shorten to 15 char
+            targetstream=targetstream[:7]+"..."+targetstream[len(targetstream)-5:]
+        
+        sendssl="-"
+        if self.sendssl == "true":
+            sendssl="Y"
+            
+        return "%-8s %-10s %-36s %-16s %-22s %2s %-28s %-16s %s" % (status, self.profile, str(self.application), name, self.sourcestream, sendssl, host_port, tg_uri, targetstream)
     def detail_view(self):
         return {
             "Name": self.name,
