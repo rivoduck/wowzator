@@ -230,6 +230,39 @@ class WztrApplication():
         return incomingstream_dict
 
 
+
+    def streamtargets(self):
+        # always return fresh data
+        targets={}
+
+        result = self.vhost.machine.fetchDict(self.href + "/pushpublish/mapentries")
+
+        if result["status"] == "OK":
+            if 'PushPublishStreams' in result["data"].keys():
+                if 'MapEntries' in result["data"]["PushPublishStreams"].keys():
+                    target_entries = result["data"]["PushPublishStreams"]["MapEntries"]
+                    if not isinstance(target_entries, list):
+                        target_entries = [ target_entries ]
+                    for t in target_entries:
+                        host="--"
+                        application="--"
+                        appinstance="--"
+                        streamname="--"
+                        if 'Host' in t.keys():
+                            host=t['Host']
+                        if 'Application' in t.keys():
+                            application=t['Application']
+                        if 'AppInstance' in t.keys():
+                            appinstance=t['AppInstance']
+                        if 'StreamName' in t.keys():
+                            streamname=t['StreamName']
+                        newtarget=WztrStreamTarget(t['EntryName'], t['SessionStatus'], t['Enabled'], t['AutoStartTranscoder'], t['SourceStreamName'], t['Profile'], host, t['Port'], application, appinstance, streamname)
+                        newtarget.application = self
+                        targets[str(newtarget)] = newtarget
+        return targets
+
+
+
     # ricarica la playlist del modulo StreamPublisher
     def playlist_reload(self):
         self.playlist_manage("load")
@@ -506,6 +539,19 @@ class WztrMediacacheItem():
     def __repr__(self):
         return "WztrMediacacheItem: %s" % unquote(self.name)
     
+    @staticmethod
+    def list_view_header():
+        return "%7s  Mediacache Item name" % "Size(MB)"
+    def list_view(self):
+        return "%7s /%s/%s/%s" % (self.length_mb, self.vhost.machine.name, self.vhost.name, self.name)
+    def detail_view(self):
+        return {
+            "Name": unquote(self.name),
+            "Cache position": "/%s/%s" % (self.vhost.machine.name, self.vhost.name),
+            "Size (MB)": self.length_mb
+        }
+    
+    
     def flush(self):
         result = self.vhost.machine.putDict("/v2/servers/_defaultServer_/vhosts/%s/mediacache/stores/actions/flushAndForceItemFromCache?filename=%s" % (self.vhost.name, self.name))
         
@@ -564,6 +610,63 @@ class WztrIncomingStream():
             "Is Stream Manager": self.manager,
             "Published to VOD": self.publishedtovod,
             "Is connected": self.connected
+        }
+
+
+
+# class used to create a temporary list of stream target entries
+# using a class in order to avail of the code to render lists
+class WztrStreamTarget():
+    header_singular="Stream target"
+    header_plural="Stream targets"
+    
+    def __init__(self, name, sessionstatus, enabled, autostarttranscoder, sourcestream, profile, targethost, targetport, targetapp, targetinstance, targetstream):
+        self.name=name
+        self.sessionstatus=sessionstatus
+        self.enabled = enabled
+        self.autostarttranscoder = autostarttranscoder
+        self.sourcestream = sourcestream
+        self.profile = profile
+        self.targethost = targethost
+        self.targetport = targetport
+        self.targetapp = targetapp
+        self.targetinstance = targetinstance
+        self.targetstream = targetstream
+        self.application=None
+
+    def currentstatus(self):
+        status="--"
+        if self.enabled == "true":
+            if self.sessionstatus == "NotFound":
+                status="wait"
+            else:
+                status="oth"
+        else:
+            status="OFF"
+        
+    def __str__(self):
+        return "/%s/%s" % (str(self.application), self.name)
+    def __repr__(self):
+        return "WztrStreamTarget: %s" % self.name
+    
+    @staticmethod
+    def list_view_header():
+        return "%-16s %-8s %-5s %-36s %-22s %-28s %-4s %-20s %s" % ("Name", "Session", "Enabled", "Application", "Source stream", "TG host", "TG port", "TG URI", "Key")
+    def list_view(self):
+        return "%-16s %-8s %-5s %-36s %-22s %-28s %-4s %-20s %s" % (self.name, self.sessionstatus, self.enabled, str(self.application), self.sourcestream, self.targethost, self.targetport, self.targetapp + "/" + self.targetinstance , self.targetstream)
+    def detail_view(self):
+        return {
+            "Name": self.name,
+            "Session status": self.sessionstatus,
+            "Enabled": self.enabled,
+            "Application": str(self.application),
+            "Source stream": self.sourcestream,
+            "Profile": self.profile,
+            "Target host": self.targethost,
+            "Target port": self.targetport,
+            "Target app": self.targetapp,
+            "Target instance": self.targetinstance,
+            "Key (Target stream)": self.targetstream,
         }
 
 
@@ -637,6 +740,15 @@ class WztrVhost():
         for app in self.machine.activeapps():
             if app.vhost == self:
                 item_list += app.incomingstreams().values()
+        
+        return item_list
+
+    def streamtargets(self):
+        # always return fresh data
+        item_list=[]
+        for app in self.applications().values():
+            if app.vhost == self:
+                item_list += app.streamtargets().values()
         
         return item_list
 
@@ -1081,6 +1193,15 @@ class WztrMachine():
         item_list=[]
         for app in self.activeapps():
             item_list += app.incomingstreams().values()
+        
+        return item_list
+
+    def streamtargets(self):
+        # always return fresh data
+        item_list=[]
+        for vhost in self.vhosts().values():
+            for app in vhost.applications().values():
+                item_list += app.streamtargets().values()
         
         return item_list
 
@@ -1848,6 +1969,13 @@ class WztrPrompt(Cmd):
                         if isinstance(machine, WztrMachine):
                             item_list += machine.incomingstreams()
                     self.__ls_objects(item_list)
+                elif predicate == 'streamtargets':
+                    # list stream targets
+                    item_list = []
+                    for machine in object_list:
+                        if isinstance(machine, WztrMachine):
+                            item_list += machine.streamtargets()
+                    self.__ls_objects(item_list)
                     
         else:
             print("empty list...")
@@ -1947,6 +2075,12 @@ class WztrPrompt(Cmd):
                 if isinstance(object_instance, WztrMachine):
                     # machine specified, list incoming streams
                     self.__ls_objects(object_instance.incomingstreams())
+                else:
+                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
+            elif predicate == "streamtargets":
+                if isinstance(object_instance, WztrMachine):
+                    # machine specified, list stream targets
+                    self.__ls_objects(object_instance.streamtargets())
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
                 
@@ -2061,6 +2195,20 @@ class WztrPrompt(Cmd):
                     print("** Error: %s" % self.command_error)
             else:
                 print("** Error: no server specified")
+
+        elif arg1 == "streamtargets":
+            if arg2 and arg2 != "":
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_status_incomingstreams, arg2)
+                if self.command_error is None:
+                    if self.command_object is not None and isinstance(self.command_object, WztrMachine):
+                        self.__ls_object(self.command_object, "streamtargets")
+                    else:
+                        print("** Error: invalid server specified")
+                else:
+                    print("** Error: %s" % self.command_error)
+            else:
+                print("** Error: no server specified")
+
             
         elif arg1 == None or arg1 == '':
             print("** Error: missing arguments")
