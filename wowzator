@@ -700,7 +700,7 @@ class WztrStreamTarget():
         if self.sendssl == "true":
             sendssl="Y"
             
-        return "%-8s %-10s %-36s %-16s %-22s %2s %-28s %-16s %s" % (status, self.profile, str(self.application), name, self.sourcestream, sendssl, host_port, tg_uri, targetstream)
+        return "%-8s %-10s %-36s %-16s %-22s %-2s %-28s %-16s %s" % (status, self.profile, str(self.application), name, self.sourcestream, sendssl, host_port, tg_uri, targetstream)
     def detail_view(self):
         return {
             "Name": self.name,
