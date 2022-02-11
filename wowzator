@@ -603,7 +603,7 @@ class WztrIncomingStream():
         recording="-"
         if self.recording == "true":
             recording="Y"
-        return "%-40s %-16s %-28s %2s %s" % (str(self.application), self.instancename, self.name, recording, self.source)
+        return "%-40s %-16s %-28s %-2s %s" % (str(self.application), self.instancename, self.name, recording, self.source)
     def detail_view(self):
         return {
             "Name": self.name,
