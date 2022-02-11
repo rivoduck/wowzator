@@ -244,10 +244,10 @@ class WztrApplication():
                     if not isinstance(target_entries, list):
                         target_entries = [ target_entries ]
                     for t in target_entries:
-                        host="--"
-                        application="--"
-                        appinstance="--"
-                        streamname="--"
+                        host=None
+                        application=None
+                        appinstance=None
+                        streamname=None
                         if 'Host' in t.keys():
                             host=t['Host']
                         if 'Application' in t.keys():
@@ -651,9 +651,50 @@ class WztrStreamTarget():
     
     @staticmethod
     def list_view_header():
-        return "%-16s %-8s %-5s %-36s %-22s %-28s %-4s %-20s %s" % ("Name", "Session", "Enabled", "Application", "Source stream", "TG host", "TG port", "TG URI", "Key")
+        return "%-8s %-36s %-24s %-10s %-22s %-30s %-20s" % ("Status", "Application", "Name", "Type", "Source stream", "TG host", "TG URI")
     def list_view(self):
-        return "%-16s %-8s %-5s %-36s %-22s %-28s %-4s %-20s %s" % (self.name, self.sessionstatus, self.enabled, str(self.application), self.sourcestream, self.targethost, self.targetport, self.targetapp + "/" + self.targetinstance , self.targetstream)
+        status="--"
+        if self.enabled == "true":
+            if self.sessionstatus == "NotFound":
+                status="wait"
+            elif self.sessionstatus == "Active":
+                status="running"
+            elif self.sessionstatus == "Error":
+                status="**error"
+            else:
+                status="other"
+        else:
+            status="stopped"
+            
+        host_port="--"
+        if self.targethost is not None:
+            if self.targetport is not None:
+                host_port=self.targethost+":"+self.targetport
+            else:
+                host_port=self.targethost
+        if len(host_port) > 30:
+            # shorten to 30 char
+            host_port=host_port[:8]+"..."+host_port[len(host_port)-19:]
+        
+        tg_uri="--"
+        if self.targethost is None:
+            self.targethost="--"
+        if self.targetapp is not None:
+            if self.targetinstance is not None:
+                tg_uri=self.targetapp+"/"+self.targetinstance
+            else:
+                tg_uri=self.targetapp
+        else:
+            if self.targetinstance is not None:
+                tg_uri="/"+self.targetinstance
+        if len(tg_uri) > 20:
+            # shorten to 20 char
+            tg_uri=tg_uri[:8]+"..."+tg_uri[len(tg_uri)-9:]
+                
+        if self.targetstream is None:
+            self.targetstream="--"
+        
+        return "%-8s %-36s %-24s %-10s %-22s %-30s %-20s" % (status, str(self.application), self.name, self.profile, self.sourcestream, host_port, tg_uri)
     def detail_view(self):
         return {
             "Name": self.name,
