@@ -598,9 +598,12 @@ class WztrIncomingStream():
     
     @staticmethod
     def list_view_header():
-        return "%-40s %-16s %-28s %s" % ("Application", "Instance", "Name", "Source")
+        return "%-40s %-16s %-28s %2s %s" % ("Application", "Instance", "Name", "REC" "Source")
     def list_view(self):
-        return "%-40s %-16s %-28s %s" % (str(self.application), self.instancename, self.name, self.source)
+        recording="-"
+        if self.recording == "true":
+            recording="Y"
+        return "%-40s %-16s %-28s %2s %s" % (str(self.application), self.instancename, self.name, recording, self.source)
     def detail_view(self):
         return {
             "Name": self.name,
