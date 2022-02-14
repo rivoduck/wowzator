@@ -641,18 +641,22 @@ class WztrServerConnection():
             self.conncurrent="--"
         try:
             rate=float(outbyterate)
-            if rate<13108:
-                self.outmbps="<0.1"
+            if rate == 0:
+                self.outmbps="0"
+            elif rate<=131072:
+                self.outmbps="<1"
             else:
-                self.outmbps="%.1f" % (rate/131072)
+                self.outmbps="%.0f" % (rate/131072)
         except:
             self.outmbps="--"
         try:
             rate=float(inbyterate)
-            if rate<13108:
-                self.inmbps="<0.1"
+            if rate == 0:
+                self.inmbps="0"
+            elif rate<=131072:
+                self.inmbps="<1"
             else:
-                self.inmbps="%.1f" % (rate/131072)
+                self.inmbps="%.0f" % (rate/131072)
         except:
             self.inmbps="--"
 
@@ -671,6 +675,60 @@ class WztrServerConnection():
     def detail_view(self):
         return {
             "Server": self.machine.name,
+            "Connections": self.conncurrent,
+            "In": self.inmbps + " mbit/s",
+            "Out": self.outmbps + " mbit/s",
+        }
+
+
+
+# class used to create a temporary list of connections per server
+# using a class in order to avail of the code to render lists
+class WztrOutgoingStream():
+    header_singular="Outgoing stream"
+    header_plural="Outgoing streams"
+    
+    def __init__(self, conncurrent, outbyterate="0.0", inbyterate="0.0"):
+        try:
+            self.conncurrent=str(int(conncurrent))
+        except:
+            self.conncurrent="--"
+        try:
+            rate=float(outbyterate)
+            if rate == 0:
+                self.outmbps="0"
+            elif rate<=131072:
+                self.outmbps="<1"
+            else:
+                self.outmbps="%.0f" % (rate/131072)
+        except:
+            self.outmbps="--"
+        try:
+            rate=float(inbyterate)
+            if rate == 0:
+                self.inmbps="0"
+            elif rate<=131072:
+                self.inmbps="<1"
+            else:
+                self.inmbps="%.0f" % (rate/131072)
+        except:
+            self.inmbps="--"
+
+        self.application=None
+
+    def __str__(self):
+        return "/%s conn=%s in=%s mbps out=%s mbps" % (self.application.name, self.conncurrent, self.inmbps, self.outmbps)
+    def __repr__(self):
+        return "WztrOutgoingStream: %s" % (self.application.name)
+    
+    @staticmethod
+    def list_view_header():
+        return "%-44s %6s %18s %14s" % ("Application", "Conn", "In (mbit/s)", "Out (mbit/s)")
+    def list_view(self):
+        return "%-44s %6s %18s %14s" % (str(self.application), self.conncurrent, self.inmbps, self.outmbps)
+    def detail_view(self):
+        return {
+            "Application": str(self.application),
             "Connections": self.conncurrent,
             "In": self.inmbps + " mbit/s",
             "Out": self.outmbps + " mbit/s",
@@ -927,8 +985,8 @@ class WztrVhost():
                             newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
                             newapp.vhost = self
                             
-                            dict_key="%s/%s" % (newapp.vhost.name, newapp.name)
-                            self.__applications[dict_key] = newapp
+                            app_key="%s/%s" % (newapp.vhost.name, newapp.name)
+                            self.__applications[app_key] = newapp
                             #self.__applications[newapp.name] = newapp
         
         filtered_list=self.__applications
@@ -1025,7 +1083,7 @@ class WztrMachine():
         else:
             self.port="8087"
         
-        self.connectionstatus=None
+        self.__connectionstatus=None
         
     def __str__(self):
         return self.name
@@ -1105,7 +1163,7 @@ class WztrMachine():
     def __do_api_call(self, url, method, tcp_port=None):
         data=""
         status="OK"
-        if self.connectionstatus is None or self.connectionstatus == "OK":
+        if self.__connectionstatus is None or self.__connectionstatus == "OK":
             try:
                 base_url="http://"
                 if self.use_https:
@@ -1150,20 +1208,20 @@ class WztrMachine():
             
                 if int(response.status_code) >= 200 and int(response.status_code) <= 299:
                     data = response.text
-                    self.connectionstatus="OK"
+                    self.__connectionstatus="OK"
                 else:
                     data = 'HTTP error %s' % response.status_code
                     status="KO"
-                    self.connectionstatus="KO"
+                    self.__connectionstatus="KO"
                 
             except NetworkError:
                 data='timeout %s %s on machine %s' % (method, url, self)
                 status="KO"
-                self.connectionstatus="KO"
+                self.__connectionstatus="KO"
             except Exception as e:
                 data='error %s %s on machine %s' % (method, url, self)
                 status="KO"
-                self.connectionstatus="KO"
+                self.__connectionstatus="KO"
         else:
             data='machine %s not available' % (self)
             status="KO"
@@ -1175,6 +1233,7 @@ class WztrMachine():
         self.__vhosts = None
         self.__version = None
         self.__licenses = None
+        self.__connectionstatus = None
     
     def vhosts(self):
         # lazy-fetch vhosts
@@ -1306,10 +1365,25 @@ class WztrMachine():
                 if vhost['Name'] in vhost_objs.keys():
                     app_objs=vhost_objs[vhost['Name']].applications()
                     for app in vhost['applications']:
-                        if app['Name'] in app_objs.keys():
-                            activeapps.append(app_objs[app['Name']])
+                        app_key="%s/%s" % (vhost['Name'], app['Name'])
+                        if app_key in app_objs.keys():
+                            app_obj=app_objs[app_key]
+                            # add counters
+                            try:
+                                app_obj.connectionscurrent=app['ConnectionsCurrent']
+                            except:
+                                app_obj.connectionscurrent="--"
+                            try:
+                                app_obj.inbyterate=app['MessagesInBytesRate']
+                            except:
+                                app_obj.inbyterate="--"
+                            try:
+                                app_obj.outbyterate=app['MessagesOutBytesRate']
+                            except:
+                                app_obj.outbyterate="--"
+                            activeapps.append(app_obj)
                         else:
-                            print("**Warning: no Application %s, refresh needed" % app['Name'])
+                            print("**Warning: no Application %s, refresh needed" % app_key)
                 else:
                     print("**Warning: no VHost %s, refresh needed" % vhost['Name'])
         
@@ -1323,6 +1397,18 @@ class WztrMachine():
             #item_list += app.incomingstreams().values()
         
         return item_list
+
+    def outgoingstreams(self):
+        # always return fresh data
+        item_list={}
+        for app in self.activeapps():
+            newoutstream=WztrOutgoingStream(app.connectionscurrent, app.inbyterate, app.outbyterate)
+            newoutstream.application=app
+            app_key="%s/%s" % (app.vhost.name, app.name)
+            item_list[app_key]=newoutstream
+            
+        return item_list
+
 
     def serverconnections(self):
         # always return fresh data
@@ -2231,7 +2317,7 @@ class WztrPrompt(Cmd):
             elif predicate == "outgoingstreams":
                 if isinstance(object_instance, WztrMachine):
                     # machine specified, list connection count for apps on the specified server
-                    self.__ls_objects(object_instance.outgoingstreams())
+                    self.__ls_objects(object_instance.outgoingstreams().values())
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "streamtargets":
