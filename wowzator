@@ -1402,7 +1402,7 @@ class WztrMachine():
         # always return fresh data
         item_list={}
         for app in self.activeapps():
-            newoutstream=WztrOutgoingStream(app.connectionscurrent, app.inbyterate, app.outbyterate)
+            newoutstream=WztrOutgoingStream(app.connectionscurrent, app.outbyterate, app.inbyterate)
             newoutstream.application=app
             app_key="%s/%s" % (app.vhost.name, app.name)
             item_list[app_key]=newoutstream
