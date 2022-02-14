@@ -628,6 +628,56 @@ class WztrIncomingStream():
 
 
 
+# class used to create a temporary list of connections per server
+# using a class in order to avail of the code to render lists
+class WztrServerConnection():
+    header_singular="Outgoing connections per server"
+    header_plural="Outgoing connections per server"
+    
+    def __init__(self, conncurrent, outbyterate, inbyterate):
+        try:
+            self.conncurrent=str(int(conncurrent))
+        except:
+            self.conncurrent="--"
+        try:
+            rate=float(outbyterate)
+            if rate<13108:
+                self.outmbps="<0.1"
+            else:
+                self.outmbps="%.1f" % (rate/131072)
+        except:
+            self.outmbps="--"
+        try:
+            rate=float(inbyterate)
+            if rate<13108:
+                self.inmbps="<0.1"
+            else:
+                self.inmbps="%.1f" % (rate/131072)
+        except:
+            self.inmbps="--"
+
+        self.machine=None
+
+    def __str__(self):
+        return "/%s conn=%s in=%s mbps out=%s mbps" % (self.machine.name, self.conncurrent, self.inmbps, self.outmbps)
+    def __repr__(self):
+        return "WztrServerConnection: %s" % (self.machine.name)
+    
+    @staticmethod
+    def list_view_header():
+        return "%-10s %6s %18s %14s" % ("Server", "Conn", "In (mbit/s)", "Out (mbit/s)")
+    def list_view(self):
+        return "%-10s %6s %18s %14s" % (self.machine.name, self.conncurrent, self.inmbps, self.outmbps)
+    def detail_view(self):
+        return {
+            "Server": self.machine.name,
+            "Connections": self.conncurrent,
+            "In": self.inmbps + " mbit/s",
+            "Out": self.outmbps + " mbit/s",
+        }
+
+
+
 # class used to create a temporary list of stream target entries
 # using a class in order to avail of the code to render lists
 class WztrStreamTarget():
@@ -974,7 +1024,9 @@ class WztrMachine():
             self.port=port
         else:
             self.port="8087"
-
+        
+        self.connectionstatus=None
+        
     def __str__(self):
         return self.name
     def __repr__(self):
@@ -1053,61 +1105,68 @@ class WztrMachine():
     def __do_api_call(self, url, method, tcp_port=None):
         data=""
         status="OK"
-        try:
-            base_url="http://"
-            if self.use_https:
-                base_url="https://"
+        if self.connectionstatus is None or self.connectionstatus == "OK":
+            try:
+                base_url="http://"
+                if self.use_https:
+                    base_url="https://"
             
-            base_url += self.address
+                base_url += self.address
             
-            if tcp_port is None:
-                tcp_port=self.port
+                if tcp_port is None:
+                    tcp_port=self.port
             
-            url = "%s:%s%s" % (base_url, tcp_port, url) 
+                url = "%s:%s%s" % (base_url, tcp_port, url) 
             
-            if self.auth == "basic":
-                auth=httpx.BasicAuth(
-                    self.user, self.pw
-                )
-            else:
-                # prima della version 4.8.8.01
-                auth=httpx.DigestAuth(
-                    self.user, self.pw
-                )
+                if self.auth == "basic":
+                    auth=httpx.BasicAuth(
+                        self.user, self.pw
+                    )
+                else:
+                    # prima della version 4.8.8.01
+                    auth=httpx.DigestAuth(
+                        self.user, self.pw
+                    )
             
-            response = None
-            if method == "GET":
-                response = httpx.get(
-                    url,
-                    auth=auth,
-                    timeout=httpx.Timeout(timeout=3)
-                )
-            elif method == "PUT":
-                response = httpx.put(
-                    url,
-                    auth=auth,
-                    timeout=httpx.Timeout(timeout=3)
-                )
-            elif method == "DELETE":
-                response = httpx.delete(
-                    url,
-                    auth=auth,
-                    timeout=httpx.Timeout(timeout=3)
-                )
+                response = None
+                if method == "GET":
+                    response = httpx.get(
+                        url,
+                        auth=auth,
+                        timeout=httpx.Timeout(timeout=3)
+                    )
+                elif method == "PUT":
+                    response = httpx.put(
+                        url,
+                        auth=auth,
+                        timeout=httpx.Timeout(timeout=3)
+                    )
+                elif method == "DELETE":
+                    response = httpx.delete(
+                        url,
+                        auth=auth,
+                        timeout=httpx.Timeout(timeout=3)
+                    )
             
-            if int(response.status_code) >= 200 and int(response.status_code) <= 299:
-                data = response.text
-            else:
-                data = 'HTTP error %s' % response.status_code
-                status="KO"
+                if int(response.status_code) >= 200 and int(response.status_code) <= 299:
+                    data = response.text
+                    self.connectionstatus="OK"
+                else:
+                    data = 'HTTP error %s' % response.status_code
+                    status="KO"
+                    self.connectionstatus="KO"
                 
-        except NetworkError:
-            data='timeout %s %s on machine %s' % (method, url, self)
+            except NetworkError:
+                data='timeout %s %s on machine %s' % (method, url, self)
+                status="KO"
+                self.connectionstatus="KO"
+            except Exception as e:
+                data='error %s %s on machine %s' % (method, url, self)
+                status="KO"
+                self.connectionstatus="KO"
+        else:
+            data='machine %s not available' % (self)
             status="KO"
-        except Exception as e:
-            data='error %s %s on machine %s' % (method, url, self)
-            status="KO"
-        
         return {"data": data, "status": status}
         
     
@@ -1263,6 +1322,16 @@ class WztrMachine():
             item_list.update(app.incomingstreams())
             #item_list += app.incomingstreams().values()
         
+        return item_list
+
+    def serverconnections(self):
+        # always return fresh data
+        item_list={}
+        counters = self.connectioncounts()
+        if 'ConnectionsCurrent' in counters and 'MessagesOutBytesRate' in counters and 'MessagesInBytesRate' in counters:
+            newconn=WztrServerConnection(counters['ConnectionsCurrent'], counters['MessagesOutBytesRate'], counters['MessagesInBytesRate'])
+            newconn.machine=self
+            item_list[newconn.machine.name]=newconn
         return item_list
 
     def streamtargets(self):
@@ -2044,6 +2113,13 @@ class WztrPrompt(Cmd):
                             item_list += target_obj.incomingstreams().values()
                     self.__ls_objects(item_list)
                     
+                elif predicate == 'outgoingstreams':
+                    # list connection count all machines
+                    item_list = []
+                    for target_obj in object_list:
+                        if isinstance(target_obj, WztrMachine):
+                            item_list += target_obj.serverconnections().values()
+                    self.__ls_objects(item_list)
                 elif predicate == 'streamtargets':
                     # list stream targets
                     item_list = []
@@ -2150,6 +2226,12 @@ class WztrPrompt(Cmd):
                 if isinstance(object_instance, WztrMachine) or isinstance(object_instance, WztrApplication):
                     # machine specified, list incoming streams
                     self.__ls_objects(object_instance.incomingstreams())
+                else:
+                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
+            elif predicate == "outgoingstreams":
+                if isinstance(object_instance, WztrMachine):
+                    # machine specified, list connection count for apps on the specified server
+                    self.__ls_objects(object_instance.outgoingstreams())
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "streamtargets":
@@ -2274,6 +2356,20 @@ class WztrPrompt(Cmd):
                     print("** Error: %s" % self.command_error)
             else:
                 print("** Error: no server specified")
+
+        elif arg1 == "outgoingstreams":
+            if arg2 and arg2 != "":
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_status_incomingstreams, arg2)
+                if self.command_error is None:
+                    if self.command_object is not None and isinstance(self.command_object, WztrMachine):
+                        self.__ls_object(self.command_object, "outgoingstreams")
+                    else:
+                        print("** Error: invalid server specified")
+                else:
+                    print("** Error: %s" % self.command_error)
+            else:
+                self.__ls_objects(self.machines.values(), "outgoingstreams")
+                
 
         elif arg1 == "streamtargets":
             if arg2 and arg2 != "":
