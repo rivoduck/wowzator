@@ -11,7 +11,7 @@ Some status information is also returned by the `status` command and `mediacache
 	status streamtargets <server_name> [app_name_filter]
 	mediacache ls [all|server_name]
 
-It has no database, it just lazy-fetches configuration information through the Wowza REST APIs to show and compare configuration info.
+Wowzator has no database, it just lazy-fetches configuration information through the Wowza REST APIs to show and compare configuration info.
 
 ![Wowzator Screenshot](wowzator-screenshot.png)
 
