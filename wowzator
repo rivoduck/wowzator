@@ -11,9 +11,9 @@ def shorten_string(source, length):
         beginning=8
         if length < 13:
             beginning=4
-        end=length-beginning-3
+        end=length-beginning-1
         
-        return source[:beginning]+"..."+source[len(source)-end:]
+        return source[:beginning]+"…"+source[len(source)-end:]
     return source
 
 
@@ -691,22 +691,18 @@ class WztrStreamTarget():
         else:
             if self.targetinstance is not None:
                 tg_uri="/"+self.targetinstance
-        tg_uri=shorten_string(tg_uri, 28)
+        tg_uri=shorten_string(tg_uri, 16)
 
         if self.targetstream is None:
             self.targetstream="--"
-        
-        name=shorten_string(self.name, 16)
-        
-        targetstream=shorten_string(self.targetstream, 15)
         
         sendssl="-"
         if self.sendssl == "true":
             sendssl="Y"
         
-        appname=shorten_string(str(self.application), 36)
-        
-        return "%-8s %-10s %-36s %-16s %-22s %-2s %-28s %-16s %s" % (status, self.profile, appname, name, self.sourcestream, sendssl, host_port, tg_uri, targetstream)
+        return "%-8s %-10s %-36s %-16s %-22s %-2s %-28s %-16s %s" % (status, self.profile, 
+            shorten_string(str(self.application), 36), shorten_string(self.name, 16), 
+            self.sourcestream, sendssl, host_port, tg_uri, shorten_string(self.targetstream, 15))
     def detail_view(self):
         return {
             "Name": self.name,
