@@ -589,8 +589,8 @@ class WztrMediacacheItem():
 # class used to create a temporary list of incomingstream entries
 # using a class in order to avail of the code to render lists
 class WztrIncomingStream():
-    header_singular="Incoming stream"
-    header_plural="Incoming streams"
+    header_singular="Live Incoming stream"
+    header_plural="Live Incoming streams"
     
     def __init__(self, name, instance, source, recording, manager, publishedtovod, connected):
         self.name=name
