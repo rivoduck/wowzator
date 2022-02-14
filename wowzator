@@ -6,6 +6,17 @@ import xmltodict
 import json
 from urllib.parse import quote_plus, unquote
 
+def shorten_string(source, length):
+    if len(source) > length:
+        beginning=8
+        if length < 13:
+            beginning=4
+        end=length-beginning-3
+        
+        return source[:beginning]+"..."+source[len(source)-end:]
+    return source
+
+
 
 class WztrApplication():
     header_singular="Application"
@@ -667,9 +678,7 @@ class WztrStreamTarget():
                 host_port=self.targethost+":"+self.targetport
             else:
                 host_port=self.targethost
-        if len(host_port) > 28:
-            # shorten to 28 char
-            host_port=host_port[:8]+"..."+host_port[len(host_port)-17:]
+        host_port=shorten_string(host_port, 28)
         
         tg_uri="--"
         if self.targethost is None:
@@ -682,28 +691,22 @@ class WztrStreamTarget():
         else:
             if self.targetinstance is not None:
                 tg_uri="/"+self.targetinstance
-        if len(tg_uri) > 16:
-            # shorten to 16 char
-            tg_uri=tg_uri[:8]+"..."+tg_uri[len(tg_uri)-5:]
-                
+        tg_uri=shorten_string(tg_uri, 28)
+
         if self.targetstream is None:
             self.targetstream="--"
         
-        name=self.name
-        if len(name) > 16:
-            # shorten to 16 char
-            name=name[:7]+"..."+name[len(name)-6:]
+        name=shorten_string(self.name, 16)
         
-        targetstream=self.targetstream
-        if len(targetstream) > 15:
-            # shorten to 15 char
-            targetstream=targetstream[:7]+"..."+targetstream[len(targetstream)-5:]
+        targetstream=shorten_string(self.targetstream, 15)
         
         sendssl="-"
         if self.sendssl == "true":
             sendssl="Y"
-            
-        return "%-8s %-10s %-36s %-16s %-22s %-2s %-28s %-16s %s" % (status, self.profile, str(self.application), name, self.sourcestream, sendssl, host_port, tg_uri, targetstream)
+        
+        appname=shorten_string(str(self.application), 36)
+        
+        return "%-8s %-10s %-36s %-16s %-22s %-2s %-28s %-16s %s" % (status, self.profile, appname, name, self.sourcestream, sendssl, host_port, tg_uri, targetstream)
     def detail_view(self):
         return {
             "Name": self.name,
@@ -785,20 +788,22 @@ class WztrVhost():
 
     def incomingstreams(self):
         # always return fresh data
-        item_list=[]
+        item_list={}
         #for app in self.applications().values():
         for app in self.machine.activeapps():
             if app.vhost == self:
-                item_list += app.incomingstreams().values()
+                item_list.update(app.incomingstreams())
+                #item_list += app.incomingstreams().values()
         
         return item_list
 
     def streamtargets(self):
         # always return fresh data
-        item_list=[]
+        item_list={}
         for app in self.applications().values():
             if app.vhost == self:
-                item_list += app.streamtargets().values()
+                item_list.update(app.streamtargets())
+                #item_list += app.streamtargets().values()
         
         return item_list
 
@@ -861,7 +866,7 @@ class WztrVhost():
 
 
 
-    def applications(self):
+    def applications(self, name_filter=None):
         # lazy-fetch applications
         if self.__applications is None:
             self.__applications={}
@@ -875,10 +880,18 @@ class WztrVhost():
                         for item in items:
                             newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
                             newapp.vhost = self
-                    
-                            self.__applications[newapp.name] = newapp
-
-        return self.__applications
+                            
+                            dict_key="%s/%s" % (newapp.vhost.name, newapp.name)
+                            self.__applications[dict_key] = newapp
+                            #self.__applications[newapp.name] = newapp
+        
+        filtered_list=self.__applications
+        if name_filter is not None and name_filter != '':
+            filtered_list={}
+            for app_key in self.__applications.keys():
+                if name_filter.lower() in app_key.lower():
+                    filtered_list[app_key]=self.__applications[app_key]
+        return filtered_list
         
     def transcodertemplates(self):
         # lazy-fetch transcoder templates
@@ -1220,6 +1233,15 @@ class WztrMachine():
                         connectioncounts['vhosts'].append(vhost)
         return connectioncounts
 
+    def applications(self, name_filter=None):
+        item_list={}
+        for vhost in self.vhosts().values():
+            # merging two dicts
+            item_list.update(vhost.applications(name_filter))
+        
+        return item_list
+        
+        
     def activeapps(self):
         activeapps=[]
         vhost_objs=self.vhosts()
@@ -1240,18 +1262,23 @@ class WztrMachine():
 
     def incomingstreams(self):
         # always return fresh data
-        item_list=[]
+        item_list={}
         for app in self.activeapps():
-            item_list += app.incomingstreams().values()
+            item_list.update(app.incomingstreams())
+            #item_list += app.incomingstreams().values()
         
         return item_list
 
     def streamtargets(self):
         # always return fresh data
-        item_list=[]
-        for vhost in self.vhosts().values():
-            for app in vhost.applications().values():
-                item_list += app.streamtargets().values()
+        item_list={}
+        for app in self.applications().values():
+            item_list.update(app.streamtargets())
+            #item_list += app.streamtargets().values()
+            
+        #for vhost in self.vhosts().values():
+        #    for app in vhost.applications().values():
+        #        item_list += app.streamtargets().values()
         
         return item_list
 
@@ -1991,8 +2018,9 @@ class WztrPrompt(Cmd):
                     item_list = []
                     for machine in object_list:
                         if isinstance(machine, WztrMachine):
-                            for vhost in machine.vhosts().values():
-                                item_list += vhost.applications().values()
+                            item_list += machine.applications().values()
+                            #for vhost in machine.vhosts().values():
+                            #    item_list += vhost.applications().values()
                     self.__ls_objects(item_list)
                 elif predicate == 'licenses':
                     # list all licences
@@ -2015,16 +2043,17 @@ class WztrPrompt(Cmd):
                 elif predicate == 'incomingstreams':
                     # list incoming streams
                     item_list = []
-                    for machine in object_list:
-                        if isinstance(machine, WztrMachine):
-                            item_list += machine.incomingstreams()
+                    for target_obj in object_list:
+                        if isinstance(target_obj, WztrMachine) or isinstance(target_obj, WztrApplication):
+                            item_list += target_obj.incomingstreams().values()
                     self.__ls_objects(item_list)
+                    
                 elif predicate == 'streamtargets':
                     # list stream targets
                     item_list = []
-                    for machine in object_list:
-                        if isinstance(machine, WztrMachine):
-                            item_list += machine.streamtargets()
+                    for target_obj in object_list:
+                        if isinstance(target_obj, WztrMachine) or isinstance(target_obj, WztrApplication):
+                            item_list += target_obj.streamtargets().values()
                     self.__ls_objects(item_list)
                     
         else:
@@ -2122,13 +2151,13 @@ class WztrPrompt(Cmd):
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "incomingstreams":
-                if isinstance(object_instance, WztrMachine):
+                if isinstance(object_instance, WztrMachine) or isinstance(object_instance, WztrApplication):
                     # machine specified, list incoming streams
                     self.__ls_objects(object_instance.incomingstreams())
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "streamtargets":
-                if isinstance(object_instance, WztrMachine):
+                if isinstance(object_instance, WztrMachine) or isinstance(object_instance, WztrApplication):
                     # machine specified, list stream targets
                     self.__ls_objects(object_instance.streamtargets())
                 else:
@@ -2225,20 +2254,24 @@ class WztrPrompt(Cmd):
     def do_status(self, inp):
         print()
         
-        inputline = inp.split(" ",1)
+        inputline = inp.split(" ",2)
         arg1=None
         arg2=None
+        arg3=None
         if len(inputline) > 0:
             arg1=inputline[0]
             if len(inputline) > 1:
                 arg2=inputline[1]
-        
+            if len(inputline) > 2:
+                arg3=inputline[2]
+                
         if arg1 == "incomingstreams":
             if arg2 and arg2 != "":
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_status_incomingstreams, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrMachine):
-                        self.__ls_object(self.command_object, "incomingstreams")
+                        # filter app name by third argument
+                        self.__ls_objects(self.command_object.applications(arg3).values(), "incomingstreams")
                     else:
                         print("** Error: invalid server specified")
                 else:
@@ -2251,7 +2284,7 @@ class WztrPrompt(Cmd):
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_status_incomingstreams, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrMachine):
-                        self.__ls_object(self.command_object, "streamtargets")
+                        self.__ls_objects(self.command_object.applications(arg3).values(), "streamtargets")
                     else:
                         print("** Error: invalid server specified")
                 else:
@@ -2279,17 +2312,19 @@ class WztrPrompt(Cmd):
         items=[]
         if line_args_count == 3:
             result={"completion": []}
-            if subcomm == "incomingstreams":
+            if subcomm == "incomingstreams" or subcomm == "streamtargets":
                 result = self.__get_obj_by_path(WztrPrompt.syntaxtree_status_incomingstreams, path_to_match)
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
         if line_args_count < 3:
-            items=["incomingstreams"]
+            items=["incomingstreams", "streamtargets"]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
     def help_status(self):
         print("Shows status information")
+        print("  status incomingstreams <server> [app_name_filter]")
+        print("  status streamtargets <server> [app_name_filter]")
         print()
 
 
