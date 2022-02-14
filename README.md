@@ -5,6 +5,11 @@ This tool is an interactive commandline Configuration Manager, it has been creat
 
 This tool uses a shell-like syntax to list and compare configuration information about vhosts, applications, smil files, transcoding templates, mediacache items and other parameters.
 
+Some status information is also returned by the `status` command:
+
+	status incomingstreams <server_name> [app_name_filter]
+	status streamtargets <server_name> [app_name_filter]
+
 It has no database, it just lazy-fetches configuration information through the Wowza REST APIs to show and compare configuration info.
 
 ![Wowzator Screenshot](wowzator-screenshot.png)
