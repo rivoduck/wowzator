@@ -2604,7 +2604,7 @@ class WztrPrompt(Cmd):
                 else:
                     print("** Error: %s" % self.command_error)
             else:
-                print("** Error: no Server or Vhost specified")
+                print("** Error: no Server, Vhost or Application specified")
                 
         elif arg1 in ["stop", "start"]:
             # do not allow stop/start on server,
@@ -2612,18 +2612,18 @@ class WztrPrompt(Cmd):
             if arg2 and arg2 != "":
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_application, arg2)
                 if self.command_error is None:
-                    if self.command_object is not None and (isinstance(self.command_object, WztrVhost or isinstance(self.command_object, WztrApplication))):
+                    if self.command_object is not None and (isinstance(self.command_object, WztrVhost) or isinstance(self.command_object, WztrApplication)):
                         print("*** %s *** going to perform %s in 4sec" % (str(self.command_object), arg1), end='', flush=True)
                         for i in [3, 2, 1, 0]:
                             sleep(1)
                             print("...%s" % i, end='', flush=True)
                         self.command_object.action(arg1)
                     else:
-                        print("** Error: invalid Vhost specified")
+                        print("** Error: invalid Vhost or Application specified")
                 else:
                     print("** Error: %s" % self.command_error)
             else:
-                print("** Error: no Vhost specified")
+                print("** Error: no Vhost or Application specified")
 
             
         elif arg1 == None or arg1 == '':
