@@ -53,6 +53,8 @@ Flush a single mediacache file on a specific server
 	mediacache flush srv_1/_defaultVHost_/<mediacache_item>
 
 ### Installation
+Please clone the 'release' branch and keep it updated!
+
 	pip install -r requirements.txt
 
 Create config.json file in the same dir of wowzator executable
