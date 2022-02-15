@@ -2462,7 +2462,7 @@ class WztrPrompt(Cmd):
         line_args_count = len(line_args)
         path_to_match=text.split(" ")[-1]
         
-        subcom = ""
+        subcomm = ""
         try:
             subcomm = line_args[1]
         except:
@@ -2553,7 +2553,7 @@ class WztrPrompt(Cmd):
         line_args_count = len(line_args)
         path_to_match=text.split(" ")[-1]
         
-        subcom = ""
+        subcomm = ""
         try:
             subcomm = line_args[1]
         except:
@@ -2562,7 +2562,7 @@ class WztrPrompt(Cmd):
         items=[]
         if line_args_count == 3:
             result={"completion": []}
-            if subcomm == "incomingstreams" or subcomm == "streamtargets" or subcom == "outgoingstreams":
+            if subcomm == "incomingstreams" or subcomm == "streamtargets" or subcomm == "outgoingstreams":
                 result = self.__get_obj_by_path(WztrPrompt.syntaxtree_server, path_to_match)
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
@@ -2601,6 +2601,7 @@ class WztrPrompt(Cmd):
                         for i in [3, 2, 1, 0]:
                             sleep(1)
                             print("...%s" % i, end='', flush=True)
+                        print()
                         self.command_object.action(arg1)
                     else:
                         print("** Error: invalid Server or Vhost specified")
@@ -2620,6 +2621,7 @@ class WztrPrompt(Cmd):
                         for i in [3, 2, 1, 0]:
                             sleep(1)
                             print("...%s" % i, end='', flush=True)
+                        print()
                         self.command_object.action(arg1)
                     else:
                         print("** Error: invalid Vhost or Application specified")
@@ -2639,7 +2641,7 @@ class WztrPrompt(Cmd):
         line_args_count = len(line_args)
         path_to_match=text.split(" ")[-1]
         
-        subcom = ""
+        subcomm = ""
         try:
             subcomm = line_args[1]
         except:
@@ -2648,7 +2650,7 @@ class WztrPrompt(Cmd):
         items=[]
         if line_args_count == 3:
             result={"completion": []}
-            if subcomm == "restart" or subcomm == "stop" or subcom == "start":
+            if subcomm == "restart" or subcomm == "stop" or subcomm == "start":
                 result = self.__get_obj_by_path(WztrPrompt.syntaxtree_application, path_to_match)
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
@@ -2726,7 +2728,7 @@ class WztrPrompt(Cmd):
         line_args_count = len(line_args)
         path_to_match=text.split(" ")[-1]
         
-        subcom = ""
+        subcomm = ""
         try:
             subcomm = line_args[1]
         except:
