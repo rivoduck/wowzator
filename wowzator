@@ -1242,19 +1242,19 @@ class WztrMachine():
                     response = httpx.get(
                         url,
                         auth=auth,
-                        timeout=httpx.Timeout(timeout=3)
+                        timeout=httpx.Timeout(timeout=2)
                     )
                 elif method == "PUT":
                     response = httpx.put(
                         url,
                         auth=auth,
-                        timeout=httpx.Timeout(timeout=3)
+                        timeout=httpx.Timeout(timeout=2)
                     )
                 elif method == "DELETE":
                     response = httpx.delete(
                         url,
                         auth=auth,
-                        timeout=httpx.Timeout(timeout=3)
+                        timeout=httpx.Timeout(timeout=2)
                     )
             
                 if int(response.status_code) >= 200 and int(response.status_code) <= 299:
