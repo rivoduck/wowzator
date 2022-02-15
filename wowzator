@@ -1487,6 +1487,7 @@ class WztrMachine():
 
 from cmd2 import Cmd
 import json, sys
+from time import sleep
 
 _CONFIGFILE="config.json"
 
@@ -2591,6 +2592,10 @@ class WztrPrompt(Cmd):
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_action, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and (isinstance(self.command_object, WztrVhost) or isinstance(self.command_object, WztrMachine)):
+                        print("going to perform %s on %s in 4sec" % (arg1, str(self.command_object)), end='', flush=True)
+                        for i in [3, 2, 1, 0]:
+                            sleep(1)
+                            print("...%s" % i, end='', flush=True)
                         self.command_object.action(arg1)
                     else:
                         print("** Error: invalid Server or Vhost specified")
@@ -2606,6 +2611,10 @@ class WztrPrompt(Cmd):
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_action, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrVhost):
+                        print("going to perform %s on %s in 4sec" % (arg1, str(self.command_object)), end='', flush=True)
+                        for i in [3, 2, 1, 0]:
+                            sleep(1)
+                            print("...%s" % i, end='', flush=True)
                         self.command_object.action(arg1)
                     else:
                         print("** Error: invalid Vhost specified")
