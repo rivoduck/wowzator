@@ -7,7 +7,7 @@ This tool uses a shell-like syntax to list and compare configuration information
 
 Basic actions are implemented:
 
-	action <restart|stop|start> <server|vhost>
+	action <restart|stop|start> <server|vhost|application>
 
 Basic status information is returned by the `status` command and `mediacache` command:
 

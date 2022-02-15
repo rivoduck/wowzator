@@ -2662,7 +2662,7 @@ class WztrPrompt(Cmd):
 
     def help_action(self):
         print("Perform action")
-        print("  action <restart|stop|start> <server|vhost>")
+        print("  action <restart|stop|start> <server|vhost|application>")
         print()
 
 
