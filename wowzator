@@ -2600,7 +2600,7 @@ class WztrPrompt(Cmd):
                         print("*** %s *** going to perform %s in 4sec" % (str(self.command_object), arg1), end='', flush=True)
                         for i in [3, 2, 1, 0]:
                             sleep(1)
-                            print("...%s" % i, end='', flush=True)
+                            print("  %s" % i, end='', flush=True)
                         print()
                         self.command_object.action(arg1)
                     else:
@@ -2620,7 +2620,7 @@ class WztrPrompt(Cmd):
                         print("*** %s *** going to perform %s in 4sec" % (str(self.command_object), arg1), end='', flush=True)
                         for i in [3, 2, 1, 0]:
                             sleep(1)
-                            print("...%s" % i, end='', flush=True)
+                            print("  %s" % i, end='', flush=True)
                         print()
                         self.command_object.action(arg1)
                     else:
