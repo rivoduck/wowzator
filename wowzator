@@ -2235,6 +2235,7 @@ class WztrPrompt(Cmd):
                 print("%s" % object_list[0].list_view_header())
                 for cur_obj in object_list:
                     print(" %s" % cur_obj.list_view())
+                print()
             else:
                 if predicate == 'apps':
                     # list all applications
@@ -2288,7 +2289,7 @@ class WztrPrompt(Cmd):
                     
         else:
             print("empty list...")
-        print()
+            print()
         
     def __ls_object(self, object_instance, predicate=None):
         if predicate is None:
