@@ -2610,7 +2610,7 @@ class WztrPrompt(Cmd):
             # do not allow stop/start on server,
             # once a server is stopped via API it needs to be started via commandline
             if arg2 and arg2 != "":
-                self.__get_obj_by_path(WztrPrompt.syntaxtree_vhost, arg2)
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_application, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrVhost):
                         print("*** %s *** going to perform %s in 4sec" % (str(self.command_object), arg1), end='', flush=True)
