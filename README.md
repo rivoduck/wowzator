@@ -5,11 +5,11 @@ This tool is an interactive commandline Configuration Manager, it has been creat
 
 This tool uses a shell-like syntax to list and compare configuration information about vhosts, applications, smil files, transcoding templates, mediacache items and other parameters.
 
-Basic actions are implemented
+Basic actions are implemented:
 
 	action <restart|stop|start> <server|vhost>
 
-Some status information is also returned by the `status` command and `mediacache` command:
+Basic status information is returned by the `status` command and `mediacache` command:
 
 	status incomingstreams <server_name> [app_name_filter]
 	status streamtargets <server_name> [app_name_filter]
