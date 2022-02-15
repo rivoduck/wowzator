@@ -361,7 +361,7 @@ class WztrApplication():
         action_message="no message..."
                 
         if action in ["restart", "stop", "start"]:
-            result = self.vhost.machine.putDict("/v2/servers/_defaultServer_/vhosts/%s/applications/{appName}/actions/%s" % (self.vhost.name, self.name, action))
+            result = self.vhost.machine.putDict("/v2/servers/_defaultServer_/vhosts/%s/applications/%s/actions/%s" % (self.vhost.name, self.name, action))
             
             if 'wmsResponse' in result["data"]:
                 wms_response = result["data"]["wmsResponse"]
