@@ -2159,7 +2159,11 @@ class WztrPrompt(Cmd):
         elif keyword == "$VHOST":
             expanded_dict = self.command_object.vhosts()
         elif keyword == "$APPLICATION":
-            expanded_dict = self.command_object.applications()
+            # applications are keys by vhost/appname
+            # re-key them by appname only
+            expanded_dict={}
+            for app in self.command_object.applications().values():
+                expanded_dict[app.name] = app
         elif keyword == "$TRANSCODERTEMPLATE":
             expanded_dict = self.command_object.transcodertemplates()
         elif keyword == "$SMILFILES":
