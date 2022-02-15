@@ -1817,7 +1817,8 @@ class WztrPrompt(Cmd):
         
     ]
     
-    syntaxtree_status_server = [
+    # Syntax tree for commands specifying a server
+    syntaxtree_server = [
         {
             "keyword": "$MACHINE",
             "keyword_type": "object",
@@ -1825,8 +1826,8 @@ class WztrPrompt(Cmd):
         },
     ]
 
-    # Syntax tree for the action command
-    syntaxtree_action = [
+    # Syntax tree for commands specifying a vhost or a server
+    syntaxtree_vhost = [
         {
             "keyword": "$MACHINE",
             "keyword_type": "object",
@@ -1840,8 +1841,8 @@ class WztrPrompt(Cmd):
         }
     ]
 
-    # comando per gestire le playlist del modulo StreamPublisher
-    syntaxtree_playlist = [
+    # sintassi per comandi che specificano una applicazione
+    syntaxtree_application = [
         {
             "keyword": "$MACHINE",
             "keyword_type": "object",
@@ -1867,32 +1868,6 @@ class WztrPrompt(Cmd):
         },
     ]
 
-    # comando remove
-    syntaxtree_remove = [
-        {
-            "keyword": "$MACHINE",
-            "keyword_type": "object",
-            "syntaxtree": [ 
-                { 
-                    "keyword": "$VHOST",
-                    "keyword_type": "object",
-                    "syntaxtree": [
-                        {
-                            "keyword": "apps",
-                            "keyword_type": "predicate",
-                            "syntaxtree": [
-                                {
-                                    "keyword": "$APPLICATION",
-                                    "keyword_type": "object",
-                                    "syntaxtree": []
-                                }
-                            ]
-                        }
-                    ]
-                } 
-            ]
-        },
-    ]
 
     
     tableformat_application = {
@@ -2498,7 +2473,7 @@ class WztrPrompt(Cmd):
                 
         if arg1 == "incomingstreams":
             if arg2 and arg2 != "":
-                self.__get_obj_by_path(WztrPrompt.syntaxtree_status_server, arg2)
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_server, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrMachine):
                         # filter app name by third argument
@@ -2512,7 +2487,7 @@ class WztrPrompt(Cmd):
 
         elif arg1 == "outgoingstreams":
             if arg2 and arg2 != "":
-                self.__get_obj_by_path(WztrPrompt.syntaxtree_status_server, arg2)
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_server, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrMachine):
                         self.__ls_object(self.command_object, "outgoingstreams")
@@ -2526,7 +2501,7 @@ class WztrPrompt(Cmd):
 
         elif arg1 == "streamtargets":
             if arg2 and arg2 != "":
-                self.__get_obj_by_path(WztrPrompt.syntaxtree_status_server, arg2)
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_server, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrMachine):
                         self.__ls_objects(self.command_object.applications(arg3).values(), "streamtargets")
@@ -2558,7 +2533,7 @@ class WztrPrompt(Cmd):
         if line_args_count == 3:
             result={"completion": []}
             if subcomm == "incomingstreams" or subcomm == "streamtargets" or subcom == "outgoingstreams":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_status_server, path_to_match)
+                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_server, path_to_match)
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
         if line_args_count < 3:
@@ -2589,7 +2564,7 @@ class WztrPrompt(Cmd):
                 
         if arg1 == "restart":
             if arg2 and arg2 != "":
-                self.__get_obj_by_path(WztrPrompt.syntaxtree_action, arg2)
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_application, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and (isinstance(self.command_object, WztrVhost) or isinstance(self.command_object, WztrMachine)):
                         print("*** %s *** going to perform %s in 4sec" % (str(self.command_object), arg1), end='', flush=True)
@@ -2608,7 +2583,7 @@ class WztrPrompt(Cmd):
             # do not allow stop/start on server,
             # once a server is stopped via API it needs to be started via commandline
             if arg2 and arg2 != "":
-                self.__get_obj_by_path(WztrPrompt.syntaxtree_action, arg2)
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_vhost, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrVhost):
                         print("*** %s *** going to perform %s in 4sec" % (str(self.command_object), arg1), end='', flush=True)
@@ -2644,7 +2619,7 @@ class WztrPrompt(Cmd):
         if line_args_count == 3:
             result={"completion": []}
             if subcomm == "restart" or subcomm == "stop" or subcom == "start":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_action, path_to_match)
+                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_application, path_to_match)
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
         if line_args_count < 3:
@@ -2664,7 +2639,7 @@ class WztrPrompt(Cmd):
     def do_rm(self, inp):
         print()
         
-        self.__get_obj_by_path(WztrPrompt.syntaxtree_remove, inp)
+        self.__get_obj_by_path(WztrPrompt.syntaxtree_application, inp)
         
         if self.command_error is None:
             if isinstance(self.command_object, WztrApplication):
@@ -2676,7 +2651,7 @@ class WztrPrompt(Cmd):
 
     def complete_rm(self, text, line, begidx, endidx):
         path_to_match=text.split(" ")[-1]
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_remove, path_to_match)
+        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_application, path_to_match)
         items = [i for i in result["completion"] if i.startswith(path_to_match)]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
@@ -2695,7 +2670,7 @@ class WztrPrompt(Cmd):
         
         if arg1 == "reload" or arg1 == "unload":
             if arg2 and arg2 != "":
-                self.__get_obj_by_path(WztrPrompt.syntaxtree_playlist, arg2)
+                self.__get_obj_by_path(WztrPrompt.syntaxtree_application, arg2)
 
                 if self.command_error is None:
                     if self.command_object is None or not isinstance(self.command_object, WztrApplication):
@@ -2731,7 +2706,7 @@ class WztrPrompt(Cmd):
         if line_args_count == 3:
             result={"completion": []}
             if subcomm == "reload" or subcomm == "unload":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_playlist, path_to_match)
+                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_application, path_to_match)
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
         if line_args_count < 3:
