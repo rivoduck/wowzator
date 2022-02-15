@@ -2612,7 +2612,7 @@ class WztrPrompt(Cmd):
             if arg2 and arg2 != "":
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_application, arg2)
                 if self.command_error is None:
-                    if self.command_object is not None and isinstance(self.command_object, WztrVhost):
+                    if self.command_object is not None and (isinstance(self.command_object, WztrVhost or isinstance(self.command_object, WztrApplication))):
                         print("*** %s *** going to perform %s in 4sec" % (str(self.command_object), arg1), end='', flush=True)
                         for i in [3, 2, 1, 0]:
                             sleep(1)
