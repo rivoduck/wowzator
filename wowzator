@@ -22,7 +22,7 @@ class WztrApplication():
     header_singular="Application"
     header_plural="Applications"
 
-    def __init__(self, name, href, appType, dvrEnabled=False, drmEnabled=False, transcoderEnabled=False, streamtargetsEnabled=False):
+    def __init__(self, name, href, appType, dvrEnabled=False, drmEnabled=False, transcoderEnabled=False, streamtargetsEnabled=False, descr=''):
         self.name = name
         self.href = href
         self.appType = appType
@@ -48,6 +48,8 @@ class WztrApplication():
         self.__configuration = None
         self.__configurationAdv = None # this is how app Properties are called in wowza APIs
         self.__smilfiles = None
+        
+        self.description = descr
         
     def __str__(self):
         return "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
@@ -85,6 +87,7 @@ class WztrApplication():
     
         result = {
             "Server": "%s / %s" % (self.vhost.machine.name, self.vhost.name),
+            "Description": self.description,
             "App/Stream type": self.appType + " / " + stream_type,
         }
         
@@ -1008,7 +1011,10 @@ class WztrVhost():
                     if 'Application' in entry.keys():
                         items = entry['Application']
                         for item in items:
-                            newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
+                            description="--no description--"
+                            if 'Description' in entry.keys():
+                                description = entry['Description']
+                            newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'], description)
                             newapp.vhost = self
                             
                             app_key="%s/%s" % (newapp.vhost.name, newapp.name)
