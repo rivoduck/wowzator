@@ -96,7 +96,7 @@ class WztrApplication():
         }
         
         if origin_url is not None:
-            result["Origin URL"] = origin_url
+            result["Details"]["Origin URL"] = origin_url
             
         result["Details"]["Content Dir."] = content_dir
         result["Details"]["DVR"] = "** ON" if self.dvrEnabled else "OFF"
