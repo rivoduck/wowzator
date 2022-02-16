@@ -22,7 +22,7 @@ class WztrApplication():
     header_singular="Application"
     header_plural="Applications"
 
-    def __init__(self, name, href, appType, dvrEnabled=False, drmEnabled=False, transcoderEnabled=False, streamtargetsEnabled=False, descr=''):
+    def __init__(self, name, href, appType, dvrEnabled=False, drmEnabled=False, transcoderEnabled=False, streamtargetsEnabled=False):
         self.name = name
         self.href = href
         self.appType = appType
@@ -49,8 +49,6 @@ class WztrApplication():
         self.__configurationAdv = None # this is how app Properties are called in wowza APIs
         self.__smilfiles = None
         
-        self.description = descr
-        
     def __str__(self):
         return "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
     def __repr__(self):
@@ -62,8 +60,9 @@ class WztrApplication():
     def list_view(self):
         stream_type="n/a"
         config_dict = self.configuration()
-        if config_dict is not None and 'StreamConfig' in config_dict.keys() and 'StreamType' in config_dict['StreamConfig'].keys():
-            stream_type = config_dict['StreamConfig']['StreamType']
+        if config_dict is not None and 'StreamConfig' in config_dict.keys():
+            if 'StreamType' in config_dict['StreamConfig'].keys():
+                stream_type = config_dict['StreamConfig']['StreamType']
         
         return "%-8s %-28s %1s%1s%1s%1s  /%s/%s/apps/%s" % (self.appType, stream_type,
             "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
@@ -72,22 +71,25 @@ class WztrApplication():
     def detail_view(self):
         stream_type="n/a"
         content_dir="n/a"
+        descr="--no description"
         origin_url=None
         config_dict = self.configuration()
-
+        
         if config_dict is not None:
             if 'StreamConfig' in config_dict.keys():
                 if 'StreamType' in config_dict['StreamConfig'].keys():
                     stream_type = config_dict['StreamConfig']['StreamType']
                 if 'StorageDir' in config_dict['StreamConfig'].keys():
                     content_dir = config_dict['StreamConfig']['StorageDir']
+                if 'Description' in config_dict['StreamConfig'].keys():
+                    descr = config_dict['StreamConfig']['Description']
             if 'RepeaterOriginURL' in config_dict.keys():
                 origin_url = config_dict['RepeaterOriginURL']
                 
     
         result = {
             "Server": "%s / %s" % (self.vhost.machine.name, self.vhost.name),
-            "Description": self.description,
+            "Description": descr,
             "App/Stream type": self.appType + " / " + stream_type,
         }
         
@@ -1011,10 +1013,7 @@ class WztrVhost():
                     if 'Application' in entry.keys():
                         items = entry['Application']
                         for item in items:
-                            description="--no description--"
-                            if 'Description' in entry.keys():
-                                description = entry['Description']
-                            newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'], description)
+                            newapp = WztrApplication(item['@id'], item['@href'], item['AppType'], item['DVREnabled'], item['DRMEnabled'], item['TranscoderEnabled'], item['StreamTargetsEnabled'])
                             newapp.vhost = self
                             
                             app_key="%s/%s" % (newapp.vhost.name, newapp.name)
