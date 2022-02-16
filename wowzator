@@ -71,7 +71,7 @@ class WztrApplication():
     def detail_view(self):
         stream_type="n/a"
         content_dir="n/a"
-        descr="--no description"
+        descr="--no description--"
         origin_url=None
         config_dict = self.configuration()
         
@@ -81,10 +81,10 @@ class WztrApplication():
                     stream_type = config_dict['StreamConfig']['StreamType']
                 if 'StorageDir' in config_dict['StreamConfig'].keys():
                     content_dir = config_dict['StreamConfig']['StorageDir']
-                if 'Description' in config_dict['StreamConfig'].keys():
-                    descr = config_dict['StreamConfig']['Description']
             if 'RepeaterOriginURL' in config_dict.keys():
                 origin_url = config_dict['RepeaterOriginURL']
+            if 'Description' in config_dict.keys():
+                descr = config_dict['Description']
                 
     
         result = {
