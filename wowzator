@@ -89,9 +89,9 @@ class WztrApplication():
     
         result = {
             "Description": descr,
+            "App/Stream type": self.appType + " / " + stream_type,
             "Details": {
                 "Server": "%s / %s" % (self.vhost.machine.name, self.vhost.name),
-                "App/Stream type": self.appType + " / " + stream_type,
             }
         }
         
