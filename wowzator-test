@@ -2122,7 +2122,12 @@ class WztrPrompt(Cmd):
         self.command_predicate = result['command_predicate']
         self.command_error = result['command_error']
         
-        return
+        return {
+            "object": self.command_object,
+            "objects": self.command_objects,
+            "predicate": self.command_predicate,
+            "error": self.command_error,
+        }
 
     # return an array of objects or a single instance depending on what the path points to
     def __get_complete_by_path(self, syntax_tree, path):
@@ -2155,6 +2160,7 @@ class WztrPrompt(Cmd):
         path_arr = path.split("/")
         
         removed_leading_slash = False
+        removed_trailing_slash = False
         # set to True by default to deal with empty path
         # if path is provided it will be immediately set to False when path is parsed
         keyword_matched = True
@@ -2163,6 +2169,7 @@ class WztrPrompt(Cmd):
         # remove last and first elements of path if empty
         if len(path_arr) > 0 and path_arr[-1] == "":
             path_arr.pop()
+            removed_trailing_slash = True
         if len(path_arr) > 0 and path_arr[0] == "":
             path_arr.pop(0)
             removed_leading_slash = True
@@ -2208,7 +2215,7 @@ class WztrPrompt(Cmd):
             cur_path_pos += 1
                 
         if keyword_matched:
-            if keyword_partial_match:
+            if keyword_partial_match and not removed_trailing_slash:
                 cur_path = "/".join(path_arr[:cur_path_pos-1])
             else:
                 cur_path = "/".join(path_arr[:cur_path_pos])
@@ -2639,11 +2646,11 @@ class WztrPrompt(Cmd):
         if line_args_count == 3:
             result={"completion": []}
             if subcomm == "ls":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_ls, path_to_match)
+                result = self.__get_complete_by_path(WztrPrompt.syntaxtree_mediacache_ls, path_to_match)
             if subcomm == "flush":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_mediacache_flush, path_to_match)
+                result = self.__get_complete_by_path(WztrPrompt.syntaxtree_mediacache_flush, path_to_match)
                 
-            items = [i for i in result["completion"] if i.startswith(path_to_match)]
+            items = [i for i in result if i.startswith(path_to_match)]
         if line_args_count < 3:
             items=["ls", "flush"]
         
@@ -2741,9 +2748,9 @@ class WztrPrompt(Cmd):
         if line_args_count == 3:
             result={"completion": []}
             if subcomm == "incomingstreams" or subcomm == "incomingstreams-all" or subcomm == "streamtargets" or subcomm == "outgoingstreams":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_server, path_to_match)
+                result = self.__get_complete_by_path(WztrPrompt.syntaxtree_server, path_to_match)
                 
-            items = [i for i in result["completion"] if i.startswith(path_to_match)]
+            items = [i for i in result if i.startswith(path_to_match)]
         if line_args_count < 3:
             items=["incomingstreams", "incomingstreams-all", "streamtargets", "outgoingstreams"]
         
@@ -2830,9 +2837,9 @@ class WztrPrompt(Cmd):
         if line_args_count == 3:
             result={"completion": []}
             if subcomm == "restart" or subcomm == "stop" or subcomm == "start":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_application, path_to_match)
+                result = self.__get_complete_by_path(WztrPrompt.syntaxtree_application, path_to_match)
                 
-            items = [i for i in result["completion"] if i.startswith(path_to_match)]
+            items = [i for i in result if i.startswith(path_to_match)]
         if line_args_count < 3:
             items=["restart", "stop", "start"]
         
@@ -2862,8 +2869,8 @@ class WztrPrompt(Cmd):
 
     def complete_rm(self, text, line, begidx, endidx):
         path_to_match=text.split(" ")[-1]
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_application, path_to_match)
-        items = [i for i in result["completion"] if i.startswith(path_to_match)]
+        result = self.__get_complete_by_path(WztrPrompt.syntaxtree_application, path_to_match)
+        items = [i for i in result if i.startswith(path_to_match)]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
@@ -2917,9 +2924,9 @@ class WztrPrompt(Cmd):
         if line_args_count == 3:
             result={"completion": []}
             if subcomm == "reload" or subcomm == "unload":
-                result = self.__get_obj_by_path(WztrPrompt.syntaxtree_application, path_to_match)
+                result = self.__get_complete_by_path(WztrPrompt.syntaxtree_application, path_to_match)
                 
-            items = [i for i in result["completion"] if i.startswith(path_to_match)]
+            items = [i for i in result if i.startswith(path_to_match)]
         if line_args_count < 3:
             items=["reload", "unload"]
         
