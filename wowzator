@@ -2551,13 +2551,22 @@ class WztrPrompt(Cmd):
             if len(inputline) > 2:
                 arg3=inputline[2]
                 
-        if arg1 == "incomingstreams":
+        if arg1 == "incomingstreams" or arg1 == "incomingstreams-all":
             if arg2 and arg2 != "":
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_server, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrMachine):
                         # filter app name by third argument
-                        self.__ls_objects(self.command_object.applications(arg3).values(), "incomingstreams")
+                        incomingstreams = self.command_object.applications(arg3).values()
+                        if arg1 == "incomingstreams":
+                            # show only remote incoming streams
+                            incomingstreams_filtered=[]
+                            for in_stream in incomingstreams:
+                                if in_stream.source not in ['unknown', 'local (Transcoder)']:
+                                    incomingstreams_filtered.append(in_stream)
+                            incomingstreams=incomingstreams_filtered
+                            
+                        self.__ls_objects(incomingstreams, "incomingstreams")
                     else:
                         print("** Error: invalid server specified")
                 else:
@@ -2612,18 +2621,19 @@ class WztrPrompt(Cmd):
         items=[]
         if line_args_count == 3:
             result={"completion": []}
-            if subcomm == "incomingstreams" or subcomm == "streamtargets" or subcomm == "outgoingstreams":
+            if subcomm == "incomingstreams" or subcomm == "incomingstreams-all" or subcomm == "streamtargets" or subcomm == "outgoingstreams":
                 result = self.__get_obj_by_path(WztrPrompt.syntaxtree_server, path_to_match)
                 
             items = [i for i in result["completion"] if i.startswith(path_to_match)]
         if line_args_count < 3:
-            items=["incomingstreams", "streamtargets", "outgoingstreams"]
+            items=["incomingstreams", "incomingstreams-all", "streamtargets", "outgoingstreams"]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
     def help_status(self):
         print("Shows status information")
         print("  status incomingstreams <server> [app_name_filter]")
+        print("  status incomingstreams-all <server> [app_name_filter]")
         print("  status streamtargets <server> [app_name_filter]")
         print("  status outgoingstreams [server]")
         print()
