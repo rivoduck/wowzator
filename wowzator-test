@@ -2126,6 +2126,7 @@ class WztrPrompt(Cmd):
         # set to True by default to deal with empty path
         # if path is provided it will be immediately set to False when path is parsed
         keyword_matched = True
+        keyword_partial_match = False
         
         # remove last and first elements of path if empty
         if len(path_arr) > 0 and path_arr[-1] == "":
@@ -2136,7 +2137,7 @@ class WztrPrompt(Cmd):
         
         # expanded_syntax_tree contiene una lista di elementi sintattici al livello di parsing corrente
         # path_arr contiene una lista di elementi del path inserito sulla linea di comando
-        expanded_syntax_tree = self.__expand_keywords(syntax_tree)
+        expanded_syntax_tree = self.__expand_keywords(syntax_tree, command_object)
         expanded_syntax_tree_prev = None
         cur_path_pos = 0
         for cur_path_el in path_arr:
@@ -2148,20 +2149,20 @@ class WztrPrompt(Cmd):
                 if syntax_el["keyword"] == cur_path_el:
 
                     if syntax_el["keyword_type"] == "object":
-                        self.command_object = syntax_el["data"]
+                        command_object = syntax_el["data"]
                     elif syntax_el["keyword_type"] == "multi_object":
-                        self.command_objects = syntax_el["data"]
+                        command_objects = syntax_el["data"]
                     elif syntax_el["keyword_type"] == "predicate":
-                        self.command_predicate = syntax_el["keyword"]
+                        command_predicate = syntax_el["keyword"]
 
                     # move down syntax tree
-                    expanded_syntax_tree_next = self.__expand_keywords(syntax_el["syntaxtree"])
+                    expanded_syntax_tree_next = self.__expand_keywords(syntax_el["syntaxtree"], command_object)
                     keyword_matched = True
                 elif len(cur_path_el) > 0 and syntax_el["keyword"].startswith(cur_path_el):
                     keyword_partial_match = True
                 
             if not keyword_matched:
-                self.command_error = "%s: keyword not recognized" % cur_path_el
+                command_error = "%s: keyword not recognized" % cur_path_el
                 cur_path = "/".join(path_arr[:cur_path_pos])
                 if cur_path != "":
                     cur_path += "/"
@@ -2176,21 +2177,31 @@ class WztrPrompt(Cmd):
                 
         if keyword_matched:
             cur_path = "/".join(path_arr[:cur_path_pos])
-            if cur_path != "":
+            if cur_path != "" and not keyword_partial_match:
                 cur_path += "/"
             if removed_leading_slash:
                 cur_path = "/" + cur_path
             
         
+        completion=[]
+        for se in expanded_syntax_tree:
+            completion.append(se["keyword"])
+        completion_prev=[]
+        if expanded_syntax_tree_prev:
+            for se in expanded_syntax_tree_prev:
+                completion_prev.append(se["keyword"])
+
+
         return {
-            "object": self.command_object,
-            "objects": self.command_objects,
-            "predicate": self.command_predicate,
-            "error": self.command_error,
-            "syntaxtree_prev": expanded_syntax_tree_prev,
-            "syntaxtree_curr": expanded_syntax_tree,
+            "object": command_object,
+            "objects": command_objects,
+            "predicate": command_predicate,
+            "error": command_error,
             "match": keyword_matched,
-            "partial_match": keyword_partial_match
+            "partial_match": keyword_partial_match,
+            "path": cur_path,
+            "completion": completion,
+            "completion_prev": completion_prev
         }
 
 
@@ -2282,12 +2293,12 @@ class WztrPrompt(Cmd):
 
     
     # expand macro keywords in first level of syntax tree
-    def __expand_keywords(self, syntax_tree):
+    def __expand_keywords(self, syntax_tree, command_object):
         expanded_syntax_tree = []
         for syntax_el in syntax_tree:
             kw = syntax_el["keyword"]
             if kw[0] == "$":
-                expanded_dict = self.__expand_keyword_macro(kw)
+                expanded_dict = self.__expand_keyword_macro(kw, command_object)
                 for expanded_kw in expanded_dict.keys():
                     exp_syntax_el = {
                         "keyword": expanded_kw,
@@ -2305,26 +2316,26 @@ class WztrPrompt(Cmd):
     
     
     # expand individual macro
-    def __expand_keyword_macro(self, keyword):
+    def __expand_keyword_macro(self, keyword, command_object):
         expanded_dict = {}
         if keyword == "$MACHINE":
             expanded_dict = self.machines
         elif keyword == "$ALL_MACHINES":
             expanded_dict["all"]=self.machines.values()
         elif keyword == "$VHOST":
-            expanded_dict = self.command_object.vhosts()
+            expanded_dict = command_object.vhosts()
         elif keyword == "$APPLICATION":
             # applications are keys by vhost/appname
             # re-key them by appname only
             expanded_dict={}
-            for app in self.command_object.applications().values():
+            for app in command_object.applications().values():
                 expanded_dict[app.name] = app
         elif keyword == "$TRANSCODERTEMPLATE":
-            expanded_dict = self.command_object.transcodertemplates()
+            expanded_dict = command_object.transcodertemplates()
         elif keyword == "$SMILFILES":
-            expanded_dict = self.command_object.smilfiles()
+            expanded_dict = command_object.smilfiles()
         elif keyword == "$MEDIACACHEITEM":
-            expanded_dict = self.command_object.mediacachecontent()
+            expanded_dict = command_object.mediacachecontent()
             
             # in questo caso il nome del mediacache item contiene slashes
             # lo espando con tutti i nomi "intemedi"
@@ -2534,8 +2545,10 @@ class WztrPrompt(Cmd):
         path_to_match=text.split(" ")[-1]
         result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
         
+        print()
+        print("----------------------------")
         print(self.dict_formatter(result))
-        return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
+        return self.delimiter_complete(path_to_match, line, begidx, endidx, [], "/")
         
         
         
