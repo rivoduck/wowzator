@@ -2115,6 +2115,38 @@ class WztrPrompt(Cmd):
 
     # return an array of objects or a single instance depending on what the path points to
     def __get_obj_by_path(self, syntax_tree, path):
+        result = self.__parse_path(syntax_tree, path)
+        
+        self.command_object = result['command_object']
+        self.command_objects = result['command_objects']
+        self.command_predicate = result['command_predicate']
+        self.command_error = result['command_error']
+        
+        return
+
+    # return an array of objects or a single instance depending on what the path points to
+    def __get_complete_by_path(self, syntax_tree, path):
+        result = self.__parse_path(syntax_tree, path)
+        expanded_syntax_tree_prev = result['expanded_syntax_tree_prev']
+        expanded_syntax_tree_prev = result['expanded_syntax_tree']
+        match = result['match']
+        partial_match = result['partial_match']
+        path = result['path']
+
+        completion=[]
+        if match and partial_match:
+            if expanded_syntax_tree_prev:
+                for se in expanded_syntax_tree_prev:
+                    completion.append(se["keyword"])
+        else:
+            for se in expanded_syntax_tree:
+                completion.append(se["keyword"])
+        
+        
+        return completion
+
+
+    def __parse_path(self, syntax_tree, path):
         command_object = None
         command_objects = None
         command_predicate = None
@@ -2181,16 +2213,6 @@ class WztrPrompt(Cmd):
                 cur_path += "/"
             if removed_leading_slash:
                 cur_path = "/" + cur_path
-            
-        
-        completion=[]
-        for se in expanded_syntax_tree:
-            completion.append(se["keyword"])
-        completion_prev=[]
-        if expanded_syntax_tree_prev:
-            for se in expanded_syntax_tree_prev:
-                completion_prev.append(se["keyword"])
-
 
         return {
             "object": command_object,
@@ -2200,8 +2222,8 @@ class WztrPrompt(Cmd):
             "match": keyword_matched,
             "partial_match": keyword_partial_match,
             "path": cur_path,
-            "completion": completion,
-            "completion_prev": completion_prev
+            "expanded_syntax_tree": expanded_syntax_tree,
+            "expanded_syntax_tree_prev": expanded_syntax_tree_prev
         }
 
 
@@ -2543,7 +2565,7 @@ class WztrPrompt(Cmd):
             
     def complete_ls(self, text, line, begidx, endidx):
         path_to_match=text.split(" ")[-1]
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
+        result = self.__complete_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
         
         print()
         print("----------------------------")
