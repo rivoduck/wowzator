@@ -798,7 +798,7 @@ class WztrStreamTarget():
     
     @staticmethod
     def list_view_header():
-        return "%-8s %-10s %-36s %-16s %-22s %2s %-28s %-16s %s" % ("Status", "Type", "Application", "Name", "Source stream", "SSL", "Target host", "Target URI", "Key")
+        return "%-8s %-10s %-36s %-16s %-22s %2s %-24s %-16s %s" % ("Status", "Type", "Application", "Name", "Source stream", "SSL", "Target host", "Target URI", "Key")
     def list_view(self):
         status="--"
         if self.enabled == "true":
@@ -819,7 +819,7 @@ class WztrStreamTarget():
                 host_port=self.targethost+":"+self.targetport
             else:
                 host_port=self.targethost
-        host_port=shorten_string(host_port, 28)
+        host_port=shorten_string(host_port, 24)
         
         tg_uri="--"
         if self.targethost is None:
@@ -841,7 +841,7 @@ class WztrStreamTarget():
         if self.sendssl == "true":
             sendssl="Y"
         
-        return "%-8s %-10s %-36s %-16s %-22s %-2s %-28s %-16s %s" % (status, self.profile, 
+        return "%-8s %-10s %-36s %-16s %-22s %-2s %-24s %-16s %s" % (status, self.profile, 
             shorten_string(str(self.application), 36), shorten_string(self.name, 16), 
             self.sourcestream, sendssl, host_port, tg_uri, shorten_string(self.targetstream, 15))
     def detail_view(self):
