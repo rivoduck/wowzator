@@ -58,47 +58,24 @@ class WztrApplication():
     def list_view_header():
         return "%-8s %-28s %1s%1s%1s%1s" % ("App Type", "Stream Type", "(DVR)", "(DRM)", "(TRC)", "(STG)")
     def list_view(self):
-        stream_type="n/a"
-        config_dict = self.configuration()
-        if config_dict is not None and 'StreamConfig' in config_dict.keys():
-            if 'StreamType' in config_dict['StreamConfig'].keys():
-                stream_type = config_dict['StreamConfig']['StreamType']
-        
-        return "%-8s %-28s %1s%1s%1s%1s  /%s/%s/apps/%s" % (self.appType, stream_type,
+        return "%-8s %-28s %1s%1s%1s%1s  /%s/%s/apps/%s" % (self.appType, self.getConfigValue('StreamType'),
             "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
             "X" if self.transcoderEnabled else "-", "X" if self.streamtargetsEnabled else "-",
             self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
-        stream_type="n/a"
-        content_dir="n/a"
-        descr="--no description--"
-        origin_url=None
-        config_dict = self.configuration()
-        
-        if config_dict is not None:
-            if 'StreamConfig' in config_dict.keys():
-                if 'StreamType' in config_dict['StreamConfig'].keys():
-                    stream_type = config_dict['StreamConfig']['StreamType']
-                if 'StorageDir' in config_dict['StreamConfig'].keys():
-                    content_dir = config_dict['StreamConfig']['StorageDir']
-            if 'RepeaterOriginURL' in config_dict.keys():
-                origin_url = config_dict['RepeaterOriginURL']
-            if 'Description' in config_dict.keys():
-                descr = config_dict['Description']
-                
-    
         result = {
-            "Description": descr,
-            "App/Stream type": self.appType + " / " + stream_type,
+            "Description": self.getConfigValue('Description'),
+            "App/Stream type": self.appType + " / " + self.getConfigValue('StreamType'),
             "Details": {
                 "Server": "%s / %s" % (self.vhost.machine.name, self.vhost.name),
             }
         }
         
+        origin_url = self.getConfigValue('RepeaterOriginURL')
         if origin_url is not None:
             result["Details"]["Origin URL"] = origin_url
             
-        result["Details"]["Content Dir."] = content_dir
+        result["Details"]["Content Dir."] = self.getConfigValue('StorageDir')
         result["Details"]["DVR"] = "** ON" if self.dvrEnabled else "OFF"
         result["Details"]["DRM"] = "** ON" if self.drmEnabled else "OFF"
         result["Details"]["Transcoder"] = "** ON" if self.transcoderEnabled else "OFF"
@@ -106,6 +83,31 @@ class WztrApplication():
         
         return result
 
+
+    def getConfigValue(self, configKey):
+        result_dict={
+            "StreamType": '--na--',
+            "StorageDir": '--na--',
+            "RepeaterOriginURL": None,
+            "Description": '--na--',
+        }
+        
+        config_dict = self.configuration()
+        if config_dict is not None:
+            if 'StreamConfig' in config_dict.keys():
+                if 'StreamType' in config_dict['StreamConfig'].keys():
+                    result_dict['StreamType'] = config_dict['StreamConfig']['StreamType']
+                if 'StorageDir' in config_dict['StreamConfig'].keys():
+                    result_dict['StorageDir'] = config_dict['StreamConfig']['StorageDir']
+            if 'RepeaterOriginURL' in config_dict.keys():
+                result_dict['RepeaterOriginURL'] = config_dict['RepeaterOriginURL']
+            if 'Description' in config_dict.keys():
+                result_dict['Description'] = config_dict['Description']
+        
+        if configKey in result_dict.keys():
+            return result_dict[configKey]
+        else:
+            return "--unknown key %s--" % configKey
 
     def configuration(self):
         # lazy-fetch application config
@@ -859,6 +861,27 @@ class WztrStreamTarget():
             "Key (Target stream)": self.targetstream,
         }
 
+# class used to create a temporary list of applicatio descriptions
+# using a class in order to avail of the code to render lists
+class WztrApplicationDescription():
+    header_singular="Application description"
+    header_plural="Application descriptions"
+
+    def __init__(self, application):
+        self.application = application
+        
+    def __str__(self):
+        return "/%s/%s/%s %s" % (self.application.vhost.machine.name, self.application.vhost.name, self.application.name, self.getConfigValue('Description'))
+    def __repr__(self):
+        return "WztrApplicationDescription: %s" % self.application.name
+
+    @staticmethod
+    def list_view_header():
+        return "%-8s %-40s %s" % ("App Type", "Application", "Description")
+    def list_view(self):
+        return "%-8s %-40s %s" % (self.application.appType, str(self.application), self.application.getConfigValue('Description'))
+    def detail_view(self):
+        return self.application.detail_view()
 
 
 class WztrVhost():
@@ -1669,6 +1692,11 @@ class WztrPrompt(Cmd):
                             ]
                         },
                         {
+                            "keyword": "apps-description",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        },
+                        {
                             "keyword": "configuration",
                             "keyword_type": "predicate",
                             "syntaxtree": [
@@ -2382,6 +2410,20 @@ class WztrPrompt(Cmd):
                 elif isinstance(object_instance, WztrVhost):
                     # vhost specified, list applications
                     self.__ls_objects(object_instance.applications().values())
+            elif predicate == "apps-description":
+                if isinstance(object_instance, WztrApplication):
+                    # application specified, create app description object
+                    app_descr = WztrApplicationDescription(object_instance)
+                    # return detailed view
+                    print("%s: %s" % (app_descr.header_singular, app_descr))
+                    print( self.dict_formatter( app_descr.detail_view() ) )
+                    
+                elif isinstance(object_instance, WztrVhost):
+                    # vhost specified, create application descriptions
+                    app_descrs = []
+                    for app in object_instance.applications().values():
+                        app_descrs.append(WztrApplicationDescription(app))
+                    self.__ls_objects(app_descrs)
             elif predicate == "mediacache":
                 if isinstance(object_instance, WztrVhost):
                     # vhost specified, list mediacache content
