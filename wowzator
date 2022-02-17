@@ -642,14 +642,25 @@ class WztrIncomingStream():
     def __repr__(self):
         return "WztrIncomingStream: %s" % self.name
     
+    def isRemote(self):
+        if self.source not in ['unknown', 'local (Transcoder)']:
+            return True
+        return False
+    
     @staticmethod
     def list_view_header():
-        return "%-40s %-16s %-28s %2s %s" % ("Application", "Instance", "Name", "REC", "Source")
+        return "%-40s %-16s %-28s %-4s %s" % ("Application", "Instance", "Name", "REC", "Source")
     def list_view(self):
         recording="-"
         if self.recording == "true":
-            recording="Y"
-        return "%-40s %-16s %-28s %-2s %s" % (str(self.application), self.instancename, self.name, recording, self.source)
+            recording="MANU"
+            if self.application.getConfigValue('StreamType') == "live-record":
+                recording="M+A"
+        else:
+            if self.isRemote() and self.application.getConfigValue('StreamType') == "live-record":
+                recording="AUTO"
+        
+        return "%-40s %-16s %-28s %-4s %s" % (str(self.application), self.instancename, self.name, recording, self.source)
     def detail_view(self):
         return {
             "Name": self.name,
@@ -2550,7 +2561,7 @@ class WztrPrompt(Cmd):
                             if arg1 == "incomingstreams":
                                 # show only remote incoming streams
                                 for in_stream in target_app_incomingstreams:
-                                    if in_stream.source not in ['unknown', 'local (Transcoder)']:
+                                    if in_stream.isRemote():
                                         incomingstreams.append(in_stream)
                             else:
                                 incomingstreams += target_app_incomingstreams
