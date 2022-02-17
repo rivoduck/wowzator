@@ -2299,14 +2299,6 @@ class WztrPrompt(Cmd):
                             for vhost in machine.vhosts().values():
                                 item_list += vhost.mediacachecontent().values()
                     self.__ls_objects(item_list)
-                elif predicate == 'incomingstreams':
-                    # list incoming streams
-                    item_list = []
-                    for target_obj in object_list:
-                        if isinstance(target_obj, WztrMachine) or isinstance(target_obj, WztrApplication):
-                            item_list += target_obj.incomingstreams().values()
-                    self.__ls_objects(item_list)
-                    
                 elif predicate == 'outgoingstreams':
                     # list connection count all machines
                     item_list = []
@@ -2430,12 +2422,6 @@ class WztrPrompt(Cmd):
                     self.__ls_objects(object_instance.mediacachecontent().values())
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
-            elif predicate == "incomingstreams":
-                if isinstance(object_instance, WztrMachine) or isinstance(object_instance, WztrApplication):
-                    # machine specified, list incoming streams
-                    self.__ls_objects(object_instance.incomingstreams())
-                else:
-                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
             elif predicate == "outgoingstreams":
                 if isinstance(object_instance, WztrMachine):
                     # machine specified, list connection count for apps on the specified server
@@ -2557,16 +2543,18 @@ class WztrPrompt(Cmd):
                 if self.command_error is None:
                     if self.command_object is not None and isinstance(self.command_object, WztrMachine):
                         # filter app name by third argument
-                        incomingstreams = self.command_object.applications(arg3).values()
-                        if arg1 == "incomingstreams":
-                            # show only remote incoming streams
-                            incomingstreams_filtered=[]
-                            for in_stream in incomingstreams:
-                                if in_stream.source not in ['unknown', 'local (Transcoder)']:
-                                    incomingstreams_filtered.append(in_stream)
-                            incomingstreams=incomingstreams_filtered
-                            
-                        self.__ls_objects(incomingstreams, "incomingstreams")
+                        application_list = self.command_object.applications(arg3).values()
+                        incomingstreams = []
+                        for target_app in application_list:
+                            target_app_incomingstreams=target_app.incomingstreams().values()
+                            if arg1 == "incomingstreams":
+                                # show only remote incoming streams
+                                for in_stream in target_app_incomingstreams:
+                                    if in_stream.source not in ['unknown', 'local (Transcoder)']:
+                                        incomingstreams.append(in_stream)
+                            else:
+                                incomingstreams += target_app_incomingstreams
+                        self.__ls_objects(incomingstreams)
                     else:
                         print("** Error: invalid server specified")
                 else:
