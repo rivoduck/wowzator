@@ -654,10 +654,12 @@ class WztrIncomingStream():
         recording="-"
         if self.recording == "true":
             recording="MANU"
-            if self.application.getConfigValue('StreamType') == "live-record":
+            if self.isRemote() and self.application.getConfigValue('StreamType') == "live-record":
+                # remote stream on a live-record app
                 recording="M+A"
         else:
             if self.isRemote() and self.application.getConfigValue('StreamType') == "live-record":
+                # remote stream on a live-record app
                 recording="AUTO"
         
         return "%-40s %-16s %-28s %-4s %s" % (str(self.application), self.instancename, self.name, recording, self.source)
