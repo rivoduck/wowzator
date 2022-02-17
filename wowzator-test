@@ -2565,7 +2565,7 @@ class WztrPrompt(Cmd):
             
     def complete_ls(self, text, line, begidx, endidx):
         path_to_match=text.split(" ")[-1]
-        result = self.__complete_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
+        result = self.__get_complete_by_path(WztrPrompt.syntaxtree_ls, path_to_match)
         
         print()
         print("----------------------------")
