@@ -61,7 +61,7 @@ class WztrApplication():
         return "%-8s %-28s %1s%1s%1s%1s  /%s/%s/apps/%s" % (self.appType, self.getConfigValue('StreamType'),
             "R" if self.dvrEnabled else "-", 
             "D" if self.drmEnabled else "-",
-            "R" if self.transcoderEnabled else "-", 
+            "T" if self.transcoderEnabled else "-", 
             "S" if self.streamtargetsEnabled else "-",
             self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
