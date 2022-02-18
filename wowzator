@@ -59,8 +59,10 @@ class WztrApplication():
         return "%-8s %-28s %1s%1s%1s%1s" % ("App Type", "Stream Type", "(DVR)", "(DRM)", "(TRC)", "(STG)")
     def list_view(self):
         return "%-8s %-28s %1s%1s%1s%1s  /%s/%s/apps/%s" % (self.appType, self.getConfigValue('StreamType'),
-            "X" if self.dvrEnabled else "-", "X" if self.drmEnabled else "-",
-            "X" if self.transcoderEnabled else "-", "X" if self.streamtargetsEnabled else "-",
+            "R" if self.dvrEnabled else "-", 
+            "D" if self.drmEnabled else "-",
+            "R" if self.transcoderEnabled else "-", 
+            "S" if self.streamtargetsEnabled else "-",
             self.vhost.machine.name, self.vhost.name, self.name)
     def detail_view(self):
         result = {
@@ -890,9 +892,9 @@ class WztrApplicationDescription():
 
     @staticmethod
     def list_view_header():
-        return "%-8s %-40s %s" % ("App Type", "Application", "Description")
+        return "%-8s %-44s %s" % ("App Type", "Application", "Description")
     def list_view(self):
-        return "%-8s %-40s %s" % (self.application.appType, str(self.application), self.application.getConfigValue('Description'))
+        return "%-8s %-44s %s" % (self.application.appType, str(self.application), self.application.getConfigValue('Description'))
     def detail_view(self):
         return self.application.detail_view()
 
