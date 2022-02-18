@@ -1769,6 +1769,11 @@ class WztrPrompt(Cmd):
                     "syntaxtree": []
                 },
                 {
+                    "keyword": "apps-description",
+                    "keyword_type": "predicate",
+                    "syntaxtree": []
+                },
+                {
                     "keyword": "licenses",
                     "keyword_type": "predicate",
                     "syntaxtree": []
@@ -2421,6 +2426,14 @@ class WztrPrompt(Cmd):
                             item_list += machine.applications().values()
                             #for vhost in machine.vhosts().values():
                             #    item_list += vhost.applications().values()
+                    self.__ls_objects(item_list)
+                if predicate == 'apps-description':
+                    # list description of all applications
+                    item_list = []
+                    for machine in object_list:
+                        if isinstance(machine, WztrMachine):
+                            for app in machine.applications().values():
+                                item_list.append(WztrApplicationDescription(app))
                     self.__ls_objects(item_list)
                 elif predicate == 'licenses':
                     # list all licences
