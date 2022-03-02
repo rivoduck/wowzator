@@ -3353,8 +3353,8 @@ class WztrPrompt(Cmd):
     def complete_diff(self, text, line, begidx, endidx):
         path_to_match=text.split(" ")[-1]
         
-        result = self.__get_obj_by_path(WztrPrompt.syntaxtree_diff, path_to_match)
-        items = [i for i in result["completion"] if i.startswith(text)]
+        result = self.__get_complete_by_path(WztrPrompt.syntaxtree_diff, path_to_match)
+        items = [i for i in result if i.startswith(text)]
 
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
