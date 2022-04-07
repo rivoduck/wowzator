@@ -2800,10 +2800,10 @@ class WztrPrompt(Cmd):
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_application, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and (isinstance(self.command_object, WztrVhost) or isinstance(self.command_object, WztrMachine) or isinstance(self.command_object, WztrApplication)):
-                        print("*** %s *** going to perform %s in 4sec" % (str(self.command_object), arg1), end='', flush=True)
+                        print("*** %s *** going to perform %s in 4sec  " % (str(self.command_object), arg1), end='', flush=True)
                         for i in [3, 2, 1, 0]:
                             sleep(1)
-                            print("  %s" % i, end='', flush=True)
+                            print("%s  " % i, end='', flush=True)
                         print()
                         self.command_object.action(arg1)
                     else:
@@ -2820,10 +2820,10 @@ class WztrPrompt(Cmd):
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_application, arg2)
                 if self.command_error is None:
                     if self.command_object is not None and (isinstance(self.command_object, WztrVhost) or isinstance(self.command_object, WztrApplication)):
-                        print("*** %s *** going to perform %s in 4sec" % (str(self.command_object), arg1), end='', flush=True)
+                        print("*** %s *** going to perform %s in 4sec  " % (str(self.command_object), arg1), end='', flush=True)
                         for i in [3, 2, 1, 0]:
                             sleep(1)
-                            print("  %s" % i, end='', flush=True)
+                            print("%s  " % i, end='', flush=True)
                         print()
                         self.command_object.action(arg1)
                     else:
