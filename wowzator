@@ -1308,7 +1308,10 @@ class WztrMachine():
                 else:
                     data = 'HTTP error %s' % response.status_code
                     status="KO"
-                    self.__connectionstatus="KO"
+                    if int(response.status_code) >= 401 and int(response.status_code) <= 403:
+                        # marcare la macchina come "unreachable" solo se si
+                        # verifica un errore di autenticazione HTTP
+                        self.__connectionstatus="KO"
                 
             except NetworkError:
                 data='timeout %s %s on machine %s' % (method, url, self)
