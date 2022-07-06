@@ -645,7 +645,7 @@ class WztrIncomingStream():
         return "WztrIncomingStream: %s" % self.name
     
     def isRemote(self):
-        if self.source not in ['unknown', 'local (Transcoder)']:
+        if self.source not in ['unknown', 'local (Transcoder)'] and self.connected == "true":
             return True
         return False
     
