@@ -1648,9 +1648,11 @@ class WztrPrompt(Cmd):
             self.allow_redirection = True
             self.intro = self.intro + "\t- use \"|\" to pipe output to shell commands, eg. \"ls all/apps | grep myapp\" (see \"secure_mode\" in config)\n"
             self.intro = self.intro + "\t- use \">\" to redirect output to file, eg. \"ls all/apps > applist.txt\" (see \"secure_mode\" in config)\n"
-            
         
-    
+        # inizializza la connessione verso le macchine definite nel file di configurazione
+        print("checking connection to configured machines...")
+        self.do_ls("")
+        print("done!\n")
     
     
     
