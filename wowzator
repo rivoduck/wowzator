@@ -8,9 +8,9 @@ from urllib.parse import quote_plus, unquote
 
 def shorten_string(source, length):
     if len(source) > length:
-        beginning=8
+        beginning=10
         if length < 13:
-            beginning=4
+            beginning=5
         end=length-beginning-1
         
         return source[:beginning]+"…"+source[len(source)-end:]
@@ -58,7 +58,7 @@ class WztrApplication():
     def list_view_header():
         return "%-8s %-28s %1s%1s%1s%1s" % ("App Type", "Stream Type", "(DVR)", "(DRM)", "(TRC)", "(STG)")
     def list_view(self):
-        return "%-8s %-28s %1s%1s%1s%1s  /%s/%s/apps/%s" % (self.appType, self.getConfigValue('StreamType'),
+        return "%-8s %-22s %1s%1s%1s%1s  /%s/%s/apps/%s" % (shorten_string(self.appType, 8), shorten_string(self.getConfigValue('StreamType'), 22),
             "R" if self.dvrEnabled else "-", 
             "D" if self.drmEnabled else "-",
             "T" if self.transcoderEnabled else "-", 
