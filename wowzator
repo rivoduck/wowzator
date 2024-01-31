@@ -48,6 +48,7 @@ class WztrApplication():
         self.__configuration = None
         self.__configurationAdv = None # this is how app Properties are called in wowza APIs
         self.__smilfiles = None
+        self.__streamfiles = None
         
     def __str__(self):
         return "/%s/%s/%s" % (self.vhost.machine.name, self.vhost.name, self.name)
@@ -212,6 +213,31 @@ class WztrApplication():
                             self.__smilfiles[newobj.name] = newobj
                 
         return self.__smilfiles
+
+    # stream files are taken from the application so that files in the application-specific
+    # content directory are taken into account, this generates a lot of duplicates in memory
+    # but it is needed for accurate results
+    def streamfiles(self):
+        # lazy-fetch stream file list
+        if self.__streamfiles is None:
+            self.__streamfiles={}
+            
+            result = self.vhost.machine.fetchDict(self.href + "/streamfiles")
+            if result["status"] == "OK":
+                if 'StreamFiles' in result["data"].keys():
+                    entry = result["data"]['StreamFiles']
+                    if 'StreamFile' in entry.keys():
+                        items = entry['StreamFile']
+                        if type(items) is not list:
+                            items = [ items ];
+                        for item in items:
+                            newobj = WztrStreamFile(item['@id'], item['@href'])
+                            newobj.application = self
+        
+                            self.__streamfiles[newobj.name] = newobj
+                
+        return self.__streamfiles
+
                 
     def getInstanceList(self):
         # always return fresh data
@@ -570,6 +596,105 @@ class WztrSmilFile():
 
 
 
+class WztrStreamFile():
+    header_singular="Stream file"
+    header_plural="Stream files"
+
+    def __init__(self, name, href):
+        self.name = name
+        self.href = href
+        self.__configuration = None
+        self.application=None
+
+    def __str__(self):
+        return "/%s/%s/apps/%s/streamfiles/%s" % (self.application.vhost.machine.name, self.application.vhost.name, self.application.name, self.name)
+    def __repr__(self):
+        return "WztrStreamFile: %s" % self.name
+
+    @staticmethod
+    def list_view_header():
+        return "%-22s %-5s %-7s %-55s" % ("StreamFile", "prot", "Listn", "file name")
+    def list_view(self):
+        errormsg = ""
+        if 'bad-data' in self.configuration():
+            errormsg = "***** check XML file *****"
+        return "%-22s %-5s %-7s %-55s %s" % (self.name, self.configuration()['protocol'], self.configuration()['listen_port'], self.configuration()['FileLocation'], errormsg)
+    def detail_view(self):
+        return {
+            "Stream file name": self.name
+        }
+
+    def configuration(self):
+        # lazy-fetch stream file config
+        if self.__configuration is None:
+            self.__configuration={}
+
+            result = self.application.vhost.machine.fetchDict(self.href)
+            
+            if result["status"] == "OK":
+                if 'StreamFile' in result["data"].keys():
+                    entry = result["data"]['StreamFile']
+                
+                    if 'Version' in entry.keys():
+                        del entry['Version']
+                    
+                    self.__configuration = WztrStreamFile.__clean_config_dict(entry)
+                    
+                    uri_prot='nd'
+                    uri_listen_port='--'
+                    if 'URI' in entry.keys():
+                        self.__configuration["URI"] = entry['URI']
+                        uri_array=entry['URI'].split(':')
+                        if len(uri_array) > 0:
+                            uri_prot=uri_array[0].lower()
+                            if uri_prot == 'srt' or uri_prot == 'udp':
+                                if len(uri_array) > 2:
+                                    uri_listen_port = uri_array[2].split('/')[0]
+                    self.__configuration["protocol"] = uri_prot
+                    self.__configuration["listen_port"] = uri_listen_port
+            else:
+                # aggiungi una proprietà per indicare che il file non può essere letto (bad XML probabilmente)
+                self.__configuration["bad-data"] = True
+            # aggiungi una proprietà con la directory in cui risiede il file
+            content_dir = None
+            name = "--nofile--"
+            app_config_dict = self.application.configuration()
+            if app_config_dict is not None:
+                if 'StreamConfig' in app_config_dict.keys():
+                    if 'StorageDir' in app_config_dict['StreamConfig'].keys():
+                        content_dir = app_config_dict['StreamConfig']['StorageDir']
+            if hasattr(self, 'name') and self.name != "":
+                name = self.name
+            
+            if content_dir is None or content_dir == '':
+                content_dir = "--no-dir-for-app-%s--" % self.application.name
+            
+            if content_dir[0] == '$':
+                # rimuovi la variabile di configurazione con la root di Wowza
+                content_dir_arr = content_dir.split("/")
+                content_dir_arr.pop(0)
+                content_dir = "/".join(content_dir_arr)
+            if content_dir[-1] == '/':
+                # rimuovi il trailing slash
+                content_dir = content_dir[:-1]
+            self.__configuration["FileLocation"] = "%s/%s.stream" % (content_dir, name)
+
+        return self.__configuration
+
+    # recursively remove irrelevant items from configuration dictionary
+    def __clean_config_dict(config_dict, previousKey=None):
+        if '@serverName' in config_dict.keys():
+            del config_dict['@serverName']
+        
+        for key in config_dict.keys():
+            if isinstance(config_dict[key], dict):
+                cleanitem = WztrStreamFile.__clean_config_dict(config_dict[key], key)
+                config_dict[key] = cleanitem
+        return config_dict
+
+
+
+
 # class used to create a temporary list of mediacache entries
 # using a class in order to avail of the code to render lists
 class WztrMediacacheItem():
@@ -919,6 +1044,7 @@ class WztrVhost():
         self.__applications = None
         self.__transcoderTemplates = None
         self.__smilfiles = None
+        self.__streamfiles = None
         self.machine=None
     
     def __str__(self):
@@ -1091,6 +1217,7 @@ class WztrVhost():
         # lazy-fetch smil files for each application so that all content dirs are navigated
         if self.__smilfiles is None:
             self.__smilfiles={}
+            print("consolidating SMIL file info, please wait...")
             
             # cycle thorugh apps
             for app_key in self.applications().keys():
@@ -1102,6 +1229,25 @@ class WztrVhost():
                     self.__smilfiles[smil_obj.configuration()['FileLocation']] = smil_obj
                 
         return self.__smilfiles
+
+    def streamfiles(self):
+        # lazy-fetch stream files for each application so that all content dirs are navigated
+        if self.__streamfiles is None:
+            self.__streamfiles={}
+            print("consolidating StreamFile info, please wait...")
+            
+            # cycle thorugh apps
+            for app_key in self.applications().keys():
+                cur_list = self.applications()[app_key].streamfiles()
+                # cycle through Streamfile objects
+                for streamfile_key in cur_list.keys():
+                    streamfile_obj = cur_list[streamfile_key]
+                    # add Streamfile objs, unique by FileLocation
+                    self.__streamfiles[streamfile_obj.configuration()['FileLocation']] = streamfile_obj
+                    
+        return self.__streamfiles
+
+
         
     def action(self, action):
         action_success="na"
@@ -1706,6 +1852,23 @@ class WztrPrompt(Cmd):
                                                     ]
                                                 }
                                             ]
+                                        },
+                                        {
+                                            "keyword": "streamfiles",
+                                            "keyword_type": "predicate",
+                                            "syntaxtree": [
+                                                {
+                                                    "keyword": "$STREAMFILES",
+                                                    "keyword_type": "object",
+                                                    "syntaxtree": [
+                                                        {
+                                                            "keyword": "configuration",
+                                                            "keyword_type": "predicate",
+                                                            "syntaxtree": []
+                                                        }
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     ]
                                 }
@@ -1754,7 +1917,11 @@ class WztrPrompt(Cmd):
                             "keyword_type": "predicate",
                             "syntaxtree": []
                         },
-                        
+                        {
+                            "keyword": "streamfiles",
+                            "keyword_type": "predicate",
+                            "syntaxtree": []
+                        },
                     ]
                 },
                 {
@@ -2380,6 +2547,8 @@ class WztrPrompt(Cmd):
             expanded_dict = command_object.transcodertemplates()
         elif keyword == "$SMILFILES":
             expanded_dict = command_object.smilfiles()
+        elif keyword == "$STREAMFILES":
+            expanded_dict = command_object.streamfiles()
         elif keyword == "$MEDIACACHEITEM":
             expanded_dict = command_object.mediacachecontent()
             
@@ -2498,12 +2667,26 @@ class WztrPrompt(Cmd):
                     print("/configuration\n\n")
                 else:
                     print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
+
+            elif predicate == "streamfiles":
+                if isinstance(object_instance, WztrApplication):
+                    # stream files for application
+                    self.__ls_objects(object_instance.streamfiles().values())
+                elif isinstance(object_instance, WztrVhost):
+                    # stream files for all apps in VHost
+                    self.__ls_objects(object_instance.streamfiles().values())
+                elif isinstance(object_instance, WztrStreamFile):
+                    # SMIL file specified withoutany further predicate
+                    print("/configuration\n\n")
+                else:
+                    print("WARNING: no \"%s\" keyword defined for object of type %s" % (predicate, type(object_instance)))
                 
             elif predicate == "configuration":
                 if isinstance(object_instance, WztrApplication) or \
                    isinstance(object_instance, WztrTranscodertemplate) or \
                    isinstance(object_instance, WztrVhost) or \
-                   isinstance(object_instance, WztrSmilFile):
+                   isinstance(object_instance, WztrSmilFile) or \
+                   isinstance(object_instance, WztrStreamFile):
                     table_attr = None
                     # force modules to be rendered as a table
                     if isinstance(object_instance, WztrApplication):
