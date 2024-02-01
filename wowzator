@@ -271,6 +271,17 @@ class WztrApplication():
                         if not isinstance(incomingstreams, list):
                             incomingstreams = [ incomingstreams ]
                         for incomingstream in incomingstreams:
+                            # connected SRT sources show the content of the ".stream" file
+                            # display it as the URI field if it is a valid JSON
+                            # cannot use JSON library since it is not 100% valid JSON
+                            # (no quotes on attribute names)
+                            string_position=incomingstream['SourceIp'].find('uri : "')
+                            if string_position > -1:
+                                # add length of searched string
+                                string_position += 7
+                                # find second quote
+                                last_quote=incomingstream['SourceIp'].find('"', string_position)
+                                incomingstream['SourceIp']=incomingstream['SourceIp'][string_position:last_quote]
                             newincoming = WztrIncomingStream(
                                 incomingstream['Name'], instance['Name'], 
                                 incomingstream['SourceIp'],incomingstream['IsRecordingSet'], 
@@ -775,7 +786,7 @@ class WztrIncomingStream():
         return "WztrIncomingStream: %s" % self.name
     
     def isRemote(self):
-        if self.source not in ['unknown', 'local (Transcoder)'] and self.connected == "true":
+        if self.source not in ['unknown', 'local (Transcoder)', 'local (SRT MPEG-TS Filter)'] and self.connected == "true":
             return True
         return False
     
@@ -1647,6 +1658,7 @@ class WztrMachine():
 
     def incomingstreams(self):
         # always return fresh data
+        print("please wait...")
         item_list={}
         for app in self.activeapps():
             item_list.update(app.incomingstreams())
