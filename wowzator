@@ -16,6 +16,11 @@ def shorten_string(source, length):
         return source[:beginning]+"…"+source[len(source)-end:]
     return source
 
+def get_configuration_int_sortkey(dict_obj, keyname):
+    try:
+        return int(dict_obj.configuration()[keyname])
+    except:
+        return 0
 
 
 class WztrApplication():
@@ -1244,11 +1249,17 @@ class WztrVhost():
                     streamfile_obj = cur_list[streamfile_key]
                     # add Streamfile objs, unique by FileLocation
                     self.__streamfiles[streamfile_obj.configuration()['FileLocation']] = streamfile_obj
-                    
+        
         return self.__streamfiles
 
-
-        
+    def streamfiles_ordered(self):
+        # return an ordered list
+        try:
+            objs=self.streamfiles().values()
+            return sorted(objs, key=lambda o: get_configuration_int_sortkey(o,'listen_port'))
+        except:
+            return []
+            
     def action(self, action):
         action_success="na"
         action_message="no message..."
@@ -2674,7 +2685,7 @@ class WztrPrompt(Cmd):
                     self.__ls_objects(object_instance.streamfiles().values())
                 elif isinstance(object_instance, WztrVhost):
                     # stream files for all apps in VHost
-                    self.__ls_objects(object_instance.streamfiles().values())
+                    self.__ls_objects(object_instance.streamfiles_ordered())
                 elif isinstance(object_instance, WztrStreamFile):
                     # SMIL file specified withoutany further predicate
                     print("/configuration\n\n")
