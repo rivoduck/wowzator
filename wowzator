@@ -110,7 +110,10 @@ class WztrApplication():
             if 'RepeaterOriginURL' in config_dict.keys():
                 result_dict['RepeaterOriginURL'] = config_dict['RepeaterOriginURL']
             if 'Description' in config_dict.keys():
-                result_dict['Description'] = config_dict['Description']
+                descr=config_dict['Description']
+                if len(descr) > 120:
+                    descr="%s…" % descr[:119]
+                result_dict['Description'] = descr
         
         if configKey in result_dict.keys():
             return result_dict[configKey]
