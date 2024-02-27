@@ -2687,7 +2687,7 @@ class WztrPrompt(Cmd):
                                 aggregated_apps[app.name]["machines"].append(app.vhost.machine.name)
                                 
                     item_list = []
-                    for agg_app_name in aggregated_apps.keys():
+                    for agg_app_name in sorted(aggregated_apps):
                         item_list.append(WztrAggregatedApplication(agg_app_name, aggregated_apps[agg_app_name]["machines"], aggregated_apps[agg_app_name]["descr"]))
                     self.__ls_objects(item_list)
                 elif predicate == 'licenses':
