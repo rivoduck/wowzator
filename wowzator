@@ -1017,7 +1017,7 @@ class WztrStreamTarget():
             "Key (Target stream)": self.targetstream,
         }
 
-# class used to create a temporary list of applicatio descriptions
+# class used to create a temporary list of application descriptions
 # using a class in order to avail of the code to render lists
 class WztrApplicationDescription():
     header_singular="Application description"
@@ -1027,7 +1027,7 @@ class WztrApplicationDescription():
         self.application = application
         
     def __str__(self):
-        return "/%s/%s/%s %s" % (self.application.vhost.machine.name, self.application.vhost.name, self.application.name, self.getConfigValue('Description'))
+        return "/%s/%s/%s %s" % (self.application.vhost.machine.name, self.application.vhost.name, self.application.name, self.application.getConfigValue('Description'))
     def __repr__(self):
         return "WztrApplicationDescription: %s" % self.application.name
 
@@ -1038,6 +1038,36 @@ class WztrApplicationDescription():
         return "%-8s %-44s %s" % (self.application.appType, str(self.application), self.application.getConfigValue('Description'))
     def detail_view(self):
         return self.application.detail_view()
+
+# class used to create a temporary list of aggregated applications
+# using a class in order to avail of the code to render lists
+class WztrAggregatedApplication():
+    header_singular="Aggregated app"
+    header_plural="Aggregated apps"
+
+    def __init__(self, app_name, machines_list, app_description):
+        self.app_name = app_name
+        self.machines_list = machines_list
+        self.app_description = app_description
+        
+    def __str__(self):
+        return "%s [%s] %s" % (self.app_name, ",".join(self.machines_list), self.app_description)
+    def __repr__(self):
+        return "WztrAggregatedApplication: %s" % self.app_name
+
+    @staticmethod
+    def list_view_header():
+        return "%-20s %-30s   %s" % ("App Name", "Machines", "Description")
+    def list_view(self):
+        return "%-20s %-30s %s" % (self.app_name, "[%s]" % ",".join(self.machines_list), self.app_description)
+    def detail_view(self):
+        return {
+            "App Name": self.app_name,
+            "Machines": ", ".join(self.machines_list),
+            "Description": self.app_description
+        }
+
+
 
 
 class WztrVhost():
@@ -1969,6 +1999,11 @@ class WztrPrompt(Cmd):
                     "syntaxtree": []
                 },
                 {
+                    "keyword": "apps-aggregated",
+                    "keyword_type": "predicate",
+                    "syntaxtree": []
+                },
+                {
                     "keyword": "licenses",
                     "keyword_type": "predicate",
                     "syntaxtree": []
@@ -2631,6 +2666,29 @@ class WztrPrompt(Cmd):
                         if isinstance(machine, WztrMachine):
                             for app in machine.applications().values():
                                 item_list.append(WztrApplicationDescription(app))
+                    self.__ls_objects(item_list)
+                elif predicate == 'apps-aggregated':
+                    # aggregated app info
+                    aggregated_apps={}
+                    for machine in object_list:
+                        if isinstance(machine, WztrMachine):
+                            for app in machine.applications().values():
+                                if app.name not in aggregated_apps.keys():
+                                    # add app
+                                    aggregated_apps[app.name] = {
+                                        "machines": [],
+                                        "descr": "--na--"
+                                    }
+                                if aggregated_apps[app.name]["descr"] is None or aggregated_apps[app.name]["descr"] == "" or aggregated_apps[app.name]["descr"] == "--na--":
+                                    cur_descr=app.getConfigValue('Description')
+                                    if cur_descr is not None and cur_descr != "":
+                                        aggregated_apps[app.name]["descr"]=cur_descr
+                                
+                                aggregated_apps[app.name]["machines"].append(app.vhost.machine.name)
+                                
+                    item_list = []
+                    for agg_app_name in aggregated_apps.keys():
+                        item_list.append(WztrAggregatedApplication(agg_app_name, aggregated_apps[agg_app_name]["machines"], aggregated_apps[agg_app_name]["descr"]))
                     self.__ls_objects(item_list)
                 elif predicate == 'licenses':
                     # list all licences
