@@ -1060,9 +1060,9 @@ class WztrAggregatedApplication():
 
     @staticmethod
     def list_view_header():
-        return "%-20s %-28s   %s" % ("App Name", "Machines", "Description")
+        return "%-20s %-30s %s" % ("App Name", "Machines", "Description")
     def list_view(self):
-        return "%-20s %-28s %s" % (self.app_name, ",".join(self.machines_list), self.app_description)
+        return "%-20s %-30s %s" % (self.app_name, ",".join(self.machines_list), self.app_description)
     def detail_view(self):
         return {
             "App Name": self.app_name,
