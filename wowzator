@@ -111,8 +111,8 @@ class WztrApplication():
                 result_dict['RepeaterOriginURL'] = config_dict['RepeaterOriginURL']
             if 'Description' in config_dict.keys():
                 descr=config_dict['Description']
-                if len(descr) > 120:
-                    descr="%s…" % descr[:119]
+                if len(descr) > 122:
+                    descr="%s…" % descr[:121]
                 result_dict['Description'] = descr
         
         if configKey in result_dict.keys():
@@ -1060,9 +1060,9 @@ class WztrAggregatedApplication():
 
     @staticmethod
     def list_view_header():
-        return "%-20s %-30s %s" % ("App Name", "Machines", "Description")
+        return "%-20s %-28s %s" % ("App Name", "Machines", "Description")
     def list_view(self):
-        return "%-20s %-30s %s" % (self.app_name, ",".join(self.machines_list), self.app_description)
+        return "%-20s %-28s %s" % (self.app_name, ",".join(self.machines_list), self.app_description)
     def detail_view(self):
         return {
             "App Name": self.app_name,
