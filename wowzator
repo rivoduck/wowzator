@@ -792,6 +792,11 @@ class WztrIncomingStream():
         if self.source not in ['unknown', 'local (Transcoder)', 'local (SRT MPEG-TS Filter)'] and self.connected == "true":
             return True
         return False
+
+    def isRecording(self):
+        if self.recording == "true" or (self.isRemote() and self.application.getConfigValue('StreamType') == "live-record"):
+            return True
+        return False
     
     @staticmethod
     def list_view_header():
@@ -2964,7 +2969,7 @@ class WztrPrompt(Cmd):
             if len(inputline) > 2:
                 arg3=inputline[2]
                 
-        if arg1 == "incomingstreams" or arg1 == "incomingstreams-all":
+        if arg1 == "incomingstreams" or arg1 == "incomingstreams-all" or arg1 == "recording":
             if arg2 and arg2 != "":
                 self.__get_obj_by_path(WztrPrompt.syntaxtree_server, arg2)
                 if self.command_error is None:
@@ -2978,6 +2983,11 @@ class WztrPrompt(Cmd):
                                 # show only remote incoming streams
                                 for in_stream in target_app_incomingstreams:
                                     if in_stream.isRemote():
+                                        incomingstreams.append(in_stream)
+                            elif arg1 == "recording":
+                                # show only incoming streams being recorded
+                                for in_stream in target_app_incomingstreams:
+                                    if in_stream.isRecording():
                                         incomingstreams.append(in_stream)
                             else:
                                 incomingstreams += target_app_incomingstreams
@@ -3036,12 +3046,12 @@ class WztrPrompt(Cmd):
         items=[]
         if line_args_count == 3:
             result={"completion": []}
-            if subcomm == "incomingstreams" or subcomm == "incomingstreams-all" or subcomm == "streamtargets" or subcomm == "outgoingstreams":
+            if subcomm == "incomingstreams" or subcomm == "incomingstreams-all" or subcomm == "streamtargets" or subcomm == "outgoingstreams" or subcomm == "recording":
                 result = self.__get_complete_by_path(WztrPrompt.syntaxtree_server, path_to_match)
                 
             items = [i for i in result if i.startswith(path_to_match)]
         if line_args_count < 3:
-            items=["incomingstreams", "incomingstreams-all", "streamtargets", "outgoingstreams"]
+            items=["incomingstreams", "incomingstreams-all", "streamtargets", "outgoingstreams", "recording"]
         
         return self.delimiter_complete(path_to_match, line, begidx, endidx, items, "/")
 
@@ -3049,6 +3059,7 @@ class WztrPrompt(Cmd):
         print("Shows status information")
         print("  status incomingstreams <server> [app_name_filter]")
         print("  status incomingstreams-all <server> [app_name_filter]")
+        print("  status recording <server> [app_name_filter]")
         print("  status streamtargets <server> [app_name_filter]")
         print("  status outgoingstreams [server]")
         print()
