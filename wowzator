@@ -62,7 +62,7 @@ class WztrApplication():
 
     @staticmethod
     def list_view_header():
-        return "%-8s %-28s %1s%1s%1s%1s" % ("App Type", "Stream Type", "(DVR)", "(DRM)", "(TRC)", "(STG)")
+        return "%-8s %-22s %1s%1s%1s%1s" % ("App Type", "Stream Type", "(DVR)", "(DRM)", "(TRC)", "(STG)")
     def list_view(self):
         return "%-8s %-22s %1s%1s%1s%1s  /%s/%s/apps/%s" % (shorten_string(self.appType, 8), shorten_string(self.getConfigValue('StreamType'), 22),
             "R" if self.dvrEnabled else "-", 
