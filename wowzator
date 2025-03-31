@@ -1068,6 +1068,8 @@ class WztrAggregatedApplication():
         return "%-20s %-28s %s" % ("App Name", "Machines", "Description")
     def list_view(self):
         return "%-20s %-28s %s" % (self.app_name, ",".join(self.machines_list), self.app_description)
+    def csv_view(self):
+        return "%s;%s;%s" % (self.app_name, ",".join(self.machines_list), self.app_description)
     def detail_view(self):
         return {
             "App Name": self.app_name,
@@ -2012,6 +2014,11 @@ class WztrPrompt(Cmd):
                     "syntaxtree": []
                 },
                 {
+                    "keyword": "apps-aggregated-csv",
+                    "keyword_type": "predicate",
+                    "syntaxtree": []
+                },
+                {
                     "keyword": "licenses",
                     "keyword_type": "predicate",
                     "syntaxtree": []
@@ -2647,7 +2654,12 @@ class WztrPrompt(Cmd):
                 self.__ls_object(self.command_object, self.command_predicate)
         else:
             print("** Error: %s" % self.command_error)
-
+    
+    def __ls_csv(self, object_list):
+        for cur_obj in object_list:
+            print("%s" % cur_obj.csv_view())
+        print()
+    
     def __ls_objects(self, object_list, predicate=None):
         object_list = list(object_list)
         if len(object_list) > 0:
@@ -2675,7 +2687,7 @@ class WztrPrompt(Cmd):
                             for app in machine.applications().values():
                                 item_list.append(WztrApplicationDescription(app))
                     self.__ls_objects(item_list)
-                elif predicate == 'apps-aggregated':
+                elif predicate == 'apps-aggregated' or predicate == 'apps-aggregated-csv':
                     # aggregated app info
                     aggregated_apps={}
                     for machine in object_list:
@@ -2697,7 +2709,10 @@ class WztrPrompt(Cmd):
                     item_list = []
                     for agg_app_name in sorted(aggregated_apps):
                         item_list.append(WztrAggregatedApplication(agg_app_name, aggregated_apps[agg_app_name]["machines"], aggregated_apps[agg_app_name]["descr"]))
-                    self.__ls_objects(item_list)
+                    if predicate == 'apps-aggregated':
+                        self.__ls_objects(item_list)
+                    else:
+                        self.__ls_csv(item_list)
                 elif predicate == 'licenses':
                     # list all licences
                     item_dict = {}
