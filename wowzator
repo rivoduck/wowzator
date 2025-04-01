@@ -2908,7 +2908,18 @@ class WztrPrompt(Cmd):
 
                 if self.command_error is None:
                     if self.command_object is None or not isinstance(self.command_object, WztrMediacacheItem):
-                        print("** Error: invalid mediacache item specified")
+                        if self.command_predicate == "all":
+                            print("rimuovi all mediacache from", self.command_object)
+                            if isinstance(self.command_object, WztrVhost):
+                                # vhost specified, remove each mediacache item
+                                for mci in self.command_object.mediacachecontent().values():
+                                    mci.flush()
+                            else:
+                                print("** Error: invalid mediacache container specified")
+
+                        else:
+                            print("** Error: invalid mediacache item specified")
+
                     else:
                         # rimuovi dalla mediacache del server wowza
                         self.command_object.flush()
